@@ -583,7 +583,7 @@ class Installer
   end
 
   def install_so( dir )
-    to = isdir(File.expand_path @config['so-dir'] + '/' + dir)
+    to = isdir(File.expand_path(@config['so-dir'] + '/' + dir))
     find_so('.').each do |fn|
       install fn, to, 0555
     end
