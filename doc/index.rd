@@ -1,6 +1,6 @@
 =begin
 = Ruby/DBI - a database independent interface for accessing databases - similar to Perl's DBI
-$Id: index.rd,v 1.22 2002/07/03 20:07:54 mneumann Exp $
+$Id: index.rd,v 1.23 2002/07/26 18:13:47 mneumann Exp $
 
 == License
 
@@ -62,6 +62,10 @@ License).
   performance by a factor around 100
 : Stephen Davies
   Added method Statement#fetch_scroll for PostgreSQL DBD.
+: Dave Thomas
+  Several enhancements.
+: Daniel J. Berger
+  contrib/dbrc
 
 == Database Drivers (DBDs)
 
