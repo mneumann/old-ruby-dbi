@@ -1,3 +1,7 @@
+#
+# $Id: row.rb,v 1.7 2001/08/30 13:31:51 michael Exp $
+#
+
 require "delegate"
 
 
