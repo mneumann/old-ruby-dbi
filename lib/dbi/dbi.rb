@@ -1,7 +1,6 @@
 # Ruby/DBI 
-# $Id: dbi.rb,v 1.27 2002/05/14 18:07:27 mneumann Exp $
+# $Id: dbi.rb,v 1.28 2002/05/21 18:33:34 mneumann Exp $
 # 
-# Version : 0.0.14
 # Author  : Michael Neumann (neumann@s-direktnet.de)
 #
 # Copyright (c) 2001 Michael Neumann
@@ -25,8 +24,9 @@ require "dbi/row"
 require "dbi/utils"
 require "dbi/sql"
 require "dbi/columninfo"
+require "dbi/version"
 require "date"
-
+ 
 module DBI
 
 module DBD
@@ -38,8 +38,6 @@ end
 #----------------------------------------------------
 #  Constants
 #----------------------------------------------------
-
-VERSION = "0.0.14"
 
 ##
 # Constants for fetch_scroll
