@@ -14,6 +14,13 @@ if [ $? != 0 ]; then
   exit 1
 fi
 
+dialog --yesno "Did you run test.rb in this directory (with both old and new Ruby versions; ruby test.rb ruby18/ruby test.rb ruby)?" 8 40
+if [ $? != 0 ]; then
+  dialog --msgbox "Exiting! Please run before trying again." 8 40
+  rm -rf work/
+  exit 1
+fi
+
 dialog --yesno "Added release date of new version in build/DBI-VERSIONS?" 8 40
 if [ $? != 0 ]; then
   dialog --msgbox "Exiting! Please modify build/DBI-VERSIONS appropriately, before trying again." 8 40
