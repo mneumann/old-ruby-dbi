@@ -4,8 +4,8 @@ module DBI
   module DBD
     module Pg
       
-      VERSION          = "0.1"
-      USED_DBD_VERSION = "0.1"
+      VERSION          = "0.2"
+      USED_DBD_VERSION = "0.2"
       
       class Driver < DBI::BaseDriver
 	
@@ -27,6 +27,28 @@ module DBI
       
       ################################################################
       class Database < DBI::BaseDatabase
+
+        # type map ---------------------------------------------------
+        
+        # by Eli Green
+        POSTGRESQL_to_XOPEN = {
+          "boolean"                   => [SQL_CHAR, 1, nil],
+          "character"                 => [SQL_CHAR, 1, nil],
+          "char"                      => [SQL_CHAR, 1, nil],
+          "real"                      => [SQL_REAL, 4, 6],
+          "double precision"          => [SQL_DOUBLE, 8, 15],
+          "smallint"                  => [SQL_SMALLINT, 2],
+          "integer"                   => [SQL_INTEGER, 4],
+          "bigint"                    => [SQL_BIGINT, 8],
+          "numeric"                   => [SQL_NUMERIC, nil, nil],
+          "time with time zone"       => [SQL_TIME, nil, nil],
+          "timestamp with time zone"  => [SQL_TIMESTAMP, nil, nil],
+          "bit varying"               => [SQL_BINARY, nil, nil], #huh??
+          "character varying"         => [SQL_VARCHAR, nil, nil],
+          "bit"                       => [SQL_TINYINT, nil, nil],
+          "text"                      => [SQL_VARCHAR, nil, nil],
+          nil                         => [SQL_OTHER, nil, nil]
+        }
 	
 	attr_reader :connection
 	attr_accessor :autocommit
@@ -81,6 +103,89 @@ module DBI
           res = stmt.fetch_all.collect {|row| row[0]} 
           stmt.finish
           res
+        end
+
+        ##
+        # by Eli Green (cleaned up by Michael Neumann)
+        #
+        def columns(table)
+          sql1 = %[
+            SELECT a.attname, i.indisprimary, i.indisunique 
+                   FROM pg_class bc, pg_class ic, pg_index i, pg_attribute a 
+            WHERE bc.relkind = 'r' AND UPPER(bc.relname) = UPPER(?) AND i.indrelid = bc.oid AND 
+                  i.indexrelid = ic.oid AND ic.oid = a.attrelid
+          ]
+
+          sql2 = %[
+            SELECT a.attname, a.atttypid, a.attnotnull, a.attlen, format_type(a.atttypid, a.atttypmod) 
+                   FROM pg_class c, pg_attribute a, pg_type t 
+            WHERE a.attnum > 0 AND a.attrelid = c.oid AND a.atttypid = t.oid AND c.relname = ?
+          ]
+
+          dbh = DBI::DatabaseHandle.new(self)
+	  indices = {}
+
+          dbh.execute(sql1, table) do |sth|
+            sth.each do |name, primary, unique|
+              indices[name] = [primary, unique]
+            end
+          end
+
+          ########## 
+
+          ret = []
+          dbh.execute(sql2, table) do |sth|
+            ret = sth.collect do |row|
+              name, pg_type, notnullable, len, ftype = row
+              #name = row[2]
+              indexed = false
+              primary = nil
+              unique = nil
+              if indices.has_key?(name)
+                indexed = true
+                primary, unique = indices[name]
+              end
+
+              type = ftype
+              pos = ftype.index('(')
+              decimal = nil
+              size = nil
+              if pos != nil
+                type = ftype[0..pos-1]
+                size = ftype[pos+1..-2]
+                pos = size.index(',')
+                if pos != nil
+                  size, decimal = size.split(',', 2)
+                  size = size.to_i
+                  decimal = decimal.to_i
+                else
+                  size = size.to_i
+                end
+              end
+              size = len if size.nil?
+
+              if POSTGRESQL_to_XOPEN.has_key?(type)
+                sql_type = POSTGRESQL_to_XOPEN[type][0]
+              else
+                sql_type = POSTGRESQL_to_XOPEN[nil][0]
+              end
+
+              row = {}
+              row['name']           = name
+              row['type']           = sql_type
+              row['type_name']      = type
+              row['nullable']       = ! notnullable
+              row['indexed']        = indexed
+              row['primary']        = primary
+              row['unique']         = unique
+              row['size']           = size
+              row['decimal_digits'] = decimal
+              row['default']        = nil
+              row
+            end # collect
+          end # execute
+
+          return ret
         end
 
 	def prepare(statement)
