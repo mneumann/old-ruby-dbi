@@ -1,5 +1,5 @@
 #
-# $Id: sql.rb,v 1.1 2001/05/31 13:26:59 michael Exp $
+# $Id: sql.rb,v 1.2 2001/06/11 00:11:29 michael Exp $
 #
 # extracted from Jim Weirichs DBD::Pg
 #
@@ -38,16 +38,24 @@ module SQL
   module BasicBind
 
     def bind(quoter, sql, args)
-      boundsql = sql.dup
-      boundsql.gsub! (/\?\?/, "\001")
-      args.each { |arg|
-	if ! boundsql.sub! (/\?/, quoter.quote(arg))
-	  raise "Too many SQL parameters"
-	end
-      }
-      raise "Not enough SQL parameters" if boundsql =~ /\?/
-      boundsql.gsub!(/\001/, "?")
-      boundsql
+      boundsql = sql.gsub(/\?\?/, "\001")
+
+      indices = []
+      i = -1
+      while i = boundsql.index("?", i+1)
+        indices.unshift(i)
+      end
+ 
+      case indices.size <=> args.size
+      when -1 
+        raise "Too many SQL parameters"
+      when 1
+        raise "Not enough SQL parameters"
+      end
+
+      indices.each_with_index {|inx, i| boundsql[inx,1] = quoter.quote(args[-(i+1)])}
+
+      boundsql.gsub(/\001/, "?")
     end
 
   end # module BasicBind
