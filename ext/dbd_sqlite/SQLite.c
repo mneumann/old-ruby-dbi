@@ -27,7 +27,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: SQLite.c,v 1.5 2003/05/14 18:36:16 mneumann Exp $
+ * $Id: SQLite.c,v 1.6 2003/05/14 19:52:07 mneumann Exp $
  */
 
 
@@ -475,7 +475,7 @@ Statement_execute(VALUE self)
 
   /* col_info */
   tables = rb_hash_new();  /* cache the table informations here */
-  if (rb_iv_get(self, "@col_info") == Qnil) {
+  if (rb_iv_get(self, "@col_info") == Qnil || RARRAY(rb_iv_get(self, "@col_info"))->len == 0) {
     rb_iv_set(self, "@col_info", rb_ary_new2(sm->ncolumn));
 
     for (i=0; i<sm->ncolumn;i++) { /* only first column */
