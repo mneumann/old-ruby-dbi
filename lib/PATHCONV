@@ -8,4 +8,5 @@ dbd_ado dbd_ado DBD/ADO
 dbd_pg dbd_pg DBD/Pg
 dbd_proxy dbd_proxy DBD/Proxy
 dbd_odbc dbd_odbc DBD/ODBC
+dbd_sqlrelay dbd_sqlrelay DBD/SQLRelay
 wrapper dbi .
