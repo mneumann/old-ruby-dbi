@@ -158,6 +158,12 @@ class TestSqlPreparedStmt < RUNIT::TestCase
       get_stmt("WHERE c='connected?' AND d=?").bind([10])
   end
 
+  def test_sql_injection
+    assert_equal "WHERE id='5 AND d=8'",
+      get_stmt("WHERE id=?").bind(['5 AND d=8'])
+  end
+
+
 end
 
 $last_suite.add_test(TestSqlPreparedStmt.suite)
