@@ -1,6 +1,6 @@
 =begin
 = Ruby/DBI - a database independent interface for accessing databases - similar to Perl's DBI
-$Id: index.rd,v 1.26 2002/10/22 15:25:38 mneumann Exp $
+$Id: index.rd,v 1.27 2003/01/22 10:55:02 mneumann Exp $
 
 == License
 
@@ -72,6 +72,8 @@ License).
   Submitted several patches and helped with lots of comments; Co-owner of the project.
 : MoonWolf
   quote/escape_bytea patch for DBD Pg.
+: Paul DuBois
+  Fixed typos and formatting. 
 
 == Database Drivers (DBDs)
 
@@ -182,6 +184,9 @@ from WWW at ((<URL:http://ruby-dbi.sourceforge.net/DBI_SPEC.html>)).
 The DBD specification (how to write a database driver) is lib/dbi/doc/DBD_SPEC or lib/dbi/doc/html/DBD_SPEC.html or available
 from WWW at ((<URL:http://ruby-dbi.sourceforge.net/DBD_SPEC.html>)).
 
+== Articles
+
+* ((<Using the Ruby DBI Module|URL:http://www.kitebird.com/articles/ruby-dbi.html>)) by Paul DuBois.
 
 == Applications
 
