@@ -27,7 +27,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: DB2.rb,v 1.6 2002/07/03 16:48:35 mneumann Exp $
+# $Id: DB2.rb,v 1.7 2003/09/11 16:08:59 mneumann Exp $
 #
 
 require 'db2/db2cli.rb'
@@ -174,7 +174,52 @@ USED_DBD_VERSION = "0.1"
     #def []=(attr, value)
     #end
 
-    # TODO: method columns(table)
+    def columns(table)
+      rc, stmt = SQLAllocHandle(SQL_HANDLE_STMT, @handle)
+      error(rc, "Could not allocate Statement")
+
+      schema = ''
+      if table =~ /^([^.]+)[.]([^.]+)/
+        schema = $1.upcase
+        table = $2.upcase
+      else
+        table = table.upcase
+      end
+      rc = SQLColumns(stmt, "", schema, table.upcase, "%")
+      error(rc, "Could not execute SQLColumns") 
+      
+      st = Statement.new(stmt, nil)
+      res = st.fetch_all || []
+      st.finish
+
+      res.collect {|row|
+        sql_type, type_name = DB2_to_DBI_type_mapping[row[4]]
+        ci = {'catalog' => row[0],
+          'schema' => row[1],
+          'table' => row[2],
+          'name' => row[3],
+          'sql_type' => sql_type,
+          'type_name' => type_name,
+          'db2_type_name' => row[5],
+          'precision' => row[6],
+          'buffer_length' => row[7],
+          'scale' => row[8],
+          'number_precision_radix' => row[9],
+          'nullable' => row[10] == 1,
+          'remarks' => row[11],
+          'default' => row[12],
+          'sql_data_type' => row[13],
+          'sql_datetime_sub' => row[14],
+          'char_octet_length' => row[15],
+          'ordinal_position' => row[16],
+          'is_nullable' => row[17],
+          # TODO: find these values
+          'indexed' => nil,
+          'primary' => nil,
+          'unique' => nil}
+        ci
+      }
+    end
 
     def commit
       rc = SQLEndTran(SQL_HANDLE_DBC, @handle, SQL_COMMIT)
@@ -261,44 +306,6 @@ USED_DBD_VERSION = "0.1"
     end
 
 
-    private
-
-    # TODO: check typenames
-    DB2_to_DBI_type_mapping = {
-      DB2CLI::SQL_DOUBLE         => [DBI::SQL_DOUBLE,        'DOUBLE'],
-      DB2CLI::SQL_FLOAT          => [DBI::SQL_FLOAT,         'FLOAT'],
-      DB2CLI::SQL_REAL           => [DBI::SQL_REAL,          'REAL'],
-
-      DB2CLI::SQL_INTEGER        => [DBI::SQL_INTEGER,       'INTEGER'],
-      DB2CLI::SQL_BIGINT         => [DBI::SQL_BIGINT,        'BIGINT'],
-      DB2CLI::SQL_SMALLINT       => [DBI::SQL_SMALLINT,      'SMALLINT'],
-
-      DB2CLI::SQL_DECIMAL        => [DBI::SQL_DECIMAL,       'DECIMAL'],
-      DB2CLI::SQL_NUMERIC        => [DBI::SQL_NUMERIC,       'NUMERIC'],
-
-      DB2CLI::SQL_TYPE_DATE      => [DBI::SQL_DATE,          'DATE'],
-      DB2CLI::SQL_TYPE_TIME      => [DBI::SQL_TIME,          'TIME'],
-      DB2CLI::SQL_TYPE_TIMESTAMP => [DBI::SQL_TIMESTAMP,     'TIMESTAMP'],
-
-      DB2CLI::SQL_CHAR           => [DBI::SQL_CHAR,          'CHAR'],
-      DB2CLI::SQL_VARCHAR        => [DBI::SQL_VARCHAR,       'VARCHAR'],
-      DB2CLI::SQL_LONGVARCHAR    => [DBI::SQL_LONGVARCHAR,   'LONG VARCHAR'],
-      DB2CLI::SQL_CLOB           => [DBI::SQL_CLOB,          'CLOB'],        
-
-      DB2CLI::SQL_BINARY         => [DBI::SQL_BINARY,        'BINARY'],
-      DB2CLI::SQL_VARBINARY      => [DBI::SQL_VARBINARY,     'VARBINARY'],
-      DB2CLI::SQL_LONGVARBINARY  => [DBI::SQL_LONGVARBINARY, 'LONG VARBINARY'],
-      DB2CLI::SQL_BLOB           => [DBI::SQL_BLOB,          'BLOB'],        
-
-      DB2CLI::SQL_BLOB_LOCATOR   => [DBI::SQL_OTHER,         'BLOB LOCATOR'],        
-      DB2CLI::SQL_CLOB_LOCATOR   => [DBI::SQL_OTHER,         'CLOB LOCATOR'],        
-      DB2CLI::SQL_DBCLOB_LOCATOR => [DBI::SQL_OTHER,         'DBCLOB LOCATOR'],        
-
-      DB2CLI::SQL_DBCLOB         => [DBI::SQL_OTHER,         'DBCLOB'],        
-      DB2CLI::SQL_GRAPHIC        => [DBI::SQL_OTHER,         'GRAPHIC'],        
-      DB2CLI::SQL_VARGRAPHIC     => [DBI::SQL_OTHER,         'VARGRAPHIC'],        
-      DB2CLI::SQL_LONGVARGRAPHIC => [DBI::SQL_OTHER,         'LONG VARGRAPHIC']
-    }
 
     MAX_COL_SIZE = 256
 
@@ -321,7 +328,7 @@ USED_DBD_VERSION = "0.1"
           'type_name'  => type_name,
           'precision'  => column_size,
           'scale'      => decimal_digits,
-          'nullable'   => nullable,
+          'nullable'   => nullable == 1,
           'db2_type'   => data_type
         }
       end 
@@ -356,6 +363,48 @@ USED_DBD_VERSION = "0.1"
 
   end # class Statement
 
+  private
+
+  DB2_to_DBI_type_mapping = {
+    DB2CLI::SQL_DOUBLE         => [DBI::SQL_DOUBLE,        'DOUBLE'],
+    DB2CLI::SQL_FLOAT          => [DBI::SQL_FLOAT,         'FLOAT'],
+    DB2CLI::SQL_REAL           => [DBI::SQL_REAL,          'REAL'],
+
+    DB2CLI::SQL_INTEGER        => [DBI::SQL_INTEGER,       'INTEGER'],
+    DB2CLI::SQL_BIGINT         => [DBI::SQL_BIGINT,        'BIGINT'],
+    DB2CLI::SQL_SMALLINT       => [DBI::SQL_SMALLINT,      'SMALLINT'],
+
+    DB2CLI::SQL_DECIMAL        => [DBI::SQL_DECIMAL,       'DECIMAL'],
+    DB2CLI::SQL_NUMERIC        => [DBI::SQL_NUMERIC,       'NUMERIC'],
+
+    DB2CLI::SQL_TYPE_DATE      => [DBI::SQL_DATE,          'DATE'],
+    DB2CLI::SQL_TYPE_TIME      => [DBI::SQL_TIME,          'TIME'],
+    DB2CLI::SQL_TYPE_TIMESTAMP => [DBI::SQL_TIMESTAMP,     'TIMESTAMP'],
+
+    DB2CLI::SQL_TINYINT        => [DBI::SQL_CHAR,          'CHAR'],
+    DB2CLI::SQL_CHAR           => [DBI::SQL_CHAR,          'CHAR'],
+    DB2CLI::SQL_VARCHAR        => [DBI::SQL_VARCHAR,       'VARCHAR'],
+    DB2CLI::SQL_LONGVARCHAR    => [DBI::SQL_LONGVARCHAR,   'LONG VARCHAR'],
+    DB2CLI::SQL_CLOB           => [DBI::SQL_CLOB,          'CLOB'],        
+
+    DB2CLI::SQL_BINARY         => [DBI::SQL_BINARY,        'CHAR FOR BIT DATA'],
+    DB2CLI::SQL_BIT            => [DBI::SQL_BINARY,        'CHAR FOR BIT DATA'],
+    DB2CLI::SQL_VARBINARY      => [DBI::SQL_VARBINARY,     'VARCHAR FOR BIT DATA'],
+    DB2CLI::SQL_LONGVARBINARY  => [DBI::SQL_LONGVARBINARY, 'LONG VARCHAR FOR BIT DATA'],
+    DB2CLI::SQL_BLOB           => [DBI::SQL_BLOB,          'BLOB'],
+
+    DB2CLI::SQL_BLOB_LOCATOR   => [DBI::SQL_OTHER,         'BLOB LOCATOR'],
+    DB2CLI::SQL_CLOB_LOCATOR   => [DBI::SQL_OTHER,         'CLOB LOCATOR'],
+    DB2CLI::SQL_DBCLOB_LOCATOR => [DBI::SQL_OTHER,         'DBCLOB LOCATOR'],
+    DB2CLI::SQL_DBCLOB         => [DBI::SQL_OTHER,         'DBCLOB'],
+    DB2CLI::SQL_GRAPHIC        => [DBI::SQL_OTHER,         'GRAPHIC'],
+    DB2CLI::SQL_VARGRAPHIC     => [DBI::SQL_OTHER,         'VARGRAPHIC'],
+    DB2CLI::SQL_WVARCHAR       => [DBI::SQL_OTHER,         'VARGRAPHIC'],
+    DB2CLI::SQL_LONGVARGRAPHIC => [DBI::SQL_OTHER,         'LONG VARGRAPHIC'],
+    DB2CLI::SQL_WLONGVARCHAR   => [DBI::SQL_OTHER,         'LONG VARGRAPHIC'],
+    DB2CLI::SQL_DATALINK       => [DBI::SQL_OTHER,         'DATALINK'],
+    DB2CLI::SQL_WCHAR          => [DBI::SQL_OTHER,         'WCHAR'],        
+    }
 
 
 end # module DB2
