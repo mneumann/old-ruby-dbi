@@ -1,5 +1,5 @@
 # Ruby/DBI 
-# $Id: dbi.rb,v 1.21 2001/10/10 10:47:57 michael Exp $
+# $Id: dbi.rb,v 1.22 2001/10/22 16:05:04 michael Exp $
 # 
 # Version : 0.0.9
 # Author  : Michael Neumann (neumann@s-direktnet.de)
@@ -442,8 +442,8 @@ class Handle
   # call a driver specific function
   #
   def func(function, *values)
-    if @handle.respond_to? function then
-      @handle.send(function, *values)  
+    if @handle.respond_to?("__" + function.to_s) then
+      @handle.send("__" + function.to_s, *values)  
     else
       raise InterfaceError, "Driver specific function <#{function}> not available."
     end
@@ -953,6 +953,12 @@ end # class BaseDatabase
 
 class BaseStatement < Base
 
+  def initialize(attr=nil)
+    @attr = attr || {}
+  end
+
+
+
   def bind_param(param, value, attribs)
     raise NotImplementedError
   end
@@ -1036,6 +1042,14 @@ class BaseStatement < Base
     else
       rows
     end
+  end
+
+  def [](attr)
+    @attr[attr]
+  end
+
+  def []=(attr, value)
+    raise NotSupportedError
   end
 
 end # class BaseStatement
