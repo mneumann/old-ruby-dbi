@@ -1,8 +1,8 @@
 # 
 # DBD::ODBC
-# $Id: ODBC.rb,v 1.3 2001/08/30 14:05:19 michael Exp $
+# $Id: ODBC.rb,v 1.4 2001/10/22 15:59:02 michael Exp $
 # 
-# Version : 0.1.1
+# Version : 0.1.2
 # Author  : Michael Neumann (neumann@s-direktnet.de)
 #
 # Copyright (c) 2001 Michael Neumann
@@ -139,8 +139,14 @@ class Database < DBI::BaseDatabase
     case attr
     when 'AutoCommit'
       @handle.autocommit(value)
+    when 'odbc_ignorecase'
+      @handle.ignorecase(value)
     else
-      raise NotSupportedError
+      if attr =~ /^odbc_/ or attr != /_/
+        raise NotSupportedError, "Option '#{attr}' not supported"
+      else # option for some other driver - quitly ignore
+        return
+      end
     end
     @attr[attr] = value
   rescue ODBCErr => err
