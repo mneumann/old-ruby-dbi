@@ -27,7 +27,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: Pg.rb,v 1.25 2002/09/26 13:28:12 mneumann Exp $
+# $Id: Pg.rb,v 1.26 2002/09/26 13:32:58 mneumann Exp $
 #
 
 require 'postgres'
@@ -40,20 +40,20 @@ module DBI
       USED_DBD_VERSION = "0.2"
       
       class Driver < DBI::BaseDriver
-	
-	def initialize
-	  super(USED_DBD_VERSION)
-	end
-	
-	## List of datasources for this database.
-	def data_sources
-	  []
-	end
-	
-	## Connect to a database.
-	def connect(dbname, user, auth, attr)
-	  Database.new(dbname, user, auth, attr)
-	end
+        
+        def initialize
+          super(USED_DBD_VERSION)
+        end
+        
+        ## List of datasources for this database.
+        def data_sources
+          []
+        end
+        
+        ## Connect to a database.
+        def connect(dbname, user, auth, attr)
+          Database.new(dbname, user, auth, attr)
+        end
 
       end
       
@@ -81,10 +81,10 @@ module DBI
           "text"                      => [SQL_VARCHAR, nil, nil],
           nil                         => [SQL_OTHER, nil, nil]
         }
-	
-	attr_reader :connection
+        
+        attr_reader :connection
 
-	def initialize(dbname, user, auth, attr)
+        def initialize(dbname, user, auth, attr)
           hash = Utils.parse_params(dbname)
 
           if hash['dbname'].nil? and hash['database'].nil?
@@ -98,35 +98,35 @@ module DBI
           @connection = PGconn.new(hash['host'], hash['port'], hash['options'], hash['tty'], 
             hash['dbname'] || hash['database'], user, auth)
 
-	  @attr = attr
-	  @attr.each { |k,v| self[k] = v} 
+          @attr = attr
+          @attr.each { |k,v| self[k] = v} 
 
-	  load_type_map
-	rescue PGError => err
-	  raise DBI::OperationalError.new(err.message)
-	end
-	
-	# DBD Protocol -----------------------------------------------
+          load_type_map
+        rescue PGError => err
+          raise DBI::OperationalError.new(err.message)
+        end
+        
+        # DBD Protocol -----------------------------------------------
 
-	def disconnect
-	  unless @attr['AutoCommit']
-	    send_sql("ROLLBACK", 2)        # rollback outstanding transactions 
-	  end
-	  @connection.close
-	end
-	
-	def ping
-	  answer = send_sql("SELECT 1", 3)
+        def disconnect
+          unless @attr['AutoCommit']
+            send_sql("ROLLBACK", 2)        # rollback outstanding transactions 
+          end
+          @connection.close
+        end
+        
+        def ping
+          answer = send_sql("SELECT 1", 3)
           if answer
             return answer.num_tuples == 1
           else
             return false
           end
-	rescue PGError
-	  return false
-	ensure
-	  answer.clear if answer
-	end
+        rescue PGError
+          return false
+        ensure
+          answer.clear if answer
+        end
 
         def tables
           stmt = execute("SELECT relname FROM pg_class WHERE relkind='r'")
@@ -164,7 +164,7 @@ module DBI
           ]
 
           dbh = DBI::DatabaseHandle.new(self)
-	  indices = {}
+          indices = {}
           default_values = {}
 
           dbh.select_all(sql3, table) do |default, name|
@@ -232,10 +232,10 @@ module DBI
           return ret
         end
 
-	def prepare(statement)
-	  Statement.new(self, statement)
-	end
-	
+        def prepare(statement)
+          Statement.new(self, statement)
+        end
+        
         # Note: 'AutoCommit' returns nil <=> Postgres' default mode  
         def [](attr)
           case attr
@@ -246,49 +246,49 @@ module DBI
           end
         end
 
-	def []=(attr, value)
-	  case attr
-	  when 'AutoCommit'
-	    # TODO: Are outstanding transactions committed?
-	    send_sql("SET AUTOCOMMIT TO " + (value ? "ON" : "OFF"), 2)
+        def []=(attr, value)
+          case attr
+          when 'AutoCommit'
+            # TODO: Are outstanding transactions committed?
+            send_sql("SET AUTOCOMMIT TO " + (value ? "ON" : "OFF"), 2)
           when 'pg_client_encoding'
             @connection.set_client_encoding(value)
-	  else
+          else
             if attr =~ /^pg_/ or attr != /_/
               raise DBI::NotSupportedError, "Option '#{attr}' not supported"
             else # option for some other driver - quitly ignore
               return
             end
-	  end
-	  @attr[attr] = value
-	end
+          end
+          @attr[attr] = value
+        end
 
-	def commit
-	  # TODO: what if in autocommit mode?
-	  send_sql("COMMIT", 2)
-	end
+        def commit
+          # TODO: what if in autocommit mode?
+          send_sql("COMMIT", 2)
+        end
 
-	def rollback
-	  # TODO: what if in autocommit mode?
-	  send_sql("ROLLBACK", 2)
-	end
+        def rollback
+          # TODO: what if in autocommit mode?
+          send_sql("ROLLBACK", 2)
+        end
 
-	# Other Public Methods ---------------------------------------
+        # Other Public Methods ---------------------------------------
 
-	def convert(obj,typeid)
-	  return nil if obj.nil?
-	  converter = @type_map[typeid] || :as_str
+        def convert(obj,typeid)
+          return nil if obj.nil?
+          converter = @type_map[typeid] || :as_str
           #raise DBI::InterfaceError, "Unsupported Type (typeid=#{typeid})" if converter.nil?
-	  @coerce.coerce(converter, obj)
-	end
+          @coerce.coerce(converter, obj)
+        end
 
-	def send_sql(sql, level=1)
-	  #puts "SQL TRACE: |#{sql}|" if @debug_level >= level
-	  @connection.exec(sql)
-	end
+        def send_sql(sql, level=1)
+          #puts "SQL TRACE: |#{sql}|" if @debug_level >= level
+          @connection.exec(sql)
+        end
 
         def quote(value)
-	  # TODO: new quote function of Pg driver
+          # TODO: new quote function of Pg driver
           case value
           when String
                 "'#{ value.gsub(/\\/){ '\\\\' }.gsub(/'/){ '\\\'' } }'"
@@ -297,33 +297,33 @@ module DBI
           end
         end
        
-	
+        
         private # ----------------------------------------------------
 
-	def load_type_map
-	  @type_map = Hash.new
+        def load_type_map
+          @type_map = Hash.new
           @coerce = PgCoerce.new
 
-	  res = send_sql("SELECT typname, typelem FROM pg_type")
+          res = send_sql("SELECT typname, typelem FROM pg_type")
 
-	  res.result.each { |name, idstr|
-	    @type_map[idstr.to_i] = 
+          res.result.each { |name, idstr|
+            @type_map[idstr.to_i] = 
             case name
             when '_bool'                      then :as_bool
-	    when '_int8', '_int4', '_int2'    then :as_int
-	    when '_varchar'                   then :as_str
-	    when '_float4','_float8'          then :as_float
+            when '_int8', '_int4', '_int2'    then :as_int
+            when '_varchar'                   then :as_str
+            when '_float4','_float8'          then :as_float
             when '_timestamp', '_timestamptz' then :as_timestamp
             when '_date'                      then :as_date
             when '_bytea'                     then :as_bytea
             else                                   :as_str
-	    end
-	  }
+            end
+          }
           
           # additional conversions
           @type_map[705]  ||= :as_str       # select 'hallo'
           @type_map[1114] ||= :as_timestamp # TIMESTAMP WITHOUT TIME ZONE
-	end
+        end
 
 
         # Driver-specific functions ------------------------------------------------
@@ -332,31 +332,31 @@ module DBI
 
         def __blob_import(file)
           @connection.lo_import(file)
-	rescue PGError => err
+        rescue PGError => err
           raise DBI::DatabaseError.new(err.message) 
         end
 
         def __blob_export(oid, file)
           @connection.lo_export(oid.to_i, file)
-	rescue PGError => err
+        rescue PGError => err
           raise DBI::DatabaseError.new(err.message) 
         end
 
         def __blob_create(mode=PGlarge::INV_READ)
           @connection.lo_create(mode)
-	rescue PGError => err
+        rescue PGError => err
           raise DBI::DatabaseError.new(err.message) 
         end
 
         def __blob_open(oid, mode=PGlarge::INV_READ)
           @connection.lo_open(oid.to_i, mode)
-	rescue PGError => err
+        rescue PGError => err
           raise DBI::DatabaseError.new(err.message) 
         end
 
         def __blob_unlink(oid)
           @connection.lo_unlink(oid.to_i)
-	rescue PGError => err
+        rescue PGError => err
           raise DBI::DatabaseError.new(err.message) 
         end
 
@@ -370,7 +370,7 @@ module DBI
           end
           blob.close
           data
-	rescue PGError => err
+        rescue PGError => err
           raise DBI::DatabaseError.new(err.message) 
         end
 
@@ -381,7 +381,7 @@ module DBI
         #   http://www.postgresql.org/idocs/index.php?datatype-binary.html
         #
         def __encode_bytea(str)
-	  # TODO: use quote function of Pg driver
+          # TODO: use quote function of Pg driver
           a = str.split(/\\/, -1).collect! {|s|
             s.gsub!(/'/,    "\\\\047")  # '  => \\047 
             s.gsub!(/\000/, "\\\\000")  # \0 => \\000  
@@ -394,19 +394,19 @@ module DBI
 
       ################################################################
       class Statement < DBI::BaseStatement
-	
-	def initialize(db, sql)
-	  @db  = db
+        
+        def initialize(db, sql)
+          @db  = db
           @prep_sql = DBI::SQL::PreparedStatement.new(@db, sql)
-	  @result = nil
-	  @bindvars = []
-	end
-	
-	def bind_param(index, value, options)
-	  @bindvars[index-1] = value
-	end
+          @result = nil
+          @bindvars = []
+        end
+        
+        def bind_param(index, value, options)
+          @bindvars[index-1] = value
+        end
 
-	def execute
+        def execute
           # replace DBI::Binary object by oid returned by lo_import 
           @bindvars.collect! do |var|
             if var.is_a? DBI::Binary then
@@ -421,42 +421,42 @@ module DBI
             end
           end
 
-	  boundsql = @prep_sql.bind(@bindvars)
+          boundsql = @prep_sql.bind(@bindvars)
 
           pg_result = @db.send_sql(boundsql)
           @result = Tuples.new(@db, pg_result)
 
-	rescue PGError, RuntimeError => err
-	  raise DBI::ProgrammingError.new(err.message)
-	end
-	
-	def fetch
-	  @result.fetchrow
-	end
+        rescue PGError, RuntimeError => err
+          raise DBI::ProgrammingError.new(err.message)
+        end
+        
+        def fetch
+          @result.fetchrow
+        end
 
-	def fetch_scroll(direction, offset)
-	  @result.fetch_scroll(direction, offset)
-	end
+        def fetch_scroll(direction, offset)
+          @result.fetch_scroll(direction, offset)
+        end
 
-	def finish
-	  @result.finish if @result
-	  @result = nil
-	  @db = nil
-	end
-	
-	# returns result-set column informations
-	def column_info
-	  @result.column_info
-	end
-	
-	# Return the row processed count (or nil if RPC not available)
-	def rows
-	  if @result
+        def finish
+          @result.finish if @result
+          @result = nil
+          @db = nil
+        end
+        
+        # returns result-set column informations
+        def column_info
+          @result.column_info
+        end
+        
+        # Return the row processed count (or nil if RPC not available)
+        def rows
+          if @result
             @result.rows_affected
-	  else
-	    nil
-	  end
-	end
+          else
+            nil
+          end
+        end
 
         def [](attr)
           case attr
@@ -472,59 +472,59 @@ module DBI
         end
 
 
-	private # ----------------------------------------------------
+        private # ----------------------------------------------------
 
       end # Statement
       
       ################################################################
       class Tuples
 
-	def initialize(db,pg_result)
-	  @db = db
-	  @pg_result = pg_result
-	  @index = -1
+        def initialize(db,pg_result)
+          @db = db
+          @pg_result = pg_result
+          @index = -1
           @result = @pg_result.result
-	  @row = Array.new
-	end
+          @row = Array.new
+        end
 
-	def column_info
-	  @pg_result.fields.collect do |str| {'name'=>str} end
-	end
+        def column_info
+          @pg_result.fields.collect do |str| {'name'=>str} end
+        end
 
-	def fetchrow
-	  @index += 1
-	  if @index < @result.size && @index >= 0
-	    fill_array(@result[@index])
-	    @row
-	  else
-	    nil
-	  end
-	end
+        def fetchrow
+          @index += 1
+          if @index < @result.size && @index >= 0
+            fill_array(@result[@index])
+            @row
+          else
+            nil
+          end
+        end
 
-	def fetch_scroll(direction, offset)
-	  # Exact semantics aren't too closely defined.  I attempted to follow the DBI:Mysql example.
-	  case direction
-	  when SQL_FETCH_NEXT
-	    # Nothing special to do, besides the fetchrow
-	  when SQL_FETCH_PRIOR
-	    @index -= 2
-	  when SQL_FETCH_FIRST
-	    @index = -1
-	  when SQL_FETCH_LAST
-	    @index = @result.size - 2
-	  when SQL_FETCH_ABSOLUTE
-	    # Note: if you go "out of range", all fetches will give nil until you get back
-	    # into range, this doesn't raise an error.
-	    @index = offset-1
-	  when SQL_FETCH_RELATIVE
-	    # Note: if you go "out of range", all fetches will give nil until you get back
-	    # into range, this doesn't raise an error.
-	    @index += offset - 1
-	  else
-	    raise NotSupportedError
-	  end
-	  self.fetchrow
-	end
+        def fetch_scroll(direction, offset)
+          # Exact semantics aren't too closely defined.  I attempted to follow the DBI:Mysql example.
+          case direction
+          when SQL_FETCH_NEXT
+            # Nothing special to do, besides the fetchrow
+          when SQL_FETCH_PRIOR
+            @index -= 2
+          when SQL_FETCH_FIRST
+            @index = -1
+          when SQL_FETCH_LAST
+            @index = @result.size - 2
+          when SQL_FETCH_ABSOLUTE
+            # Note: if you go "out of range", all fetches will give nil until you get back
+            # into range, this doesn't raise an error.
+            @index = offset-1
+          when SQL_FETCH_RELATIVE
+            # Note: if you go "out of range", all fetches will give nil until you get back
+            # into range, this doesn't raise an error.
+            @index += offset - 1
+          else
+            raise NotSupportedError
+          end
+          self.fetchrow
+        end
 
         def row_count
           @pg_result.num_tuples
@@ -534,17 +534,17 @@ module DBI
           @pg_result.cmdtuples
         end
 
-	def finish
-	  @pg_result.clear
-	end
+        def finish
+          @pg_result.clear
+        end
 
-	private # ----------------------------------------------------
+        private # ----------------------------------------------------
 
-	def fill_array(rowdata)
-	  rowdata.each_with_index { |value, index|
-	    @row[index] = @db.convert(rowdata[index],@pg_result.type(index))
-	  }
-	end
+        def fill_array(rowdata)
+          rowdata.each_with_index { |value, index|
+            @row[index] = @db.convert(rowdata[index],@pg_result.type(index))
+          }
+        end
 
       end # Tuples
 
@@ -555,7 +555,7 @@ module DBI
         #   http://www.postgresql.org/idocs/index.php?datatype-binary.html
         #
         def as_bytea(str)
-	  # TODO: Use quote function of Pg driver
+          # TODO: Use quote function of Pg driver
           a = str.split(/\\\\/, -1).collect! {|s|
             s.gsub!(/\\[0-7][0-7][0-7]/) {|o| o[1..-1].oct.chr}  #  \### => chr(###)
             s
