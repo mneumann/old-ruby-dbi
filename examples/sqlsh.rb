@@ -1,8 +1,14 @@
+#
+# $Id: sqlsh.rb,v 1.9 2001/11/08 21:51:04 michael Exp $
+# by Michael Neumann
+#
 
 require "dbi"
 
 class ReadlineControl
   
+  attr_accessor :keywords
+
   def initialize
     begin
       require "readline"
@@ -16,10 +22,6 @@ class ReadlineControl
     if @readline
       Readline.completion_proc = proc {|str| complete(str) }
     end
-  end
-
-  def add_keywords(arr)
-    @keywords += arr
   end
 
   def complete(str)
@@ -40,6 +42,13 @@ class ReadlineControl
   end
 
 end
+
+def output_table(header, rows)
+  DBI::Utils::TableFormatter.ascii(header, rows, nil, nil, nil, nil, $page_len) do   
+    $stdin.readline
+  end
+end
+
 
 if ARGV.size < 1 or ARGV.size > 3
   puts
@@ -83,8 +92,11 @@ end
 
 puts
 
+DEFAULT_PAGE_LENGTH = 37 
+
 $output     = nil
 $input      = nil
+$page_len   = DEFAULT_PAGE_LENGTH 
 PROMPT      = "dbi => "
 PROMPT_CONT = "dbi =| "
 INPUT       = " >> "
@@ -98,7 +110,7 @@ SQL_KEYWORDS = %w(
 )
 
 rd = ReadlineControl.new
-rd.add_keywords SQL_KEYWORDS
+rd.keywords = SQL_KEYWORDS + Conn.tables
 rd.set_prompt(PROMPT)
 
 
@@ -129,23 +141,34 @@ loop {
         head = %w(Function Description)
         rows = [
           ["\\h[elp]",     "Display this help screen"],
-          ["\\t[ables]",   "Display all available tables"],
+          ["", ""],
 
+          ["\\t[ables]",   "Display all available tables"],
+          ["\\dt table",   "Describe columns of 'table'"],
+          ["\\s[elect] table", "short for SELECT * FROM 'table'"],
+ 
+          ["", ""],
           ["\\c[ommit]",   "Commits the current transaction"],
           ["\\r[ollback]", "Rolls back the current transaction"],
           ["\\a[utocommit]", "Show current autocommit mode"],
           ["\\a[utocommit] on|off", "Switch autocommit mode on/off"],
+          ["", ""],
 
-          ["\\i[nput] filename", "Read and execute lines from file filename"],
+          ["\\i[nput] filename", "Read and execute lines from 'filename'"],
           ["\\o[utput]", "Disable output"],
-          ["\\o[utput] filename", "Store SQL-statments the user input into file filename"],
+          ["\\o[utput] filename", "Store SQL statments the user inputs into 'filename'"],
+          ["", ""],
+
+          ["\\pl n", "Set page length to 'n'"],
+          ["", ""],
 
           ["\\q[uit]",     "Quit this program"]
         ]
           
         puts
         puts "Help: "
-        DBI::Utils::TableFormatter.ascii(head, rows)
+        #DBI::Utils::TableFormatter.ascii(head, rows)
+        output_table(head, rows)
         puts
         next 
       elsif line =~ /^\\t(ables)?/i then
@@ -154,9 +177,27 @@ loop {
           
         puts
         puts "Tables: "
-        DBI::Utils::TableFormatter.ascii(head, rows)
+        #DBI::Utils::TableFormatter.ascii(head, rows)
+        output_table(head, rows)
         puts
         next 
+
+      elsif line =~ /^\\dt/i then
+        table = $'.strip
+        
+        head = %w(name type_name precision scale default nullable indexed primary unique)
+
+        rows = Conn.columns(table).collect {|col| head.collect{|a| col[a]} }
+
+        puts
+        puts "Table '#{table}': "
+        output_table(head, rows)
+        puts
+        next 
+
+      elsif line =~ /^\\s(select)?/i then
+        table = $'.strip
+        line = "SELECT * FROM #{table}\n"
 
       elsif line =~ /^\\c(ommit)?/i then
         $output.puts line unless $output.nil?
@@ -235,6 +276,17 @@ loop {
         puts "Set OUTPUT to file #{file}" 
         puts
         next
+
+      elsif line =~ /^\\pl/i then
+        puts
+        $page_len = $'.strip.to_i
+        $page_len = DEFAULT_PAGE_LENGTH if $page_len <= 0
+
+        puts "New page length is #{$page_len}."
+        puts
+        next
+
+
       else
         puts
         puts "Unknown command!"
@@ -296,6 +348,7 @@ loop {
         puts "  #{nr} rows affected"
       end
       puts
+      rd.keywords = SQL_KEYWORDS + Conn.tables
       next
     end
 
@@ -303,7 +356,7 @@ loop {
     tm = ::Time.now - start
 
     puts
-    DBI::Utils::TableFormatter.ascii(head, rows || [])
+    output_table(head, rows || [])
     print "  "
     if rows.nil?
       print "No rows in set"
@@ -316,6 +369,8 @@ loop {
     puts " (#{(tm.to_f*1000).to_i / 1000.0} sec)"
     puts
 
+    rd.keywords = SQL_KEYWORDS + Conn.tables
+
   rescue DBI::Error => err
     puts
     puts err.message
@@ -323,7 +378,6 @@ loop {
     puts
   end
 }
-
 
 
 # exit the program
