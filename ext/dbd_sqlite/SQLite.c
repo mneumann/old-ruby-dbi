@@ -1,7 +1,7 @@
 /*
  * DBD driver for SQLite
  *
- * Copyright (c) 2001, 2002 Michael Neumann <neumann@s-direktnet.de>
+ * Copyright (c) 2001, 2002, 2003 Michael Neumann <mneumann@ntecs.de>
  *
  * All rights reserved.
  *
@@ -27,7 +27,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: SQLite.c,v 1.4 2002/07/03 16:48:35 mneumann Exp $
+ * $Id: SQLite.c,v 1.5 2003/05/14 18:36:16 mneumann Exp $
  */
 
 
@@ -49,9 +49,11 @@
 static VALUE mDBD, mSQLite;
 static VALUE cDriver, cDatabase, cStatement;
 static VALUE cBaseDriver, cBaseDatabase, cBaseStatement;
+static VALUE cTimestamp;
 static VALUE eOperationalError, eDatabaseError, eInterfaceError;
 static VALUE eNotSupportedError;
 static VALUE TYPE_CONV_MAP, CONVERTER, CONVERTER_PROC;
+static ID id_to_time, id_utc, id_strftime;
 
 #define SQL_FETCH_NEXT     1
 #define SQL_FETCH_PRIOR    2
@@ -69,7 +71,7 @@ struct sDatabase {
 struct sStatement {
   VALUE conn, statement;
   char **result;
-  int nrow, ncolumn, row_index;
+  int nrow, ncolumn, row_index, nrpc;
 };
 
 struct sTable {
@@ -406,6 +408,7 @@ Database_prepare(VALUE self, VALUE stmt)
   sm->result = NULL;
   sm->nrow = -1;
   sm->ncolumn = -1;
+  sm->nrpc = -1;
 
   return statement;
 }
@@ -468,6 +471,7 @@ Statement_execute(VALUE self)
     rb_str_cat(errstr, "(", 1); rb_str_concat(errstr, rb_str_new2(sqliteErrStr(state))); rb_str_cat(errstr, ")", 1);
     rb_raise(eDatabaseError, STR2CSTR(errstr));
   }
+  sm->nrpc = sqlite_changes(db->conn);
 
   /* col_info */
   tables = rb_hash_new();  /* cache the table informations here */
@@ -586,6 +590,7 @@ Statement_cancel(VALUE self)
   }
 
   sm->nrow = -1;
+  sm->nrpc = -1;
   rb_iv_set(self, "@rows", rb_ary_new()); 
   rb_iv_set(self, "@params", rb_ary_new()); 
 
@@ -726,10 +731,23 @@ Statement_rows(VALUE self)
   struct sStatement *sm;
   Data_Get_Struct(self, struct sStatement, sm);
 
-  if (sm->nrow != -1) {
-    return INT2NUM(sm->nrow); 
+  if (sm->nrpc != -1) {
+    return INT2NUM(sm->nrpc); 
   } else {
     return Qnil;
+  }
+}
+
+static VALUE
+Statement_quote(VALUE self,VALUE obj) 
+{
+  if (TYPE(obj)==T_OBJECT && RBASIC(obj)->klass == cTimestamp) {
+    VALUE time;
+    time = rb_funcall(obj, id_to_time, 0);
+    time = rb_funcall(time, id_utc, 0);
+    return rb_funcall(time , id_strftime, 1, rb_str_new2("'%Y/%m/%d %H:%M:%S'"));
+  } else {
+    return rb_call_super(1, &obj);
   }
 }
 
@@ -744,7 +762,11 @@ void Init_SQLite() {
   eDatabaseError    = rb_eval_string("DBI::DatabaseError"); 
   eInterfaceError   = rb_eval_string("DBI::InterfaceError"); 
   eNotSupportedError= rb_eval_string("DBI::NotSupportedError"); 
-
+  cTimestamp        = rb_eval_string("DBI::Timestamp");
+  id_to_time        = rb_intern("to_time");
+  id_utc            = rb_intern("utc");
+  id_strftime       = rb_intern("strftime");
+  
   mSQLite = rb_define_module_under(mDBD, "SQLite");
 
   /* Driver */
@@ -777,9 +799,12 @@ void Init_SQLite() {
   rb_define_method(cStatement, "fetch_scroll", Statement_fetch_scroll, 2);
   rb_define_method(cStatement, "column_info", Statement_column_info, 0);
   rb_define_method(cStatement, "rows",    Statement_rows, 0);
+  rb_define_method(cStatement, "quote",   Statement_quote, 1);
+  rb_enable_super(cStatement, "quote");
 
   rb_include_module(cStatement, rb_eval_string("DBI::SQL::BasicBind"));
   rb_include_module(cStatement, rb_eval_string("DBI::SQL::BasicQuote"));
+  
 
   TYPE_CONV_MAP = rb_eval_string(
       "  [                                                                          \n"
@@ -813,6 +838,8 @@ void Init_SQLite() {
       "}                                                                \n"
       );
   rb_define_const(cStatement, "CONVERTER_PROC", CONVERTER_PROC);
+
+  
 }
 
 
