@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+
 require "date"
 
 Dir.chdir ".."  # This script should be executed from directory src/ (of ruby-dbi cvs repository)
