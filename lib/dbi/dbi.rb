@@ -1,5 +1,5 @@
 # Ruby/DBI 
-# $Id: dbi.rb,v 1.11 2001/06/18 13:47:22 michael Exp $
+# $Id: dbi.rb,v 1.12 2001/06/29 17:18:33 michael Exp $
 # 
 # Version : 0.0.5
 # Author  : Michael Neumann (neumann@s-direktnet.de)
@@ -490,7 +490,7 @@ class DatabaseHandle < Handle
     rows = nil
     execute(stmt, *bindvars) do |sth|
       if block_given?
-        sth.each &p
+        sth.each(&p)
       else
         rows = sth.fetch_all  
       end
@@ -657,7 +657,7 @@ class StatementHandle < Handle
     raise InterfaceError, "Statement must first be executed" unless @fetchable
     raise InterfaceError, "No block given" unless block_given?
 
-    fetch &p
+    fetch(&p)
   end
 
   def fetch_array

@@ -1,5 +1,5 @@
 #
-# $Id: utils.rb,v 1.5 2001/06/18 13:49:06 michael Exp $
+# $Id: utils.rb,v 1.6 2001/06/29 17:18:33 michael Exp $
 #
 
 module DBI
@@ -147,15 +147,15 @@ module TableFormatter
  
     loop do 
       output << split_line + "\n"
-      output_row[header, header_orient]    
+      output_row.call(header, header_orient)
       output << split_line + "\n"
       if pagebreak_after.nil?
-        rows.each {|ar| output_row[ar, rows_orient]}
+        rows.each {|ar| output_row.call(ar, rows_orient)}
         output << split_line + "\n"
         break
       end      
 
-      rows[rownr,pagebreak_after].each {|ar| output_row[ar, rows_orient]}
+      rows[rownr,pagebreak_after].each {|ar| output_row.call(ar, rows_orient)}
       output << split_line + "\n"
       yield output if block_given?
 

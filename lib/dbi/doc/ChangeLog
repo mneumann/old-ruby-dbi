@@ -1,6 +1,7 @@
 =begin
 
 : 0.0.6 (2001-??-06)
+* improved examples/sqlsh.rb (added scripting features \i \o)
 * fixed bug in dbi/sql.rb method bind.
 
 : 0.0.5 (2001-09-06)
