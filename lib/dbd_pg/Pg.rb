@@ -1,5 +1,5 @@
 #
-# $Id: Pg.rb,v 1.15 2001/12/02 17:23:59 michael Exp $
+# $Id: Pg.rb,v 1.16 2002/01/02 00:54:32 michael Exp $
 #
 
 require 'postgres'
@@ -212,10 +212,6 @@ module DBI
 
 	def prepare(statement)
 	  Statement.new(self, statement)
-	end
-	
-	def [](attr)
-	  @attr[attr]
 	end
 	
         def [](attr)
