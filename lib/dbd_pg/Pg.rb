@@ -27,7 +27,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: Pg.rb,v 1.29 2002/10/22 14:53:07 mneumann Exp $
+# $Id: Pg.rb,v 1.30 2002/10/25 12:48:37 mneumann Exp $
 #
 
 require 'postgres'
@@ -114,7 +114,7 @@ module DBI
 
         def disconnect
           if not @attr['AutoCommit'] and @in_transaction
-            @connection.exec("COMMIT")   # commit outstanding transactions
+            @connection.exec("ROLLBACK")   # rollback outstanding transactions
           end
           @connection.close
         end
