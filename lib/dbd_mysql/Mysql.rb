@@ -1,6 +1,6 @@
 # 
 # DBD::Mysql
-# $Id: Mysql.rb,v 1.8 2001/10/10 13:33:44 michael Exp $
+# $Id: Mysql.rb,v 1.9 2001/11/09 16:08:02 michael Exp $
 # 
 # Version : 0.3
 # Author  : Michael Neumann (neumann@s-direktnet.de)
@@ -366,8 +366,8 @@ class Statement < DBI::BaseStatement
     return [] if @res_handle.nil?
 
     @res_handle.fetch_fields.each {|col| 
-      retval << {'name' => col.name, '_type' => col.type, '_length' => col.length, 
-        '_max_length' => col.max_length, '_flags' => col.flags, '_decimals' => col.decimals }
+      retval << {'name' => col.name, 'precision' => col.length - col.decimals, 'scale' => col.decimals,
+      '_type' => col.type, '_length' => col.length, '_max_length' => col.max_length, '_flags' => col.flags }
     }
     retval
   rescue MyError => err
