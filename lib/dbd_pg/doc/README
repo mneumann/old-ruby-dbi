@@ -15,22 +15,24 @@ Noboru Saitou's Postgres Package:
     http://www.ruby-lang.org/en/raa-list.rhtml?name=postgres
 
 Ruby DBI:
-    http://www.fantasy-coders.de/ruby/
-    (look for a file named dbi-DATE.tar.gz, where DATE is the package date)
+    http://www.ruby-projects.org/dbi
 
 DBI Spec:
-    http://www.fantasy-coders.de/ruby/DBI_SPEC.html
+    http://www.ruby-projects.org/dbi/dbi/DBI_SPEC.html
 
 DBD Spec:
-    http://www.fantasy-coders.de/ruby/DBD_SPEC.html
+    http://www.ruby-projects.org/dbi/dbi/DBD_SPEC.html
 
 Installation
 ============
 
-    tar zxvf ruby-dbi-postgresql-28.05.2001.6.tgz
-    cd ruby-dbi-postgresql-28.05.2001.6
-    ruby install.rb
-    
+    Install like every DBD.
+
+    cd ruby-dbi-all
+    ruby setup.rb config --with=dbd_pg
+    ruby setup.rb setup
+    ruby setup.rb install
+  
 Unit Tests
 ==========
 
