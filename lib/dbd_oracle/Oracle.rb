@@ -1,7 +1,7 @@
 #
 # DBD::Oracle
 #
-# Copyright (c) 2001, 2002 Michael Neumann <neumann@s-direktnet.de>
+# Copyright (c) 2001, 2002, 2003, 2004 Michael Neumann <mneumann@ntecs.de>
 # 
 # All rights reserved.
 #
@@ -27,7 +27,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: Oracle.rb,v 1.6 2002/07/03 16:48:35 mneumann Exp $
+# $Id: Oracle.rb,v 1.7 2004/05/13 14:24:31 mneumann Exp $
 #
 
 
@@ -113,7 +113,8 @@ class Database < DBI::BaseDatabase
   end
 
   def tables
-    stmt = execute("SELECT table_name FROM user_tables")  
+    stmt = execute("SELECT object_name FROM user_objects " +
+                   "WHERE object_type IN ('TABLE', 'VIEW')")  
     rows = stmt.fetch_all || []
     stmt.finish
     rows.collect {|row| row[0]} 
