@@ -27,7 +27,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: SQLite.c,v 1.6 2003/05/14 19:52:07 mneumann Exp $
+ * $Id: SQLite.c,v 1.7 2003/06/03 18:42:38 mneumann Exp $
  */
 
 
@@ -436,6 +436,66 @@ static void table_free(void *p) {
 }
 
 static VALUE
+Database_columns(VALUE self, VALUE tablename)
+{
+  struct sDatabase *db;
+  struct sTable *tb;
+  VALUE sql_type, table, columns, hash;
+  VALUE str;
+  VALUE col_name, type_name;
+  int state, i, j, pos, row_index;
+  char *errmsg;
+  
+  Data_Get_Struct(self, struct sDatabase, db);
+  
+  /* build SQL statement */
+  sql_type = rb_str_new2("PRAGMA table_info("); 
+  rb_str_concat(sql_type, tablename);
+  rb_str_cat(sql_type, ")", 1);
+  
+  table = Data_Make_Struct(rb_cObject, struct sTable, 0, table_free, tb);
+  
+  /* execute SQL */
+  state = sqlite_get_table(db->conn, STR2CSTR(sql_type), &tb->result, &tb->nrow, &tb->ncolumn, &errmsg);
+  if (state != SQLITE_OK) {
+    VALUE errstr;
+    errstr = rb_str_new2(errmsg); free(errmsg);
+    rb_str_cat(errstr, "(", 1); rb_str_concat(errstr, rb_str_new2(sqliteErrStr(state))); 
+    rb_str_cat(errstr, ")", 1);
+    rb_raise(eDatabaseError, STR2CSTR(errstr));
+  }
+
+  columns = rb_ary_new();
+  for (row_index=0; row_index < tb->nrow ; row_index++) {
+    pos = (row_index+1)*tb->ncolumn;
+    
+    hash = rb_hash_new();
+    rb_ary_store(columns, row_index, hash);
+    if (tb->result[pos] != NULL) {
+      col_name = rb_str_new2(tb->result[pos+1]);
+      rb_hash_aset(hash, rb_str_new2("name"), col_name);
+      
+      type_name = rb_str_new2(tb->result[pos+2]);
+      rb_hash_aset(hash, rb_str_new2("type_name"), type_name);
+
+      if (tb->result[pos+3] != NULL) {
+        if (strcmp(tb->result[pos+3],"0")) {
+          rb_hash_aset(hash, rb_str_new2("nullable"), Qfalse);
+        } else {
+          rb_hash_aset(hash, rb_str_new2("nullable"), Qtrue);
+        }
+      }
+      
+      if ((tb->result[pos+4]) != NULL) {
+        str = rb_str_new2(tb->result[pos+4]);
+        rb_hash_aset(hash, rb_str_new2("default"), str);
+      }
+    }
+  }
+  return columns;
+}
+
+static VALUE
 Statement_execute(VALUE self) 
 {
   int state, i;
@@ -786,6 +846,7 @@ void Init_SQLite() {
   rb_define_method(cDatabase, "rollback",   Database_rollback, 0);
   rb_define_method(cDatabase, "[]",         Database_aref, 1);
   rb_define_method(cDatabase, "[]=",        Database_aset, 2);
+  rb_define_method(cDatabase, "columns",    Database_columns, 1);
 
   rb_include_module(cDatabase, rb_eval_string("DBI::SQL::BasicBind"));
 
