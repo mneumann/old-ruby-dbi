@@ -1,6 +1,6 @@
 # 
 # DBD::ODBC
-# $Id: ODBC.rb,v 1.1 2001/06/07 19:06:24 michael Exp $
+# $Id: ODBC.rb,v 1.2 2001/06/08 20:28:47 michael Exp $
 # 
 # Version : 0.1
 # Author  : Michael Neumann (neumann@s-direktnet.de)
@@ -75,7 +75,7 @@ class Driver < DBI::BaseDriver
 
 
   def data_sources
-    ::ODBC.datasources.collect {|dsn| dsn.name }
+    ::ODBC.datasources.collect {|dsn| "dbi:ODBC:" + dsn.name }
   rescue ODBCErr => err
     raise DBI::DatabaseError.new(err.message)
   end
