@@ -1,6 +1,6 @@
 =begin
 = Ruby/DBI - a database independent interface for accessing databases - similar to Perl's DBI
-$Id: index.rd,v 1.10 2001/09/07 13:39:19 michael Exp $
+$Id: index.rd,v 1.11 2001/10/22 16:07:27 michael Exp $
 
 Copyright (c) 2001 by Michael Neumann (neumann@s-direktnet.de)
 
@@ -61,7 +61,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
   depend on the Ruby/ODBC (version >= 0.5) binding by Christian Werner <chw@ch-werner.de> 
   ((<URL:http://www.ch-werner.de/rubyodbc>)) or available from the RAA. 
-  Works also together with unixODBC.
+  Works also together with unixODBC. To use the 'odbc_ignorecase' option you need Ruby/ODBC >= 0.9.3.
 
 * Oracle ((*(dbd_oracle)*))
 
@@ -96,6 +96,10 @@ If you're running FreeBSD or NetBSD, have a look at their package collections. F
 install package, NetBSD currently only for PostgreSQL but more is to come.
 
 Latest development snapshot available at ((<URL:http://www.ruby-projects.org/downloads/dbi/ruby-dbi-all-current.tar.gz>)).
+
+: Ruby/DBI 0.0.10
+
+  ((<URL:http://www.ruby-projects.org/downloads/dbi/ruby-dbi-all-0.0.10.tar.gz>))
 
 : Ruby/DBI 0.0.9
 
