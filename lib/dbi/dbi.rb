@@ -1,5 +1,5 @@
 # Ruby/DBI 
-# $Id: dbi.rb,v 1.10 2001/06/11 10:44:14 michael Exp $
+# $Id: dbi.rb,v 1.11 2001/06/18 13:47:22 michael Exp $
 # 
 # Version : 0.0.5
 # Author  : Michael Neumann (neumann@s-direktnet.de)
@@ -26,7 +26,7 @@
 require "dbi/row"
 require "dbi/utils"
 require "dbi/sql"
-
+require "date"
 
 module DBI
 
@@ -167,8 +167,18 @@ end
 class Date
   attr_accessor :year, :month, :day
   def initialize(year=0, month=0, day=0)
-    @year, @month, @day = year, month, day
+    if year.is_a? ::Date
+      @year, @month, @day = year.year, year.month, year.day 
+    elsif year.is_a? ::Time
+      @year, @month, @day = year.year, year.month, year.day 
+    else
+      @year, @month, @day = year, month, day
+    end
   end
+
+  def mon() @month end
+  def mon=(val) @month=val end
+
   def to_s
     "#{@year}-#{@month}-#{@day}"
   end
@@ -185,6 +195,12 @@ class Time
     end
   end
 
+  def min() @minute end
+  def min=(val) @minute=val end
+  def sec() @second end
+  def sec=(val) @second=val end
+
+
   def to_s
     "#{@hour}:#{@minute}:#{@second}"
   end
@@ -195,9 +211,25 @@ class Timestamp
   attr_accessor :year, :month, :day
   attr_accessor :hour, :minute, :second, :fraction
   def initialize(year=0, month=0, day=0, hour=0, minute=0, second=0, fraction=0)
-    @year, @month, @day = year, month, day
-    @hour, @minute, @second, @fraction = hour, minute, second, fraction
+    if year.is_a? ::Time
+      @year, @month, @day = year.year, year.month, year.day 
+      @hour, @minute, @second, @fraction = year.hour, year.min, year.sec, 0
+    elsif year.is_a? ::Date
+      @year, @month, @day = year.year, year.month, year.day 
+      @hour, @minute, @second, @fraction = 0, 0, 0, 0
+    else
+      @year, @month, @day = year, month, day
+      @hour, @minute, @second, @fraction = hour, minute, second, fraction
+    end
   end
+
+  def mon() @month end
+  def mon=(val) @month=val end
+  def min() @minute end
+  def min=(val) @minute=val end
+  def sec() @second end
+  def sec=(val) @second=val end
+
   def to_s
     "#{@year}-#{@month}-#{@day} #{@hour}:#{@minute}:#{@second}.#{@fraction}"
   end
@@ -395,6 +427,8 @@ end
 
 class DatabaseHandle < Handle
 
+  include DBI::Utils::ConvParam
+
   def connected?
     not @handle.nil?
   end
@@ -423,7 +457,7 @@ class DatabaseHandle < Handle
 
   def execute(stmt, *bindvars)
     raise InterfaceError, "Database connection was already closed!" if @handle.nil?
-    sth = StatementHandle.new(@handle.execute(stmt, *bindvars), true, false)
+    sth = StatementHandle.new(@handle.execute(stmt, *conv_param(*bindvars)), true, false)
     sth.trace(@trace_mode, @trace_output)
 
     if block_given?
@@ -439,7 +473,7 @@ class DatabaseHandle < Handle
 
   def do(stmt, *bindvars)
     raise InterfaceError, "Database connection was already closed!" if @handle.nil?
-    @handle.do(stmt, *bindvars)
+    @handle.do(stmt, *conv_param(*bindvars))
   end
 
   def select_one(stmt, *bindvars)
@@ -519,6 +553,7 @@ end
 class StatementHandle < Handle
 
   include Enumerable
+  include DBI::Utils::ConvParam
 
   def initialize(handle, fetchable=false, prepared=true)
     super(handle)
@@ -546,14 +581,14 @@ class StatementHandle < Handle
   def bind_param(param, value, attribs=nil)
     raise InterfaceError, "Statement was already closed!" if @handle.nil?
     raise InterfaceError, "Statement wasn't prepared before." unless @prepared
-    @handle.bind_param(param, value, attribs)
+    @handle.bind_param(param, conv_param(value)[0], attribs)
   end
 
   def execute(*bindvars)
     cancel     # cancel before 
     raise InterfaceError, "Statement was already closed!" if @handle.nil?
     raise InterfaceError, "Statement wasn't prepared before." unless @prepared
-    @handle.bind_params(*bindvars)
+    @handle.bind_params(*conv_param(*bindvars))
     @handle.execute
     @fetchable = true
 
