@@ -296,6 +296,7 @@ class Time
 end
 
 
+# always in local time-zone
 class Timestamp
   attr_accessor :year, :month, :day
   attr_accessor :hour, :minute, :second
@@ -318,8 +319,10 @@ class Timestamp
   end
 
   def ==(other)
+    return nil unless other
     [:year, :month, :day, :hour, :min, :sec, :fraction].each do |meth|
-      return false if !other.respond_to?(meth) or self.send(meth) != other.send(meth)
+      return nil unless other.respond_to?(meth)
+      return false if self.send(meth) != other.send(meth)
     end
     true
   end
