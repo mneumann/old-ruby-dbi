@@ -131,7 +131,7 @@ class TestDbiAttributes < RUNIT::TestCase
   end
 end
 
-$last_suite.add_test (TestDbiAttributes.suite)
+$last_suite.add_test(TestDbiAttributes.suite)
 
 
 ######################################################################
@@ -210,7 +210,7 @@ class TestDbiDb < RUNIT::TestCase
 
   ## Make sure we can insert/read null data
   def test_insert_null
-    @db.do ("INSERT INTO #{$cfg.tables[0]} (name) VALUES ('Zeb')")
+    @db.do("INSERT INTO #{$cfg.tables[0]} (name) VALUES ('Zeb')")
     st = @db.prepare("SELECT name, age FROM #{$cfg.tables[0]} WHERE name='Zeb'")
     st.execute
     row = st.fetch
@@ -227,7 +227,7 @@ class TestDbiDb < RUNIT::TestCase
 
 end
 
-$last_suite.add_test (TestDbiDb.suite)
+$last_suite.add_test(TestDbiDb.suite)
 
 
 ######################################################################
@@ -302,7 +302,7 @@ class TestDbiStatement < RUNIT::TestCase
   
 end
 
-$last_suite.add_test (TestDbiStatement.suite)
+$last_suite.add_test(TestDbiStatement.suite)
 
 
 ######################################################################
@@ -312,7 +312,7 @@ class TestDbiPostgresErrors < RUNIT::TestCase
   
   def test_bad_db_name
     db = nil
-    assert_exception (DBI::OperationalError) {
+    assert_exception(DBI::OperationalError) {
       db = DBI.connect "DBI:#{$cfg.driver}:bad_database_name", $cfg.user
     }
   ensure
@@ -321,7 +321,7 @@ class TestDbiPostgresErrors < RUNIT::TestCase
 
   def test_missing_user
     db = nil
-    assert_exception (DBI::OperationalError) {
+    assert_exception(DBI::OperationalError) {
       db = DBI.connect "DBI:#{$cfg.driver}:bad_database_name"
     }
   ensure
@@ -331,8 +331,8 @@ class TestDbiPostgresErrors < RUNIT::TestCase
   def test_bad_sql
     db = get_db_auto
     st = nil
-    assert_exception (DBI::ProgrammingError) {
-      st = db.prepare ("INSRT into xyz")
+    assert_exception(DBI::ProgrammingError) {
+      st = db.prepare("INSRT into xyz")
       st.execute
     }
   ensure
@@ -343,8 +343,8 @@ class TestDbiPostgresErrors < RUNIT::TestCase
   def test_too_many_parameters
     db = get_db_auto
     st = nil
-    assert_exception (DBI::ProgrammingError) {
-      st = db.prepare ("SELECT name, age FROM #{$cfg.tables[0]} WHERE age=?")
+    assert_exception(DBI::ProgrammingError) {
+      st = db.prepare("SELECT name, age FROM #{$cfg.tables[0]} WHERE age=?")
       st.execute(10, 11)
     }
   ensure
@@ -355,8 +355,8 @@ class TestDbiPostgresErrors < RUNIT::TestCase
   def test_few_many_parameters
     db = get_db_auto
     st = nil
-    assert_exception (DBI::ProgrammingError) {
-      st = db.prepare ("SELECT name, age FROM #{$cfg.tables[0]} WHERE age=? AND name=?")
+    assert_exception(DBI::ProgrammingError) {
+      st = db.prepare("SELECT name, age FROM #{$cfg.tables[0]} WHERE age=? AND name=?")
       st.execute(10)
     }
   ensure
@@ -366,7 +366,7 @@ class TestDbiPostgresErrors < RUNIT::TestCase
 
 end
 
-$last_suite.add_test (TestDbiPostgresErrors.suite)
+$last_suite.add_test(TestDbiPostgresErrors.suite)
 
 
 
@@ -403,7 +403,7 @@ class TestDbiTransactions < RUNIT::TestCase
   end
 end
 
-$last_suite.add_test (TestDbiTransactions.suite)
+$last_suite.add_test(TestDbiTransactions.suite)
 
 
 ######################################################################
@@ -417,7 +417,7 @@ class TestDbiQuoting < RUNIT::TestCase
     assert_equal %q(''),       db.quote("")
     assert_equal %q('hi'),     db.quote("hi")
     assert_equal %q('g''day'), db.quote("g'day")
-    assert_equal (%q('~`!@#$%^&*-_=+''()[]{}";:<>,.?/'),
+    assert_equal(%q('~`!@#$%^&*-_=+''()[]{}";:<>,.?/'),
                   db.quote('~`!@#$%^&*-_=+\'()[]{}";:<>,.?/'))
 
     assert_equal %q(123),      db.quote(123)
@@ -430,7 +430,7 @@ class TestDbiQuoting < RUNIT::TestCase
 
 end
 
-$last_suite.add_test (TestDbiQuoting.suite)
+$last_suite.add_test(TestDbiQuoting.suite)
 
 
 ######################################################################
@@ -490,5 +490,5 @@ $last_suite = DbiConfigBuilder.new($last_suite)
 
 if __FILE__ == $0 then
   RUNIT::CUI::TestRunner.quiet_mode = true
-  RUNIT::CUI::TestRunner.run ($last_suite)
+  RUNIT::CUI::TestRunner.run($last_suite)
 end
