@@ -1,10 +1,8 @@
 # Ruby/DBI 
-# $Id: dbi.rb,v 1.24 2001/11/14 13:41:05 michael Exp $
+# $Id: dbi.rb,v 1.25 2001/11/22 14:25:11 michael Exp $
 # 
-# Version : 0.0.11
+# Version : 0.0.12
 # Author  : Michael Neumann (neumann@s-direktnet.de)
-#
-# adapted from Rainer Perl's Ruby/DBI version 0.0.4
 #
 # Copyright (c) 2001 Michael Neumann
 #
@@ -41,7 +39,7 @@ end
 #  Constants
 #----------------------------------------------------
 
-VERSION = "0.0.11"
+VERSION = "0.0.12"
 
 ##
 # Constants for fetch_scroll
@@ -89,6 +87,31 @@ SQL_CLOB = -11   # TODO
 SQL_OTHER = 100
 #SQL_REF = 
 #SQL_STRUCT = 
+
+SQL_TYPE_NAMES = {
+  SQL_BIT               => 'BIT',
+  SQL_TINYINT           => 'TINYINT',
+  SQL_SMALLINT          => 'SMALLINT',
+  SQL_INTEGER           => 'INTEGER',
+  SQL_BIGINT            => 'BIGINT',
+  SQL_FLOAT             => 'FLOAT',
+  SQL_REAL              => 'REAL',
+  SQL_DOUBLE            => 'DOUBLE',
+  SQL_NUMERIC           => 'NUMERIC',
+  SQL_DECIMAL           => 'DECIMAL',
+  SQL_CHAR              => 'CHAR',
+  SQL_VARCHAR           => 'VARCHAR',
+  SQL_LONGVARCHAR       => 'LONG VARCHAR',
+  SQL_DATE              => 'DATE',
+  SQL_TIME              => 'TIME',
+  SQL_TIMESTAMP         => 'TIMESTAMP',
+  SQL_BINARY            => 'BINARY',
+  SQL_VARBINARY         => 'VARBINARY',
+  SQL_LONGVARBINARY     => 'LONG VARBINARY',
+  SQL_BLOB              => 'BLOB',
+  SQL_CLOB              => 'CLOB',
+  SQL_OTHER             => nil
+}
 
 
 #----------------------------------------------------
@@ -562,7 +585,7 @@ class DatabaseHandle < Handle
       if block_given?
         sth.each(&p)
       else
-        rows = sth.fetch_all  
+        rows = sth.fetch_all 
       end
     end
     return rows
@@ -794,7 +817,7 @@ class StatementHandle < Handle
     if rows.nil?
       @handle.cancel
       @fetchable = false
-      return nil
+      return []
     else
       return rows.collect{|r| Row.new(cols, r)}
     end
@@ -809,7 +832,7 @@ class StatementHandle < Handle
     if rows.nil?
       @handle.cancel
       @fetchable = false
-      return nil
+      return []
     else
       return rows.collect{|r| Row.new(cols, r)}
     end
