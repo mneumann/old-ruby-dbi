@@ -1,5 +1,5 @@
 #
-# $Id: proxyserver.rb,v 1.4 2001/08/30 14:06:39 michael Exp $
+# $Id: proxyserver.rb,v 1.5 2001/10/10 10:39:49 michael Exp $
 # Copyright (c) 2001 by Michael Neumann (neumann@s-direktnet.de)
 # 
 
@@ -55,7 +55,7 @@ class ProxyServer
   
   def DBD_connect(driver_url, user, auth, attr)
     catch_exception do
-      ret = DBI.get_driver(driver_url)
+      ret = DBI._get_full_driver(driver_url)
       drh = ret[0][1]
       db_args = ret[1]
 
