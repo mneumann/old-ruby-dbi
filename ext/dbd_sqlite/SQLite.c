@@ -27,7 +27,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: SQLite.c,v 1.11 2004/05/23 23:17:36 andreas Exp $
+ * $Id: SQLite.c,v 1.12 2004/05/23 23:54:09 andreas Exp $
  */
 
 
@@ -144,12 +144,14 @@ Driver_connect(VALUE self, VALUE dbname, VALUE user, VALUE auth, VALUE attr)
     }
   }
 
-  /* Put Full Column Names on (always) */
-  state = sqlite_exec(db->conn, "PRAGMA full_column_names = ON", NULL, NULL, &errmsg);
-  if (state != SQLITE_OK) {
-    errstr = rb_str_new2(errmsg); sqlite_freemem(errmsg);
-    rb_str_cat(errstr, "(", 1); rb_str_concat(errstr, rb_str_new2(sqliteErrStr(state))); rb_str_cat(errstr, ")", 1);
-    rb_raise(eDatabaseError, STR2CSTR(errstr));
+  /* Full Column Names */
+  if (db->full_column_names) {
+    state = sqlite_exec(db->conn, "PRAGMA full_column_names = ON", NULL, NULL, &errmsg);
+    if (state != SQLITE_OK) {
+      errstr = rb_str_new2(errmsg); sqlite_freemem(errmsg);
+      rb_str_cat(errstr, "(", 1); rb_str_concat(errstr, rb_str_new2(sqliteErrStr(state))); rb_str_cat(errstr, ")", 1);
+      rb_raise(eDatabaseError, STR2CSTR(errstr));
+    }
   }
 
   return database;
@@ -187,10 +189,11 @@ Database_aset(VALUE self, VALUE key, VALUE value)
   Check_Type(key, T_STRING);
 
   if (rb_str_cmp(key, rb_str_new2("AutoCommit")) == 0) {
+
     Data_Get_Struct(self, struct sDatabase, db);
     if (RTEST(value)) {
-      /* put autocommit on */
       if (db->autocommit == 0) {
+        /* put autocommit on */
         db->autocommit = 1;
 
         state = sqlite_exec(db->conn, "END TRANSACTION", NULL, NULL, &errmsg);
@@ -201,10 +204,10 @@ Database_aset(VALUE self, VALUE key, VALUE value)
         }
       }
     } else {
-      /* put autocommit off */
       if (db->autocommit == 1) {
+        /* put autocommit off */
         db->autocommit = 0;
-
+        
         state = sqlite_exec(db->conn, "BEGIN TRANSACTION", NULL, NULL, &errmsg);
         if (state != SQLITE_OK) {
           errstr = rb_str_new2(errmsg); sqlite_freemem(errmsg);
@@ -213,20 +216,24 @@ Database_aset(VALUE self, VALUE key, VALUE value)
         }
       }
     }
-  } else if (rb_str_cmp(key, rb_str_new2("sqlite_full_column_names")) == 0) {
-    Data_Get_Struct(self, struct sDatabase, db);
 
+  } else if (rb_str_cmp(key, rb_str_new2("sqlite_full_column_names")) == 0) {
+
+    Data_Get_Struct(self, struct sDatabase, db);
     if (RTEST(value)) {
       /* put full_column_names on */
-      if (db->full_column_names == 0) {
-        db->full_column_names = 1;
-      }
+      db->full_column_names = 1;
+      state = sqlite_exec(db->conn, "PRAGMA full_column_names = ON", NULL, NULL, &errmsg);
     } else {
       /* put full_column_names off */
-      if (db->full_column_names == 1) {
-        db->full_column_names = 0;
-      }
+      db->full_column_names = 0;
+      state = sqlite_exec(db->conn, "PRAGMA full_column_names = OFF", NULL, NULL, &errmsg);
+    }
 
+    if (state != SQLITE_OK) {
+      errstr = rb_str_new2(errmsg); sqlite_freemem(errmsg);
+      rb_str_cat(errstr, "(", 1); rb_str_concat(errstr, rb_str_new2(sqliteErrStr(state))); rb_str_cat(errstr, ")", 1);
+      rb_raise(eDatabaseError, STR2CSTR(errstr));
     }
 
   }

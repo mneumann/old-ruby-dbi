@@ -12,7 +12,7 @@ class TC_SQLite < Test::Unit::TestCase
   
   def test_column_names
     sth = @dbh.execute("SELECT bar, baz AS test FROM foo")
-    assert_equal("foo.bar", sth.column_names[0])
+    assert_equal("bar", sth.column_names[0])
     assert_equal("test", sth.column_names[1])
     sth.finish
   end
@@ -28,10 +28,20 @@ class TC_SQLite < Test::Unit::TestCase
   end
 
   def test_fetch_hash
+    @dbh['sqlite_full_column_names'] = true
     sth = @dbh.execute("SELECT bar, baz AS test FROM foo")
     assert_equal({"foo.bar" => 1, "test" => "asd"}, sth.fetch_hash)
     assert_equal({"foo.bar" => 2, "test" => "asd"}, sth.fetch_hash)
     assert_equal({"foo.bar" => 3, "test" => nil}, sth.fetch_hash)
+    assert_equal(nil, sth.fetch_hash)
+    #assert_equal(nil, sth.fetch_hash)
+    sth.finish
+
+    @dbh['sqlite_full_column_names'] = false
+    sth = @dbh.execute("SELECT bar, baz AS test FROM foo")
+    assert_equal({"bar" => 1, "test" => "asd"}, sth.fetch_hash)
+    assert_equal({"bar" => 2, "test" => "asd"}, sth.fetch_hash)
+    assert_equal({"bar" => 3, "test" => nil}, sth.fetch_hash)
     assert_equal(nil, sth.fetch_hash)
     #assert_equal(nil, sth.fetch_hash)
     sth.finish
