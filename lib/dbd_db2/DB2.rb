@@ -3,7 +3,7 @@
 # Based on (and requires) the "IBM DB2 Module for Ruby"
 # by myself (Michael Neumann) <neumann@s-direktnet.de> http://www.fantasy-coders.de/ruby
 # 
-# Version : $Id: DB2.rb,v 1.4 2001/08/30 14:10:51 michael Exp $
+# Version : $Id: DB2.rb,v 1.5 2001/11/09 01:32:52 michael Exp $
 # Author  : Michael Neumann (neumann@s-direktnet.de)
 # Homepage: http://www.s-direktnet.de/homepages/neumann/
 # DBD API : 0.1
@@ -60,8 +60,7 @@ USED_DBD_VERSION = "0.1"
       data_sources_buffer.collect {|s| "dbi:DB2:#{s}"}
     end
 
-
-    private
+    private # -----------------------------------------------------------
 
     def data_sources_buffer(buffer_length = 1024)
       retval = []
@@ -87,13 +86,12 @@ USED_DBD_VERSION = "0.1"
       end
     end
 
-
-
-
   end # class Driver
 
   class Database < DBI::BaseDatabase
     include Util
+    include SQL::BasicBind
+    include SQL::BasicQuote
   
     def disconnect
       rollback
@@ -112,7 +110,7 @@ USED_DBD_VERSION = "0.1"
       rc = SQLTables(stmt, "", "%", "%", "TABLE, VIEW")
       error(rc, "Could not execute SQLTables") 
       
-      st = Statement.new(stmt)
+      st = Statement.new(stmt, nil)
       res = st.fetch_all
       st.finish
 
@@ -131,20 +129,35 @@ USED_DBD_VERSION = "0.1"
       end 
     end
 
-    def prepare( statement )
+    def do(stmt, *bindvars)
+      rc, sth = SQLAllocHandle(SQL_HANDLE_STMT, @handle) 
+      error(rc, "Could not allocate Statement")
+
+      sql = bind(self, stmt, bindvars)
+      rc = SQLExecDirect(sth, sql) 
+      error(rc, "Could not execute statement")
+
+      rc, rpc = SQLRowCount(sth)
+      error(rc, "Could not get RPC") 
+
+      rc = SQLFreeHandle(SQL_HANDLE_STMT, sth)
+      error(rc, "Could not free Statement")
+
+      return rpc
+    end
+
+    def prepare(statement)
       rc, stmt = SQLAllocHandle(SQL_HANDLE_STMT, @handle)
       error(rc, "Could not allocate Statement")
 
-      rc = SQLPrepare(stmt, statement)
-      error(rc, "Could not prepare SQL")
-
-      Statement.new(stmt)
+      Statement.new(stmt, statement)
     end
 
     # TODO
     #def []=(attr, value)
     #end
 
+    # TODO: method columns(table)
 
     def commit
       rc = SQLEndTran(SQL_HANDLE_DBC, @handle, SQL_COMMIT)
@@ -161,20 +174,34 @@ USED_DBD_VERSION = "0.1"
 
   class Statement < DBI::BaseStatement
     include Util
+    include SQL::BasicBind
+    include SQL::BasicQuote
 
-    def initialize(handle)
+    def initialize(handle, statement)
+      super(nil)
       @handle = handle
+      @statement = statement
       @arr = []
-      @cols = get_col_info
+      @params = []
+      @cols = nil
+      @cols = get_col_info if @statement.nil?
     end
 
-    # TODO:
-    #def bind_param(param, value, attribs)
-    #end
+    def bind_param(param, value, attribs)
+      raise InterfaceError, "only ? parameters supported" unless param.is_a? Fixnum
+      @params[param-1] = value 
+    end
 
     def execute
-      rc = SQLExecute(@handle)      
+      sql = bind(self, @statement, @params)
+
+      rc = SQLExecDirect(@handle, sql) 
       error(rc, "Could not execute statement")
+
+      @cols = get_col_info
+
+      #rc = SQLExecute(@handle) 
+      #error(rc, "Could not execute statement")
     end
 
     def finish
@@ -195,24 +222,24 @@ USED_DBD_VERSION = "0.1"
       when DBI::SQL_FETCH_RELATIVE then ::DB2CLI::SQL_FETCH_RELATIVE
       when DBI::SQL_FETCH_ABSOLUTE then ::DB2CLI::SQL_FETCH_ABSOLUTE
       else
-        raise
+        raise InterfaceError, "wrong direction" 
       end
       do_fetch(SQLFetchScroll(@handle, direction, offset))
     end
 
     def column_info
-      @cols
-      #get_col_names.collect do |n| {'name' => n} end
+      @cols 
     end
 
     def cancel
       rc = SQLFreeStmt(@handle, SQL_CLOSE)
-      error(rc, "Cannot close/cancel statment") 
+      error(rc, "Could not close/cancel statment") 
+      @cols = nil
     end
 
     def rows
       rc, rpc = SQLRowCount(@handle)
-      error(rc, "Cannot get RPC") 
+      error(rc, "Could not get RPC") 
       return rpc 
     end
 
@@ -241,9 +268,9 @@ USED_DBD_VERSION = "0.1"
       DB2CLI::SQL_LONGVARCHAR    => [DBI::SQL_LONGVARCHAR,   'LONG VARCHAR'],
       DB2CLI::SQL_CLOB           => [DBI::SQL_CLOB,          'CLOB'],        
 
-      DB2CLI::BINARY             => [DBI::SQL_BINARY,        'BINARY'],
-      DB2CLI::VARBINARY          => [DBI::SQL_VARBINARY,     'VARBINARY'],
-      DB2CLI::LONGVARBINARY      => [DBI::SQL_LONGVARBINARY, 'LONG VARBINARY'],
+      DB2CLI::SQL_BINARY         => [DBI::SQL_BINARY,        'BINARY'],
+      DB2CLI::SQL_VARBINARY      => [DBI::SQL_VARBINARY,     'VARBINARY'],
+      DB2CLI::SQL_LONGVARBINARY  => [DBI::SQL_LONGVARBINARY, 'LONG VARBINARY'],
       DB2CLI::SQL_BLOB           => [DBI::SQL_BLOB,          'BLOB'],        
 
       DB2CLI::SQL_BLOB_LOCATOR   => [DBI::SQL_OTHER,         'BLOB LOCATOR'],        
@@ -292,14 +319,15 @@ USED_DBD_VERSION = "0.1"
         error(rc, "Could not get data")
 
         @arr[i] = 
-        if content.is_a? ::DB2CLI::Date 
+        case content
+        when DB2CLI::Date 
           DBI::Date.new(content.year, content.month, content.day)
-        elsif content.is_a? ::DB2CLI::Time
+        when DB2CLI::Time
           DBI::Time.new(content.hour, content.minute, content.second)
-        elsif content.is_a? ::DB2CLI::Timestamp 
+        when DB2CLI::Timestamp 
           DBI::Timestamp.new(content.year, content.month, content.day,
             content.hour, content.minute, content.second, content.fraction)
-        elsif content.is_a? ::DB2CLI::Null
+        when DB2CLI::Null
           nil
         else  
           content
@@ -316,4 +344,5 @@ USED_DBD_VERSION = "0.1"
 end # module DB2
 end # module DBD
 end # module DBI
+
 
