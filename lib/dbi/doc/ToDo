@@ -1,0 +1,9 @@
+=begin
+* Tainting
+* table_info
+* bind_param_inout
+* type_info / type_info_all
+* bind_col ?
+* Rewrite DBI-dispatching in C?
+
+=end
