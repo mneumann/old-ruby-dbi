@@ -27,7 +27,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: Pg.rb,v 1.28 2002/10/22 14:00:16 mneumann Exp $
+# $Id: Pg.rb,v 1.29 2002/10/22 14:53:07 mneumann Exp $
 #
 
 require 'postgres'
@@ -102,6 +102,10 @@ module DBI
           @attr.each { |k,v| self[k] = v} 
 
           load_type_map
+
+          @in_transaction = false
+          self['AutoCommit'] = true    # Postgres starts in unchained mode (AutoCommit=on) by default 
+
         rescue PGError => err
           raise DBI::OperationalError.new(err.message)
         end
@@ -109,8 +113,8 @@ module DBI
         # DBD Protocol -----------------------------------------------
 
         def disconnect
-          unless @attr['AutoCommit']
-            @connection.exec("ROLLBACK")   # rollback outstanding transactions
+          if not @attr['AutoCommit'] and @in_transaction
+            @connection.exec("COMMIT")   # commit outstanding transactions
           end
           @connection.close
         end
@@ -236,7 +240,6 @@ module DBI
           Statement.new(self, statement)
         end
         
-        # Note: 'AutoCommit' returns nil <=> Postgres' default mode  
         def [](attr)
           case attr
           when 'pg_client_encoding'
@@ -249,8 +252,18 @@ module DBI
         def []=(attr, value)
           case attr
           when 'AutoCommit'
-            # TODO: Are outstanding transactions committed?
-            @connection.exec("SET AUTOCOMMIT TO " + (value ? "ON" : "OFF"))
+            if @attr['AutoCommit'] != value then
+              if value    # turn AutoCommit ON
+                if @in_transaction
+                  # TODO: commit outstanding transactions?
+                  @connection.exec("COMMIT")
+                  @in_transaction = false
+                end
+              else        # turn AutoCommit OFF
+                @in_transaction = false
+              end
+            end
+            # value is assigned below
           when 'pg_client_encoding'
             @connection.set_client_encoding(value)
           else
@@ -264,13 +277,21 @@ module DBI
         end
 
         def commit
-          # TODO: what if in autocommit mode?
-          @connection.exec("COMMIT")
+          if @in_transaction
+            @connection.exec("COMMIT")
+            @in_transaction = false
+          else
+            # TODO: Warn?
+          end
         end
 
         def rollback
-          # TODO: what if in autocommit mode?
-          @connection.exec("ROLLBACK")
+          if @in_transaction
+            @connection.exec("ROLLBACK")
+            @in_transaction = false
+          else
+            # TODO: Warn?
+          end
         end
 
         # Other Public Methods ---------------------------------------
@@ -280,6 +301,15 @@ module DBI
           converter = @type_map[typeid] || :as_str
           #raise DBI::InterfaceError, "Unsupported Type (typeid=#{typeid})" if converter.nil?
           @coerce.coerce(converter, obj)
+        end
+
+        def in_transaction?
+          @in_transaction
+        end
+
+        def start_transaction
+          @connection.exec("BEGIN")
+          @in_transaction = true
         end
 
      if PGconn.respond_to?(:quote)
@@ -342,36 +372,63 @@ module DBI
         public
 
         def __blob_import(file)
+          start_transaction unless @in_transaction
           @connection.lo_import(file)
+          #if @attr['AutoCommit']
+          #  @connection.exec("COMMIT")
+          #  @in_transaction = false
+          #end
         rescue PGError => err
           raise DBI::DatabaseError.new(err.message) 
         end
 
         def __blob_export(oid, file)
+          start_transaction unless @in_transaction
           @connection.lo_export(oid.to_i, file)
+          #if @attr['AutoCommit']
+          #  @connection.exec("COMMIT")
+          #  @in_transaction = false
+          #end
         rescue PGError => err
           raise DBI::DatabaseError.new(err.message) 
         end
 
         def __blob_create(mode=PGlarge::INV_READ)
+          start_transaction unless @in_transaction
           @connection.lo_create(mode)
+          #if @attr['AutoCommit']
+          #  @connection.exec("COMMIT")
+          #  @in_transaction = false
+          #end
         rescue PGError => err
           raise DBI::DatabaseError.new(err.message) 
         end
 
         def __blob_open(oid, mode=PGlarge::INV_READ)
+          start_transaction unless @in_transaction
           @connection.lo_open(oid.to_i, mode)
+          #if @attr['AutoCommit']
+          #  @connection.exec("COMMIT")
+          #  @in_transaction = false
+          #end
         rescue PGError => err
           raise DBI::DatabaseError.new(err.message) 
         end
 
         def __blob_unlink(oid)
+          start_transaction unless @in_transaction
           @connection.lo_unlink(oid.to_i)
+          #if @attr['AutoCommit']
+          #  @connection.exec("COMMIT")
+          #  @in_transaction = false
+          #end
         rescue PGError => err
           raise DBI::DatabaseError.new(err.message) 
         end
 
         def __blob_read(oid, length=nil)
+          # TODO: do we really nead an open transaction for reading?
+          start_transaction unless @in_transaction
           blob = @connection.lo_open(oid.to_i, PGlarge::INV_READ)
           blob.open
           if length.nil?
@@ -444,6 +501,9 @@ module DBI
 
           boundsql = @prep_sql.bind(@bindvars)
 
+          if not SQL.query?(boundsql) and not @db['AutoCommit'] then
+            @db.start_transaction unless @db.in_transaction?
+          end
           pg_result = @db.connection.exec(boundsql)
           @result = Tuples.new(@db, pg_result)
 
