@@ -2,6 +2,14 @@
 
 : 0.0.17
 
+* setup.rb: on debian-unstable install into /usr/local/lib/site_ruby/<version> (by Brad Hilton) 
+
+* dbd_mysql: add support for coercing column values (patch by Brad Hilton)
+
+* dbd_pg: removed method send_sql and inlined it's code instead (little speed improvement) 
+
+* dbd_pg: rewritten transaction handling (uses now Postgres "SET AUTOCOMMIT ON|OFF")
+
 * dbd_pg: fixed back-slash quote bug (586785) (Brad Hilton)
 
 * contrib: added dbrc (Daniel Berger) 
