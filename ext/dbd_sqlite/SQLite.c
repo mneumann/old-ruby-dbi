@@ -3,7 +3,7 @@
  *
  * file:   SQLite.c
  * author: Michael Neumann (neumann@s-direktnet.de)
- * id:     $Id: SQLite.c,v 1.2 2001/11/21 15:03:21 michael Exp $
+ * id:     $Id: SQLite.c,v 1.3 2001/11/22 14:27:44 michael Exp $
  * 
  * Copyright (C) 2001 by Michael Neumann.
  * Released under the same terms as Ruby itself.
@@ -462,59 +462,69 @@ Statement_execute(VALUE self)
       if (sm->result[i] != NULL) {
         col_name = rb_str_new2(sm->result[i]);
 
-        str   = rb_str_new2(".");
-        tn_cn = rb_funcall2(col_name, rb_intern("split"), 1, &str);
+        /* check if column_name is a real column name or not (e.g. expression) */
+        str = rb_eval_string("/^[a-zA-Z_]\\w*([.][a-zA-Z_]\\w*)?$/");
 
-        rb_hash_aset(hash, rb_str_new2("full_name"), col_name);
-        rb_hash_aset(hash, rb_str_new2("table_name"), rb_ary_entry(tn_cn,0));
+        if (rb_funcall2(col_name, rb_intern("=~"), 1, &str) == Qnil) {
 
-        if (db->full_column_names == 1) { 
           rb_hash_aset(hash, rb_str_new2("name"), col_name);
+
         } else {
-          rb_hash_aset(hash, rb_str_new2("name"), rb_ary_entry(tn_cn,1));
-        }
 
-        /* now get type informations */
+          str   = rb_str_new2(".");
+          tn_cn = rb_funcall2(col_name, rb_intern("split"), 1, &str);
 
-        /* only if no information about that tables has been received yet */
-        if (rb_hash_aref(tables, rb_ary_entry(tn_cn, 0)) == Qnil) {
+          rb_hash_aset(hash, rb_str_new2("full_name"), col_name);
+          rb_hash_aset(hash, rb_str_new2("table_name"), rb_ary_entry(tn_cn,0));
 
-          /* build SQL statement */
-          sql_type = rb_str_new2("PRAGMA table_info("); 
-          rb_str_concat(sql_type, rb_ary_entry(tn_cn, 0));
-          rb_str_cat(sql_type, ")", 1);
-
-          table = Data_Make_Struct(rb_cObject, struct sTable, 0, table_free, tb);
-
-          /* execute SQL */
-          state = sqlite_get_table(db->conn, STR2CSTR(sql_type), &tb->result, &tb->nrow, &tb->ncolumn, &errmsg); 
-          if (state != SQLITE_OK) {
-            errstr = rb_str_new2(errmsg); free(errmsg);
-            rb_str_cat(errstr, "(", 1); rb_str_concat(errstr, rb_str_new2(sqliteErrStr(state))); 
-            rb_str_cat(errstr, ")", 1);
-            rb_raise(eDatabaseError, STR2CSTR(errstr));
+          if (db->full_column_names == 1) { 
+            rb_hash_aset(hash, rb_str_new2("name"), col_name);
+          } else {
+            rb_hash_aset(hash, rb_str_new2("name"), rb_ary_entry(tn_cn,1));
           }
 
-          rb_hash_aset(tables, rb_ary_entry(tn_cn, 0), table); 
-        }
+          /* now get type informations */
 
-        /* find the matching column */
-        table = rb_hash_aref(tables, rb_ary_entry(tn_cn, 0));
-        Data_Get_Struct(table, struct sTable, tb);
+          /* only if no information about that tables has been received yet */
+          if (rb_hash_aref(tables, rb_ary_entry(tn_cn, 0)) == Qnil) {
+
+            /* build SQL statement */
+            sql_type = rb_str_new2("PRAGMA table_info("); 
+            rb_str_concat(sql_type, rb_ary_entry(tn_cn, 0));
+            rb_str_cat(sql_type, ")", 1);
+
+            table = Data_Make_Struct(rb_cObject, struct sTable, 0, table_free, tb);
+
+            /* execute SQL */
+            state = sqlite_get_table(db->conn, STR2CSTR(sql_type), &tb->result, &tb->nrow, &tb->ncolumn, &errmsg); 
+            if (state != SQLITE_OK) {
+              errstr = rb_str_new2(errmsg); free(errmsg);
+              rb_str_cat(errstr, "(", 1); rb_str_concat(errstr, rb_str_new2(sqliteErrStr(state))); 
+              rb_str_cat(errstr, ")", 1);
+              rb_raise(eDatabaseError, STR2CSTR(errstr));
+            }
+
+            rb_hash_aset(tables, rb_ary_entry(tn_cn, 0), table); 
+          }
+
+          /* find the matching column */
+          table = rb_hash_aref(tables, rb_ary_entry(tn_cn, 0));
+          Data_Get_Struct(table, struct sTable, tb);
 
 #define COLUMN_NAME 1
 #define COLUMN_TYPE 2  
 
-        for (j=0; j < tb->nrow; j++) {
-          if (strcmp(tb->result[(j+1)*tb->ncolumn+COLUMN_NAME], STR2CSTR(rb_ary_entry(tn_cn, 1))) == 0) {
-            rb_hash_aset(hash, rb_str_new2("type"), 
-                tb->result[(j+1)*tb->ncolumn+COLUMN_TYPE] ? rb_str_new2(tb->result[(j+1)*tb->ncolumn+COLUMN_TYPE]) : Qnil);
-            break;
-          }
+          for (j=0; j < tb->nrow; j++) {
+            if (strcmp(tb->result[(j+1)*tb->ncolumn+COLUMN_NAME], STR2CSTR(rb_ary_entry(tn_cn, 1))) == 0) {
+              rb_hash_aset(hash, rb_str_new2("type"), 
+                  tb->result[(j+1)*tb->ncolumn+COLUMN_TYPE] ? rb_str_new2(tb->result[(j+1)*tb->ncolumn+COLUMN_TYPE]) : Qnil);
+              break;
+            }
+          } /* for */
+
         }
 
-
-      }
+      } /* if (sm->result[i] != NULL) */
 
 
     }

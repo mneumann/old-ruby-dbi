@@ -3,4 +3,8 @@
 : sqlite_full_column_names
 Report columname as TABLE.COLUMN
 
+== TODO
+
+sqliteErrStr changed with release 2.1.0 to
+sqlite_error_string !
 
