@@ -51,6 +51,13 @@ class Row < DelegateClass(Array)
 
   # Cloning and Conversion -------------------------------------------
     
+  def to_h
+    hash = {}
+    each_with_name {|v, n| hash[n] = v}
+    hash
+  end
+
+ 
   def clone_with(new_values)
     # Create a new row with 'new_values', reusing the field name hash. 
     Row.new(@col_names, new_values)
@@ -61,6 +68,8 @@ class Row < DelegateClass(Array)
   def column_names
     @col_names
   end
+
+  alias field_names column_names
 
   def by_index(index)
     # Value at 'index'.
@@ -117,7 +126,7 @@ class Row < DelegateClass(Array)
         first = p.first
       end
 
-      if p.last.is_a? String or p.last_is_a? Symbol then
+      if p.last.is_a? String or p.last.is_a? Symbol then
         last = @col_map[p.last.to_s]
       else
         last = p.last
