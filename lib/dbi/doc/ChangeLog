@@ -7,7 +7,9 @@
 * dbd_pg: enhanced conversion: default is to_str, added timestamp
   (with/without timezone)
 
-* dbi.rb: added Timestamp#to_time/to_date (Dave Thomas)
+* dbi.rb: Date#to_time/to_date/mday/mday= 
+          Time#to_time 
+          Timestamp#to_time/to_date mday/mday= (Dave Thomas)
 
 : 0.0.16 (2002-07-03)
 
