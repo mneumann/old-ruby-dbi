@@ -1,8 +1,8 @@
 # 
 # DBD::ODBC
-# $Id: ODBC.rb,v 1.6 2001/11/22 14:21:13 michael Exp $
+# $Id: ODBC.rb,v 1.7 2002/02/06 18:05:33 mneumann Exp $
 # 
-# Version : 0.2.0
+# Version : 0.2.1
 # Author  : Michael Neumann (neumann@s-direktnet.de)
 #
 # Copyright (c) 2001 Michael Neumann
@@ -31,7 +31,7 @@ module DBI
 module DBD
 module ODBC
 
-VERSION          = "0.2.0"
+VERSION          = "0.2.1"
 USED_DBD_VERSION = "0.2"
 
 ODBCErr = ::ODBC::Error
@@ -232,7 +232,7 @@ class Statement < DBI::BaseStatement
 
   def column_info
     info = []
-    @handle.columns do |col|
+    @handle.columns(true).each do |col|
       info << {
         'name'       => col.name, 
         'table'      => col.table,
@@ -246,6 +246,7 @@ class Statement < DBI::BaseStatement
         'unsigned'   => col.unsigned
       }
     end
+    info
   rescue ODBCErr => err
     raise DBI::DatabaseError.new(err.message)
   end
