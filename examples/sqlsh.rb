@@ -1,4 +1,3 @@
-#!/usr/bin/env ruby -I ..
 
 require "dbi"
 
@@ -8,7 +7,7 @@ class ReadlineControl
     begin
       require "readline"
       @readline = true
-    ensure LoadError
+    rescue LoadError
       @readline = false
     end
       
