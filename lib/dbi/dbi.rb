@@ -1,5 +1,5 @@
 # Ruby/DBI 
-# $Id: dbi.rb,v 1.13 2001/07/06 18:13:10 michael Exp $
+# $Id: dbi.rb,v 1.14 2001/07/06 19:35:26 michael Exp $
 # 
 # Version : 0.0.5
 # Author  : Michael Neumann (neumann@s-direktnet.de)
@@ -326,6 +326,7 @@ end
       drh = DBI::DriverHandle.new(dbd_dr)
       drh.trace(@@trace_mode, @@trace_output)
       @@driver_map[found] = [drh, dbd_dr]
+      return found
     end
   rescue LoadError, NameError
     raise InterfaceError, "Could not load driver (#{$!.message})"
