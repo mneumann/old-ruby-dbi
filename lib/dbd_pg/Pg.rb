@@ -1,5 +1,5 @@
 #
-# $Id: Pg.rb,v 1.12 2001/11/12 19:37:58 michael Exp $
+# $Id: Pg.rb,v 1.13 2001/11/13 11:00:57 michael Exp $
 #
 
 require 'postgres'
@@ -94,12 +94,16 @@ module DBI
 	end
 	
 	def ping
-	  answer = send_sql("SELECT typname FROM pg_type", 3)
-	  return answer.result.size > 1
+	  answer = send_sql("SELECT 1", 3)
+          if answer
+            return answer.num_tuples == 1
+          else
+            return false
+          end
 	rescue PGError
 	  return false
 	ensure
-	  answer.clear
+	  answer.clear if answer
 	end
 
         def tables
