@@ -27,7 +27,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: Pg.rb,v 1.24 2002/09/13 09:10:31 mneumann Exp $
+# $Id: Pg.rb,v 1.25 2002/09/26 13:28:12 mneumann Exp $
 #
 
 require 'postgres'
@@ -36,7 +36,7 @@ module DBI
   module DBD
     module Pg
       
-      VERSION          = "0.3.0"
+      VERSION          = "0.3.1"
       USED_DBD_VERSION = "0.2"
       
       class Driver < DBI::BaseDriver
@@ -83,15 +83,8 @@ module DBI
         }
 	
 	attr_reader :connection
-	attr_accessor :autocommit
 
 	def initialize(dbname, user, auth, attr)
-	  @debug_level = 0
-
-
-	  @attr = attr
-	  @attr.each { |k,v| self[k] = v} 
-
           hash = Utils.parse_params(dbname)
 
           if hash['dbname'].nil? and hash['database'].nil?
@@ -102,12 +95,13 @@ module DBI
           hash['tty'] ||= ''
           hash['port'] = hash['port'].to_i unless hash['port'].nil? 
 
-	  @connection = PGconn.new(hash['host'], hash['port'], hash['options'], hash['tty'], 
+          @connection = PGconn.new(hash['host'], hash['port'], hash['options'], hash['tty'], 
             hash['dbname'] || hash['database'], user, auth)
 
+	  @attr = attr
+	  @attr.each { |k,v| self[k] = v} 
+
 	  load_type_map
-	  @in_transaction = false
-	  initialize_autocommit
 	rescue PGError => err
 	  raise DBI::OperationalError.new(err.message)
 	end
@@ -115,8 +109,8 @@ module DBI
 	# DBD Protocol -----------------------------------------------
 
 	def disconnect
-	  if not @autocommit and @in_transaction then
-	    send_sql("COMMIT WORK", 2)
+	  unless @attr['AutoCommit']
+	    send_sql("ROLLBACK", 2)        # rollback outstanding transactions 
 	  end
 	  @connection.close
 	end
@@ -242,6 +236,7 @@ module DBI
 	  Statement.new(self, statement)
 	end
 	
+        # Note: 'AutoCommit' returns nil <=> Postgres' default mode  
         def [](attr)
           case attr
           when 'pg_client_encoding'
@@ -254,7 +249,8 @@ module DBI
 	def []=(attr, value)
 	  case attr
 	  when 'AutoCommit'
-	    @autocommit = value
+	    # TODO: Are outstanding transactions committed?
+	    send_sql("SET AUTOCOMMIT TO " + (value ? "ON" : "OFF"), 2)
           when 'pg_client_encoding'
             @connection.set_client_encoding(value)
 	  else
@@ -268,17 +264,13 @@ module DBI
 	end
 
 	def commit
-          if @in_transaction
-  	    send_sql("COMMIT WORK", 2)
-	    @in_transaction = false
-          end
+	  # TODO: what if in autocommit mode?
+	  send_sql("COMMIT", 2)
 	end
 
 	def rollback
-          if @in_transaction
-  	    send_sql("ROLLBACK WORK", 2)
-	    @in_transaction = false
-          end
+	  # TODO: what if in autocommit mode?
+	  send_sql("ROLLBACK", 2)
 	end
 
 	# Other Public Methods ---------------------------------------
@@ -290,21 +282,13 @@ module DBI
 	  @coerce.coerce(converter, obj)
 	end
 
-	def in_transaction?
-	  @in_transaction
-	end
-
-	def start_transaction
-	  send_sql("BEGIN WORK", 2)
-	  @in_transaction = true
-	end
-
 	def send_sql(sql, level=1)
-	  puts "SQL TRACE: |#{sql}|" if @debug_level >= level
+	  #puts "SQL TRACE: |#{sql}|" if @debug_level >= level
 	  @connection.exec(sql)
 	end
 
         def quote(value)
+	  # TODO: new quote function of Pg driver
           case value
           when String
                 "'#{ value.gsub(/\\/){ '\\\\' }.gsub(/'/){ '\\\'' } }'"
@@ -315,11 +299,6 @@ module DBI
        
 	
         private # ----------------------------------------------------
-
-	def initialize_autocommit
-	  @autocommit = true
-	  @attr['AutoCommit'] = @autocommit
-	end
 
 	def load_type_map
 	  @type_map = Hash.new
@@ -352,42 +331,36 @@ module DBI
         public
 
         def __blob_import(file)
-          start_transaction unless in_transaction?
           @connection.lo_import(file)
 	rescue PGError => err
           raise DBI::DatabaseError.new(err.message) 
         end
 
         def __blob_export(oid, file)
-          start_transaction unless in_transaction?
           @connection.lo_export(oid.to_i, file)
 	rescue PGError => err
           raise DBI::DatabaseError.new(err.message) 
         end
 
         def __blob_create(mode=PGlarge::INV_READ)
-          start_transaction unless in_transaction?
           @connection.lo_create(mode)
 	rescue PGError => err
           raise DBI::DatabaseError.new(err.message) 
         end
 
         def __blob_open(oid, mode=PGlarge::INV_READ)
-          start_transaction unless in_transaction?
           @connection.lo_open(oid.to_i, mode)
 	rescue PGError => err
           raise DBI::DatabaseError.new(err.message) 
         end
 
         def __blob_unlink(oid)
-          start_transaction unless in_transaction?
           @connection.lo_unlink(oid.to_i)
 	rescue PGError => err
           raise DBI::DatabaseError.new(err.message) 
         end
 
         def __blob_read(oid, length=nil)
-          start_transaction unless in_transaction?
           blob = @connection.lo_open(oid.to_i, PGlarge::INV_READ)
           blob.open
           if length.nil?
@@ -408,6 +381,7 @@ module DBI
         #   http://www.postgresql.org/idocs/index.php?datatype-binary.html
         #
         def __encode_bytea(str)
+	  # TODO: use quote function of Pg driver
           a = str.split(/\\/, -1).collect! {|s|
             s.gsub!(/'/,    "\\\\047")  # '  => \\047 
             s.gsub!(/\000/, "\\\\000")  # \0 => \\000  
@@ -449,17 +423,9 @@ module DBI
 
 	  boundsql = @prep_sql.bind(@bindvars)
 
-	  if SQL.query?(boundsql) then
-	    pg_result = @db.send_sql(boundsql)
-	    @result = Tuples.new(@db, pg_result)
-	  elsif @db.autocommit then
-	    pg_result = @db.send_sql(boundsql)
-	    @result = Tuples.new(@db, pg_result)
-	  else
-	    @db.start_transaction if not @db.in_transaction?
-	    pg_result = @db.send_sql(boundsql)
-	    @result = Tuples.new(@db, pg_result)
-	  end
+          pg_result = @db.send_sql(boundsql)
+          @result = Tuples.new(@db, pg_result)
+
 	rescue PGError, RuntimeError => err
 	  raise DBI::ProgrammingError.new(err.message)
 	end
@@ -589,6 +555,7 @@ module DBI
         #   http://www.postgresql.org/idocs/index.php?datatype-binary.html
         #
         def as_bytea(str)
+	  # TODO: Use quote function of Pg driver
           a = str.split(/\\\\/, -1).collect! {|s|
             s.gsub!(/\\[0-7][0-7][0-7]/) {|o| o[1..-1].oct.chr}  #  \### => chr(###)
             s
