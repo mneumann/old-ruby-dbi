@@ -1,5 +1,5 @@
 # Ruby/DBI 
-# $Id: dbi.rb,v 1.2 2001/05/29 11:22:24 michael Exp $
+# $Id: dbi.rb,v 1.3 2001/05/30 18:59:48 michael Exp $
 # 
 # Version : 0.0.5
 # Author  : Michael Neumann (neumann@s-direktnet.de)
@@ -42,8 +42,8 @@
 #    everytime column_names
 #
 
-require "row"
-require "utils"
+require "dbi/row"
+require "dbi/utils"
 
 module DBI
 
@@ -359,7 +359,7 @@ class DatabaseHandle < Handle
       begin
         yield sth
       ensure
-        sth.finish
+        sth.finish unless sth.finished?
       end
     else
       return sth
@@ -373,7 +373,7 @@ class DatabaseHandle < Handle
       begin
         yield sth
       ensure
-        sth.finish
+        sth.finish unless sth.finished?
       end
     else
       return sth
@@ -472,6 +472,10 @@ class StatementHandle < Handle
     else
       @row = nil
     end
+  end
+
+  def finished?
+    @handle.nil?
   end
 
   def fetchable?
