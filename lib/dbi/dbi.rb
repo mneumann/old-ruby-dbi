@@ -292,6 +292,7 @@ class Time
   def to_s
     sprintf("%02d:%02d:%02d", @hour, @minute, @second)
   end
+
 end
 
 
@@ -316,12 +317,11 @@ class Timestamp
     end
   end
 
-  def ==(otherTimestamp)
-    a = otherTimestamp
-
-    @year == a.year and @month == a.month and @day == a.day and
-    @hour == a.hour and @minute == a.minute and @second == a.second and
-    (fraction() == a.fraction)
+  def ==(other)
+    [:year, :month, :day, :hour, :min, :sec, :fraction].each do |meth|
+      return false if !other.respond_to?(meth) or self.send(meth) != other.send(meth)
+    end
+    true
   end
 
   def fraction() @fraction || 0 end
