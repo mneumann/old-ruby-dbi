@@ -1,8 +1,8 @@
 # 
 # DBD::ODBC
-# $Id: ODBC.rb,v 1.5 2001/11/13 11:31:05 michael Exp $
+# $Id: ODBC.rb,v 1.6 2001/11/22 14:21:13 michael Exp $
 # 
-# Version : 0.1.2
+# Version : 0.2.0
 # Author  : Michael Neumann (neumann@s-direktnet.de)
 #
 # Copyright (c) 2001 Michael Neumann
@@ -27,28 +27,12 @@ $:.delete(".")
 require "odbc"
 $: << "."
 
-=begin
-# this patch was required by Ruby/ODBC version 0.4 (in 0.5 this was fixed)
-module ODBC
-class Column
-  attr_reader :name, :table, :type, :length, :nullable, :scale
-  attr_reader :precision, :searchable, :unsigned
-end
-class DSN
-  attr_accessor :name, :descr
-end
-class Driver
-  attr_accessor :name, :attrs
-end
-end
-=end
-
 module DBI
 module DBD
 module ODBC
 
-VERSION          = "0.1.1"
-USED_DBD_VERSION = "0.1"
+VERSION          = "0.2.0"
+USED_DBD_VERSION = "0.2"
 
 ODBCErr = ::ODBC::Error
 
@@ -70,11 +54,9 @@ module Converter
 end
 
 class Driver < DBI::BaseDriver
-
   def initialize
     super(USED_DBD_VERSION)
   end
-
 
   def data_sources
     ::ODBC.datasources.collect {|dsn| "dbi:ODBC:" + dsn.name }
@@ -88,7 +70,6 @@ class Driver < DBI::BaseDriver
   rescue ODBCErr => err
     raise DBI::DatabaseError.new(err.message)
   end
-
 end
 
 class Database < DBI::BaseDatabase
@@ -101,8 +82,37 @@ class Database < DBI::BaseDatabase
     raise DBI::DatabaseError.new(err.message)
   end
 
+  def ping
+    @handle.connected?
+  end
+
+  def columns(table)
+    cols = []
+
+    stmt = @handle.columns(table)
+    stmt.ignorecase = true
+
+    stmt.each_hash do |row|
+      info = Hash.new
+      cols << info
+
+      info['name']      = row['COLUMN_NAME']
+      info['type_name'] = row['TYPE_NAME']
+      info['sql_type']  = row['DATA_TYPE']
+      info['nullable']  = row['NULLABLE']  
+      info['precision'] = row['COLUMN_SIZE'] - (row['DECIMAL_DIGITS'] || 0)
+      info['scale']     = row['DECIMAL_DIGITS']
+    end
+
+    stmt.drop
+    cols
+  rescue ODBCErr => err
+    raise DBI::DatabaseError.new(err.message)
+  end
+
   def tables
     stmt = @handle.tables
+    stmt.ignorecase = true
     tabs = [] 
     stmt.each_hash {|row|
       tabs << row["TABLE_NAME"]
@@ -114,8 +124,7 @@ class Database < DBI::BaseDatabase
   end
 
   def prepare(statement)
-    stmt = @handle.prepare(statement)
-    Statement.new(stmt)
+    Statement.new(@handle.prepare(statement))
   rescue ODBCErr => err
     raise DBI::DatabaseError.new(err.message)
   end
@@ -167,7 +176,6 @@ class Database < DBI::BaseDatabase
 
 end # class Database
 
-
 class Statement < DBI::BaseStatement
   include Converter
 
@@ -201,7 +209,6 @@ class Statement < DBI::BaseStatement
     raise DBI::DatabaseError.new(err.message)
   end
 
-
   def fetch
     convert_row(@handle.fetch)
   rescue ODBCErr => err
@@ -223,11 +230,21 @@ class Statement < DBI::BaseStatement
     raise DBI::DatabaseError.new(err.message)
   end
 
-
   def column_info
-    (0...(@handle.ncols)).collect do |i| 
-      col = @handle.column(i)
-      {'name' => col.name, 'nullable' =>  col.nullable}
+    info = []
+    @handle.columns do |col|
+      info << {
+        'name'       => col.name, 
+        'table'      => col.table,
+        'nullable'   => col.nullable,
+        'searchable' => col.searchable,
+        'precision'  => col.precision,
+        'scale'      => col.scale,
+        'sql_type'   => col.type,
+        'type_name'  => DBI::SQL_TYPE_NAMES[col.type],
+        'length'     => col.length,
+        'unsigned'   => col.unsigned
+      }
     end
   rescue ODBCErr => err
     raise DBI::DatabaseError.new(err.message)
@@ -258,7 +275,6 @@ class Statement < DBI::BaseStatement
     end
   end 
 end
-
 
 end # module ODBC
 end # module DBD
