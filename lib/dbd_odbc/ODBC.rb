@@ -1,8 +1,8 @@
 # 
 # DBD::ODBC
-# $Id: ODBC.rb,v 1.2 2001/06/08 20:28:47 michael Exp $
+# $Id: ODBC.rb,v 1.3 2001/08/30 14:05:19 michael Exp $
 # 
-# Version : 0.1
+# Version : 0.1.1
 # Author  : Michael Neumann (neumann@s-direktnet.de)
 #
 # Copyright (c) 2001 Michael Neumann
@@ -27,6 +27,8 @@ $:.delete(".")
 require "odbc"
 $: << "."
 
+=begin
+# this patch was required by Ruby/ODBC version 0.4 (in 0.5 this was fixed)
 module ODBC
 class Column
   attr_reader :name, :table, :type, :length, :nullable, :scale
@@ -39,13 +41,13 @@ class Driver
   attr_accessor :name, :attrs
 end
 end
-
+=end
 
 module DBI
 module DBD
 module ODBC
 
-VERSION          = "0.1"
+VERSION          = "0.1.1"
 USED_DBD_VERSION = "0.1"
 
 ODBCErr = ::ODBC::Error
