@@ -33,7 +33,7 @@ class TestSqlQuote < RUNIT::TestCase
     assert_equal "''''", @sql.quote("'")
   end
 
-  def test_embeded_back_slashes
+  def test_embedded_back_slashes
     assert_equal "'\\'", @sql.quote("\\")
   end
 

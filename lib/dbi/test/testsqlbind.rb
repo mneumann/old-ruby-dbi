@@ -50,11 +50,82 @@ class TestSqlBind < RUNIT::TestCase
       bind(self, "WHERE c=? AND d=?", ["connected?", "???"])
   end
 
+  def test_questions_in_quotes
+    assert_equal "WHERE c='connected?' AND d=10",
+      bind(self, "WHERE c='connected?' AND d=?", [10])
+  end
+
 end
 
 $last_suite.add_test (TestSqlBind.suite)
 
 
+
+
+######################################################################
+class TestLex < RUNIT::TestCase
+
+  include DBI::SQL::BasicBind
+
+  def test_non_strings
+    assert_equal ['This is _a t35t'],
+      tokens("This is _a t35t")
+  end
+
+  def test_simple_strings
+    assert_equal ["hi ", "'hello world'"],
+      tokens("hi 'hello world'")
+    assert_equal ["c = ", "''"],
+      tokens("c = ''")
+  end
+
+  def test_strings_with_quotes
+    assert_equal ["hi ", "'''lo world'"],
+      tokens("hi '''lo world'")
+    assert_equal ['a', "''''", 'b'],
+      tokens("a''''b")
+  end
+
+  def test_strings_with_escaped_quotes
+    assert_equal ["hi ", "'don\\'t do that'"],
+      tokens("hi 'don\\'t do that'")
+    assert_equal ['a', "'\\''", 'b'],
+      tokens("a'\\''b")
+  end
+
+  def test_simple_dq_strings
+    assert_equal ["hi ", '"hello world"'],
+      tokens('hi "hello world"')
+    assert_equal ["c = ", '""'],
+      tokens('c = ""')
+  end
+
+  def test_dq_strings_with_quotes
+    assert_equal ["hi ", '"""lo world"'],
+      tokens('hi """lo world"')
+    assert_equal ['a', '""""', 'b'],
+      tokens('a""""b')
+  end
+
+  def test_dq_strings_with_escaped_quotes
+    assert_equal ["hi ", '"don\"t do that"'],
+      tokens('hi "don\"t do that"')
+    assert_equal ['a', '"\""', 'b'],
+      tokens('a"\""b')
+  end
+
+  def test_qmarks
+    assert_equal ["a = ", "?"],
+      tokens("a = ?")
+    assert_equal ["'?'", " = ", "?"],
+      tokens("'?' = ?")
+    assert_equal ["'?'", " = ", "??"],
+      tokens("'?' = ??")
+  end
+
+end
+
+$last_suite.add_test (TestLex.suite)
 
 
 ######################################################################

@@ -1,5 +1,5 @@
 #
-# $Id: sql.rb,v 1.2 2001/06/11 00:11:29 michael Exp $
+# $Id: sql.rb,v 1.3 2001/06/17 20:04:07 jweirich Exp $
 #
 # extracted from Jim Weirichs DBD::Pg
 #
@@ -8,22 +8,22 @@ module DBI
 
 module SQL
 
-  # Is the SQL statement a query?
+  ## Is the SQL statement a query?
   def SQL.query?(sql)
     sql =~ /^\s*select\b/i
   end
 
 
-  # ====================================================================
+  ####################################################################
+  # Mixin module useful for expanding SQL statements.
+  #
   module BasicQuote
     
-    # Mixin module useful for expanding SQL statements.
-    
+    ## Quote strings appropriately for SQL statements
     def quote(value)
-      # Quote strings appropriately for SQL statements
       case value
       when String
-	value.gsub!(/'/, "''")	# " (for ruby-mode)
+	value.gsub!(/'/, "''")	# ' (for ruby-mode)
 	"'#{value}'"
       when NilClass
 	"NULL"
@@ -35,27 +35,47 @@ module SQL
     end
   end # module BasicQuote
 
+
+  ####################################################################
+  # Mixin module useful for binding arguments to an SQL string.
+  #
   module BasicBind
 
+    ## Bind the :sql string to an array of :args, quoting with :quoter.
+    #
     def bind(quoter, sql, args)
-      boundsql = sql.gsub(/\?\?/, "\001")
-
-      indices = []
-      i = -1
-      while i = boundsql.index("?", i+1)
-        indices.unshift(i)
-      end
- 
-      case indices.size <=> args.size
-      when -1 
+      arg_index = 0
+      result = ""
+      tokens(sql).each { |part|
+	case part
+	when '?'
+	  result << quoter.quote(args[arg_index])
+	  arg_index += 1
+	when '??'
+	  result << "?"
+	else
+	  result << part
+	end
+      }
+      if arg_index < args.size
         raise "Too many SQL parameters"
-      when 1
+      elsif arg_index > args.size
         raise "Not enough SQL parameters"
       end
+      result
+    end
 
-      indices.each_with_index {|inx, i| boundsql[inx,1] = quoter.quote(args[-(i+1)])}
-
-      boundsql.gsub(/\001/, "?")
+    ## Break the sql string into parts.
+    #
+    # This is NOT a full lexer for SQL.  It just breaks up the SQL
+    # string enough so that question marks, double question marks and
+    # quoted strings are separated.  This is used when binding
+    # arguments to "?" in the SQL string.  Note: comments are not
+    # handled.  
+    #
+    def tokens(sql)
+      toks = sql.scan(/('([^'\\]|''|\\.)*'|"([^"\\]|""|\\.)*"|\?\??|[^'"?]+)/)
+      toks.collect {|t| t[0]}
     end
 
   end # module BasicBind

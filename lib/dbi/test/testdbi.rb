@@ -86,7 +86,7 @@ class TestDbiAttributes < RUNIT::TestCase
     db['AutoCommit'] = true
     assert db['AutoCommit']
   ensure
-    db.disconnect
+    db.disconnect if db
   end
 end
 
