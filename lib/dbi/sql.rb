@@ -1,7 +1,7 @@
 #
-# $Id: sql.rb,v 1.8 2001/11/08 23:31:23 michael Exp $
+# $Id: sql.rb,v 1.9 2001/11/22 14:23:34 michael Exp $
 #
-# extracted from Jim Weirichs DBD::Pg
+# parts extracted from Jim Weirichs DBD::Pg
 #
 
 module DBI
@@ -100,6 +100,7 @@ module SQL
   end # module BasicQuote
 
 
+
   ####################################################################
   # Mixin module useful for binding arguments to an SQL string.
   #
@@ -143,6 +144,63 @@ module SQL
     end
 
   end # module BasicBind
+
+
+  class PreparedStatement
+    include BasicBind # for method tokens(sql)
+
+    def initialize(quoter, sql)
+      @quoter, @sql = quoter, sql
+      prepare
+    end
+
+    def bind(args)
+      if @arg_index< args.size
+        raise "Too many SQL parameters"
+      elsif @arg_index > args.size
+        raise "Not enough SQL parameters"
+      end
+
+      @unbound.each do |res_pos, arg_pos|
+        @result[res_pos] = @quoter.quote(args[arg_pos])
+      end
+
+      @result.join("")
+    end
+
+    private
+
+    def prepare
+      @result = [] 
+      @unbound = {}
+      pos = 0
+      @arg_index = 0
+
+      tokens(@sql).each { |part|
+	case part
+	when '?'
+          @result[pos] = nil
+          @unbound[pos] = @arg_index
+          pos += 1
+          @arg_index += 1
+	when '??'
+          if @result[pos-1] != nil
+            @result[pos-1] << "?"
+          else
+            @result[pos] = "?"
+            pos += 1
+          end
+	else
+          if @result[pos-1] != nil
+            @result[pos-1] << part
+          else
+            @result[pos] = part
+            pos += 1
+          end
+	end
+      }
+    end
+  end
 
 end # module SQL
 end # module DBI
