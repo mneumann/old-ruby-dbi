@@ -1,13 +1,22 @@
 #!/usr/bin/env ruby -I ..
-require "readline"
+
 require "dbi"
 
 class ReadlineControl
   
   def initialize
+    begin
+      require "readline"
+      @readline = true
+    ensure LoadError
+      @readline = false
+    end
+      
     @keywords = []
     set_prompt
-    Readline.completion_proc = proc {|str| complete(str) }
+    if @readline
+      Readline.completion_proc = proc {|str| complete(str) }
+    end
   end
 
   def add_keywords(arr)
@@ -23,7 +32,12 @@ class ReadlineControl
   end
 
   def readline
-    Readline.readline(@prompt, true)
+    if @readline
+      Readline.readline(@prompt, true)
+    else
+      print @prompt
+      readline
+    end
   end
 
 end
