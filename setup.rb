@@ -717,7 +717,7 @@ class Installer
 
   def dir?( dname )
     # for CORRUPTED windows stat()
-    File.directory? (dname[-1,1] == '/' ? dname : dname + '/')
+    File.directory?(dname[-1,1] == '/' ? dname : dname + '/')
   end
 
 end

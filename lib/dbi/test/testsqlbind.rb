@@ -101,7 +101,7 @@ ENDSQL
 
 end
 
-$last_suite.add_test (TestSqlBind.suite)
+$last_suite.add_test(TestSqlBind.suite)
 
 
 # ====================================================================
@@ -155,7 +155,7 @@ class TestSqlPreparedStmt < RUNIT::TestCase
 
 end
 
-$last_suite.add_test (TestSqlPreparedStmt.suite)
+$last_suite.add_test(TestSqlPreparedStmt.suite)
 
 
 
@@ -222,12 +222,12 @@ class TestLex < RUNIT::TestCase
 
 end
 
-$last_suite.add_test (TestLex.suite)
+$last_suite.add_test(TestLex.suite)
 
 
 ######################################################################
 
 if __FILE__ == $0 then
   RUNIT::CUI::TestRunner.quiet_mode = false
-  RUNIT::CUI::TestRunner.run ($last_suite)
+  RUNIT::CUI::TestRunner.run($last_suite)
 end

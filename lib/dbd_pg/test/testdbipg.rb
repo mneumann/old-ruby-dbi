@@ -69,7 +69,7 @@ class TestDbdPostgres < RUNIT::TestCase
 
   def test_query_single
     dbd = get_dbd
-    res = dbd.prepare ("SELECT name, age FROM names WHERE age=21;")
+    res = dbd.prepare("SELECT name, age FROM names WHERE age=21;")
     assert res
     res.execute
     fields = res.column_info
@@ -92,7 +92,7 @@ class TestDbdPostgres < RUNIT::TestCase
 
   def test_query_multi
     dbd = get_dbd
-    res = dbd.prepare ("SELECT name, age FROM names WHERE age > 20;")
+    res = dbd.prepare("SELECT name, age FROM names WHERE age > 20;")
 
     expected_list = ['Bob', 'Charlie']
     res.execute
@@ -115,7 +115,7 @@ class TestDbdPostgres < RUNIT::TestCase
   end
 end
 
-$last_suite.add_test (TestDbdPostgres.suite)
+$last_suite.add_test(TestDbdPostgres.suite)
 
 
 # ====================================================================
@@ -147,6 +147,6 @@ $last_suite = TestDbiPostgresWrapper.new($last_suite)
 
 if __FILE__ == $0 then
   RUNIT::CUI::TestRunner.quiet_mode = true
-  RUNIT::CUI::TestRunner.run ($last_suite)
+  RUNIT::CUI::TestRunner.run($last_suite)
 end
 
