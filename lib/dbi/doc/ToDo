@@ -1,4 +1,5 @@
 =begin
+* columns / column_info with more DBDs (DB2, Oracle, Interbase, ODBC)
 * get a Driver object, call methods on it
 * Tainting
 * table_info
