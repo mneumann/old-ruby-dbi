@@ -1,5 +1,5 @@
 # Ruby/DBI 
-# $Id: dbi.rb,v 1.5 2001/05/31 13:23:23 michael Exp $
+# $Id: dbi.rb,v 1.6 2001/06/04 14:22:01 michael Exp $
 # 
 # Version : 0.0.5
 # Author  : Michael Neumann (neumann@s-direktnet.de)
@@ -212,18 +212,33 @@ end
   def DBI.connect(driver_url, user=nil, auth=nil, params=nil, &p)
     db_driver, db_args = parse_url(driver_url)
     load_driver(db_driver)
-    dh = @@driver_map[db_driver]
+    dh = @@driver_map[db_driver][0]
 
     dh.connect(db_args, user, auth, params, &p)
   end
 
   class << self
+  ##
+  # load a DBD and get the Driver object
+  # 
+  def get_driver(driver_url)
+    db_driver, db_args = parse_url(driver_url)
+    load_driver(db_driver)
+    dr = @@driver_map[db_driver]
+
+    [dr, db_args]
+  end
+
+
+
+
   private
   def load_driver(driver_name)
     if @@driver_map[driver_name].nil?
       require "#{DBD::DIR}/#{driver_name}/#{driver_name}"
       dr = DBI::DBD.const_get(driver_name.intern)
-      @@driver_map[driver_name] = DBI::DriverHandle.new(dr::Driver.new)
+      dbd_dr = dr::Driver.new
+      @@driver_map[driver_name] = [DBI::DriverHandle.new(dbd_dr), dbd_dr]
     end
   rescue LoadError, NameError
     raise InterfaceError, "Could not load driver (#{$!.message})"
@@ -258,16 +273,16 @@ end
   def DBI.data_sources(driver)
     db_driver, = parse_url(driver)
     load_driver(db_driver)
-    dh = @@driver_map[db_driver]
+    dh = @@driver_map[db_driver][0]
     dh.data_sources
   end
 
   def DBI.disconnect_all( driver = nil )
     if driver.nil?
-      @@driver_map.each {|k,v| v.disconnect_all}
+      @@driver_map.each {|k,v| v[0].disconnect_all}
     else
       db_driver, = parse_url(driver)
-      @@driver_map[db_driver].disconnect_all
+      @@driver_map[db_driver][0].disconnect_all
     end
   end
 
@@ -388,6 +403,7 @@ class DatabaseHandle < Handle
   end
 
   def select_one(stmt, *bindvars)
+    raise InterfaceError, "Database connection was already closed!" if @handle.nil?
     row = nil
     execute(stmt, *bindvars) do |sth|
       row = sth.fetch 
@@ -396,6 +412,7 @@ class DatabaseHandle < Handle
   end
 
   def select_all(stmt, *bindvars, &p)
+    raise InterfaceError, "Database connection was already closed!" if @handle.nil?
     rows = nil
     execute(stmt, *bindvars) do |sth|
       if block_given?
@@ -448,10 +465,12 @@ class DatabaseHandle < Handle
 
 
   def [] (attr)
+    raise InterfaceError, "Database connection was already closed!" if @handle.nil?
     @handle[attr]
   end
 
   def []= (attr, val)
+    raise InterfaceError, "Database connection was already closed!" if @handle.nil?
     @handle[attr] = val
   end
 
