@@ -11,7 +11,7 @@
 <h1><a name="label:0" id="label:0">Ruby/DBI - a database independent interface for accessing databases - similar to Perl's DBI
 </a></h1><!-- RDLabel: "Ruby/DBI - a database independent interface for accessing databases - similar to Perl's DBI" -->
 <p>
-$Id: index.html,v 1.5 2001/06/08 20:30:50 michael Exp $
+$Id: index.html,v 1.6 2001/06/11 10:46:42 michael Exp $
 </p>
 <p>
 Copyright (c) 2001 by Michael Neumann (neumann@s-direktnet.de)
@@ -83,8 +83,9 @@ ODBC <em>(dbd_odbc)</em>
 </p>
 
 <p>
-depend on the Ruby/ODBC binding by Christian Werner &lt;chw@ch-werner.de&gt; <a href="http://www.ch-werner.de/rubyodbc">&lt;URL:http://www.ch-werner.de/rubyodbc&gt;</a> or
-available from the RAA. Works also together with unixODBC.
+depend on the Ruby/ODBC (version &gt;= 0.4) binding by Christian Werner &lt;chw@ch-werner.de&gt; 
+<a href="http://www.ch-werner.de/rubyodbc">&lt;URL:http://www.ch-werner.de/rubyodbc&gt;</a> or available from the RAA. 
+Works also together with unixODBC.
 </p>
 </li><li><p>
 Oracle <em>(dbd_oracle)</em>
@@ -116,13 +117,20 @@ Sybase <em>(dbd_sybase)</em>
 this DBD is currently outdated and will <em>not</em> work with DBI 0.0.5 !!! 
 </p>
 </li></ul>
-<h2><a name="label:4" id="label:4">Download
-</a></h2><!-- RDLabel: "Download" -->
+<h2><a name="label:4" id="label:4">ChangeLog
+</a></h2><!-- RDLabel: "ChangeLog" -->
 <p>
-The newest version in 0.0.5.
+See <a href="http://www.ruby-projects.org/dbi/dbi/ChangeLog.html">&lt;URL:http://www.ruby-projects.org/dbi/dbi/ChangeLog.html&gt;</a>.
 </p>
+<h2><a name="label:5" id="label:5">ToDo
+</a></h2><!-- RDLabel: "ToDo" -->
+<p>
+See <a href="http://www.ruby-projects.org/dbi/dbi/ToDo.html">&lt;URL:http://www.ruby-projects.org/dbi/dbi/ToDo.html&gt;</a>.
+</p>
+<h2><a name="label:6" id="label:6">Download
+</a></h2><!-- RDLabel: "Download" -->
 <dl>
-<dt><a name="label:12" id="label:12">Ruby/DBI 0.0.5
+<dt><a name="label:14" id="label:14">Ruby/DBI 0.0.5
 </a></dt><!-- RDLabel: "Ruby/DBI 0.0.5" -->
 <dd>
 <p>
@@ -130,20 +138,20 @@ The newest version in 0.0.5.
 </p>
 </dd>
 </dl>
-<h2><a name="label:5" id="label:5">Installation
+<h2><a name="label:7" id="label:7">Installation
 </a></h2><!-- RDLabel: "Installation" -->
 <p>
 All available DBDs come with this package, but you should only
 install the DBDs you really need.
 </p>
-<h3><a name="label:6" id="label:6">To install all:
+<h3><a name="label:8" id="label:8">To install all:
 </a></h3><!-- RDLabel: "To install all:" -->
 <pre>
 ruby setup.rb config
 ruby setup.rb setup
 ruby setup.rb install
 </pre>
-<h3><a name="label:7" id="label:7">To install dbi and some DBDs:
+<h3><a name="label:9" id="label:9">To install dbi and some DBDs:
 </a></h3><!-- RDLabel: "To install dbi and some DBDs:" -->
 <pre>
 ruby setup.rb config --with=dbi,dbd_pg....
@@ -153,13 +161,13 @@ ruby setup.rb install
 <p>
 Choose the packages to install by specifing them after the option <code>--with</code>.
 </p>
-<h2><a name="label:8" id="label:8">Mailing List
+<h2><a name="label:10" id="label:10">Mailing List
 </a></h2><!-- RDLabel: "Mailing List" -->
 <p>
 There is also a mailing-list for DBI-specific discussions, see
 <a href="http://groups.yahoo.com/group/ruby-dbi-talk">&lt;URL:http://groups.yahoo.com/group/ruby-dbi-talk&gt;</a>
 </p>
-<h2><a name="label:9" id="label:9">Documentation
+<h2><a name="label:11" id="label:11">Documentation
 </a></h2><!-- RDLabel: "Documentation" -->
 <p>
 See the directories lib/*/doc or ext/*/doc for DBI and DBD specific informations.
@@ -172,7 +180,7 @@ from WWW at <a href="http://www.ruby-projects.org/dbi/dbi/DBI_SPEC.html">&lt;URL
 The DBD specification (how to write a database driver) is lib/dbi/doc/DBD_SPEC or lib/dbi/doc/html/DBD_SPEC.html or available
 from WWW at <a href="http://www.ruby-projects.org/dbi/dbi/DBD_SPEC.html">&lt;URL:http://www.ruby-projects.org/dbi/dbi/DBD_SPEC.html&gt;</a>.
 </p>
-<h2><a name="label:10" id="label:10">Examples
+<h2><a name="label:12" id="label:12">Examples
 </a></h2><!-- RDLabel: "Examples" -->
 <p>
 Examples can be found in the examples/ subdirectory.
@@ -180,7 +188,7 @@ There is e.g. sqlsh.rb, which is an interactive SQL shell similar to Perl's dbis
 Further there is in this directory the file proxyserver.rb which has to be run if you use the DBD::Proxy, 
 to access databases remote over a TCP/IP network. 
 </p>
-<h3><a name="label:11" id="label:11">A simple example
+<h3><a name="label:13" id="label:13">A simple example
 </a></h3><!-- RDLabel: "A simple example" -->
 <pre>
 require 'dbi'
