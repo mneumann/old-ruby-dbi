@@ -1,5 +1,5 @@
 #
-# $Id: utils.rb,v 1.9 2001/11/08 22:39:02 michael Exp $
+# $Id: utils.rb,v 1.10 2001/11/22 14:26:43 michael Exp $
 #
 
 module DBI
@@ -94,17 +94,17 @@ module XMLFormatter
   end
 
   class << self
-  private
-  # from xmloracle.rb 
-  def textconv(str)
-    str = str.to_s.gsub('&', "&#38;")
-    str = str.gsub('\'', "&#39;")
-    str = str.gsub('\"', "&#34;")
-    str = str.gsub('<', "&#60;")
-    str.gsub('>', "&#62;")
-  end
+    private
+    # from xmloracle.rb 
+    def textconv(str)
+      str = str.to_s.gsub('&', "&#38;")
+      str = str.gsub('\'', "&#39;")
+      str = str.gsub('\"', "&#34;")
+      str = str.gsub('<', "&#60;")
+      str.gsub('>', "&#62;")
+    end
   end # class self
- 
+
 end # module XMLFormatter
 
 
