@@ -27,7 +27,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: Mysql.rb,v 1.18 2003/02/08 01:37:51 pdubois Exp $
+# $Id: Mysql.rb,v 1.19 2003/02/08 01:46:02 pdubois Exp $
 #
 
 require "mysql"
@@ -67,7 +67,7 @@ class Driver < DBI::BaseDriver
 
     return Database.new(handle, attr)
   rescue MyError => err
-    raise DBI::DatabaseError.new(err.message)
+    raise DBI::DatabaseError.new(err.message, err.errno)
   end
 
   def data_sources
@@ -76,7 +76,7 @@ class Driver < DBI::BaseDriver
     handle.close
     return res
   rescue MyError => err
-    raise DBI::DatabaseError.new(err.message)
+    raise DBI::DatabaseError.new(err.message, err.errno)
   end
 
   # Driver-specific functions ------------------------------------------------
@@ -187,7 +187,7 @@ class Database < DBI::BaseDatabase
   def disconnect
     @handle.close
   rescue MyError => err
-    raise DBI::DatabaseError.new(err.message)
+    raise DBI::DatabaseError.new(err.message, err.errno)
   end
 
   def ping
@@ -202,7 +202,7 @@ class Database < DBI::BaseDatabase
   def tables
     @handle.list_tables
   rescue MyError => err
-    raise DBI::DatabaseError.new(err.message)
+    raise DBI::DatabaseError.new(err.message, err.errno)
   end
 
   # Eli Green (fixed up by Michael Neumann)
@@ -251,7 +251,7 @@ class Database < DBI::BaseDatabase
       @handle.affected_rows     # return value
     }
   rescue MyError => err
-    raise DBI::DatabaseError.new(err.message)
+    raise DBI::DatabaseError.new(err.message, err.errno)
   end
  
 
@@ -363,13 +363,13 @@ class Statement < DBI::BaseStatement
       @rows = @handle.affected_rows
     }
   rescue MyError => err
-    raise DBI::DatabaseError.new(err.message)
+    raise DBI::DatabaseError.new(err.message, err.errno)
   end
 
   def finish
     @res_handle.free if @res_handle
   rescue MyError => err
-    raise DBI::DatabaseError.new(err.message)
+    raise DBI::DatabaseError.new(err.message, err.errno)
   end
 
   def fill_array(rowdata)
@@ -387,7 +387,7 @@ class Statement < DBI::BaseStatement
     @current_row += 1
     fill_array(@res_handle.fetch_row)
   rescue MyError => err
-    raise DBI::DatabaseError.new(err.message)
+    raise DBI::DatabaseError.new(err.message, err.errno)
   end
 
   def fetch_scroll(direction, offset)
@@ -431,7 +431,7 @@ class Statement < DBI::BaseStatement
     }
     retval
   rescue MyError => err
-    raise DBI::DatabaseError.new(err.message)
+    raise DBI::DatabaseError.new(err.message, err.errno)
   end
 
   def rows
