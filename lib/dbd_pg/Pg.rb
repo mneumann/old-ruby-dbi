@@ -1,5 +1,5 @@
 #
-# $Id: Pg.rb,v 1.11 2001/11/08 22:38:31 michael Exp $
+# $Id: Pg.rb,v 1.12 2001/11/12 19:37:58 michael Exp $
 #
 
 require 'postgres'
@@ -210,12 +210,27 @@ module DBI
 	  @attr[attr]
 	end
 	
+        def [](attr)
+          case attr
+          when 'pg_client_encoding'
+            @connection.client_encoding
+          else
+            @attr[attr]
+          end
+        end
+
 	def []=(attr, value)
 	  case attr
 	  when 'AutoCommit'
 	    @autocommit = value
+          when 'pg_client_encoding'
+            @connection.set_client_encoding(value)
 	  else
-	    raise NotSupportedError
+            if attr =~ /^pg_/ or attr != /_/
+              raise DBI::NotSupportedError, "Option '#{attr}' not supported"
+            else # option for some other driver - quitly ignore
+              return
+            end
 	  end
 	  @attr[attr] = value
 	end
@@ -280,6 +295,61 @@ module DBI
 	  }
 	end
 
+
+        # Driver-specific functions ------------------------------------------------
+
+        public
+
+        def __blob_import(file)
+          start_transaction unless in_transaction?
+          @connection.lo_import(file)
+	rescue PGError => err
+          raise DBI::DatabaseError.new(err.message) 
+        end
+
+        def __blob_export(oid, file)
+          start_transaction unless in_transaction?
+          @connection.lo_export(oid.to_i, file)
+	rescue PGError => err
+          raise DBI::DatabaseError.new(err.message) 
+        end
+
+        def __blob_create(mode=PGlarge::INV_READ)
+          start_transaction unless in_transaction?
+          @connection.lo_create(mode)
+	rescue PGError => err
+          raise DBI::DatabaseError.new(err.message) 
+        end
+
+        def __blob_open(oid, mode=PGlarge::INV_READ)
+          start_transaction unless in_transaction?
+          @connection.lo_open(oid.to_i, mode)
+	rescue PGError => err
+          raise DBI::DatabaseError.new(err.message) 
+        end
+
+        def __blob_unlink(oid)
+          start_transaction unless in_transaction?
+          @connection.lo_unlink(oid.to_i)
+	rescue PGError => err
+          raise DBI::DatabaseError.new(err.message) 
+        end
+
+        def __blob_read(oid, length=nil)
+          start_transaction unless in_transaction?
+          blob = @connection.lo_open(oid.to_i, PGlarge::INV_READ)
+          blob.open
+          if length.nil?
+            data = blob.read
+          else
+            data = blob.read(length)
+          end
+          blob.close
+          data
+	rescue PGError => err
+          raise DBI::DatabaseError.new(err.message) 
+        end
+
       end # Database
 
       ################################################################
@@ -300,7 +370,22 @@ module DBI
 	end
 
 	def execute
+          # replace DBI::Binary object by oid returned by lo_import 
+          @bindvars.collect! do |var|
+            if var.is_a? DBI::Binary then
+              blob = @db.__blob_create(PGlarge::INV_WRITE)
+              blob.open
+              blob.write(var.to_s)
+              oid = blob.oid
+              blob.close
+              oid
+            else
+              var
+            end
+          end
+
 	  boundsql = bind(self, @sql, @bindvars)
+
 	  if SQL.query?(boundsql) then
 	    pg_result = @db.send_sql(boundsql)
 	    @result = Tuples.new(@db, pg_result)
