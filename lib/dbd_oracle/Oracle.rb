@@ -1,9 +1,10 @@
 # 
 # DBD::Oracle
-# $Id: Oracle.rb,v 1.4 2001/11/25 23:26:16 michael Exp $
+# $Id: Oracle.rb,v 1.5 2001/11/26 00:12:47 michael Exp $
 # 
 # Version : 0.2
 # Author  : Michael Neumann (neumann@s-direktnet.de)
+#           Jim Menard (method columns)
 #
 # Copyright (c) 2001 Michael Neumann
 #
@@ -42,7 +43,6 @@ module DBI
 module DBD
 module Oracle
 
-
   VARCHAR2 = 1
   NUMBER = 2
   INTEGER = 3 ## external
@@ -57,11 +57,8 @@ module Oracle
   MLSLABEL = 105
 
 
-
-
-
-VERSION          = "0.2"
-USED_DBD_VERSION = "0.1"
+  VERSION          = "0.2"
+  USED_DBD_VERSION = "0.2"
 
 class Driver < DBI::BaseDriver
 
@@ -148,6 +145,97 @@ class Database < DBI::BaseDatabase
   rescue OCIError => err
     raise DBI::DatabaseError.new(err.message, err.to_i)
   end
+
+
+    # from Jim Menard <jimm@io.com>
+    ORACLE_TO_SQL = {
+	'BLOB' => SQL_BLOB,
+	'CHAR' => SQL_CHAR,
+	'CLOB' => SQL_CLOB,
+	'DATE' => SQL_DATE,
+	'TIME' => SQL_TIME,
+	'TIMESTAMP' => SQL_TIMESTAMP,
+	'LONG' => SQL_LONGVARCHAR,
+	'LONG RAW' => SQL_LONGVARBINARY,
+	'RAW' => SQL_VARBINARY,
+	'NUMBER' => SQL_NUMERIC,
+	'FLOAT' => SQL_FLOAT,
+	'ROWID' => SQL_DECIMAL, # That's a guess. Anyone?
+	'VARCHAR' => SQL_VARCHAR,
+	'VARCHAR2' => SQL_VARCHAR
+    }
+    IndexInfo = Struct.new('IndexInfo', :col_name, :index_name,
+			   :is_unique, :is_primary)
+
+    def columns(table)
+	dbh = DBI::DatabaseHandle.new(self)
+
+	# Find indexed columns and determine uniqueness. Keys of
+	# "indexed" hash are index names (not column names) of index
+	# columns. Values of "indexed" hash are IndexInfo structs.
+	indexed = Hash.new{}
+	sql = 'select a.column_name, a.index_name, b.uniqueness' +
+	    ' from user_ind_columns a, user_indexes b' +
+	    ' where a.index_name = b.index_name' +
+	    ' and a.table_name = b.table_name' +
+	    ' and a.table_name = upper(:1)'
+	stmt = dbh.prepare(sql)
+	stmt.execute(table)
+	rows = stmt.fetch_all
+	if rows
+	    rows.each { | row |
+		info = IndexInfo.new(row[0], row[1], row[2] == 'UNIQUE')
+		indexed[row[1]] = info
+	    }
+	end
+
+	# Find primary keys.
+	sql = 'select constraint_name from user_constraints' +
+	    ' where constraint_type = \'P\' and table_name = upper(:1)'
+	stmt = dbh.prepare(sql)
+	stmt.execute(table)
+	rows = stmt.fetch_all
+	if rows
+	    rows.each { | row |
+		# Oddly enough, some "primary key" constraints are not
+		# table columns.
+		indexed[row[0]].is_primary = true if indexed[row[0]]
+	    }
+	end
+
+	# Find column type and size info.
+	sql = 'select column_name, data_type, data_length, data_precision,' +
+	    ' nullable, data_default' +
+	    ' from user_tab_columns where table_name = upper(:1)'
+	stmt = dbh.prepare(sql)
+	stmt.execute(table)
+
+	ret = stmt.fetch_all.collect { | row |
+	    name, oracle_type, size, precision, nullable, default = row
+
+	    # Find indexed info for this column, if it exists.
+	    info = nil
+	    if indexed
+		indexed.each { | key, val |
+		    info = val if val.col_name == name
+		}
+	    end
+
+	    col = {}
+	    col['name'] = name.dup
+	    col['sql_type'] = ORACLE_TO_SQL[oracle_type] || SQL_OTHER
+	    col['type_name'] = oracle_type.dup
+	    col['nullable'] = nullable == 'Y'
+	    col['indexed'] = !info.nil?
+	    col['primary'] = info ? info.is_primary : false
+	    col['unique'] = info ? info.is_unique : false
+	    col['precision'] = size     # Number of bytes or digits
+	    col['scale'] = precision    # number of digits to right
+	    col['default'] = default ? default.dup : nil
+	    col
+	}
+	return ret
+    end
 
 end # class Database
 
