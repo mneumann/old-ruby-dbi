@@ -62,6 +62,17 @@ class TestSqlBind < RUNIT::TestCase
     assert_equal res, bind(self, sql, [10])
   end
 
+  def test_minus_bug
+    sql = "SELECT 1 - 3"
+    res = "SELECT 1 - 3"
+    assert_equal res, bind(self, sql, []) 
+  end
+
+  def test_minus2
+    sql = "SELECT * from test --Dan's query" 
+    assert_equal sql, bind(self, sql, []) 
+  end
+
 end
 
 $last_suite.add_test (TestSqlBind.suite)
@@ -191,6 +202,6 @@ $last_suite.add_test (TestLex.suite)
 ######################################################################
 
 if __FILE__ == $0 then
-  RUNIT::CUI::TestRunner.quiet_mode = true
+  RUNIT::CUI::TestRunner.quiet_mode = false
   RUNIT::CUI::TestRunner.run ($last_suite)
 end
