@@ -27,7 +27,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: Pg.rb,v 1.23 2002/07/26 17:56:43 mneumann Exp $
+# $Id: Pg.rb,v 1.24 2002/09/13 09:10:31 mneumann Exp $
 #
 
 require 'postgres'
@@ -303,8 +303,18 @@ module DBI
 	  puts "SQL TRACE: |#{sql}|" if @debug_level >= level
 	  @connection.exec(sql)
 	end
+
+        def quote(value)
+          case value
+          when String
+                "'#{ value.gsub(/\\/){ '\\\\' }.gsub(/'/){ '\\\'' } }'"
+          else
+                super
+          end
+        end
+       
 	
-	private # ----------------------------------------------------
+        private # ----------------------------------------------------
 
 	def initialize_autocommit
 	  @autocommit = true
@@ -411,11 +421,9 @@ module DBI
       ################################################################
       class Statement < DBI::BaseStatement
 	
-	include SQL::BasicQuote
-
 	def initialize(db, sql)
 	  @db  = db
-          @prep_sql = DBI::SQL::PreparedStatement.new(self, sql)
+          @prep_sql = DBI::SQL::PreparedStatement.new(@db, sql)
 	  @result = nil
 	  @bindvars = []
 	end
