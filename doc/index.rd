@@ -1,6 +1,6 @@
 =begin
 = Ruby/DBI - a database independent interface for accessing databases - similar to Perl's DBI
-$Id: index.rd,v 1.11 2001/10/22 16:07:27 michael Exp $
+$Id: index.rd,v 1.12 2001/10/30 12:51:20 michael Exp $
 
 Copyright (c) 2001 by Michael Neumann (neumann@s-direktnet.de)
 
@@ -25,7 +25,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 == Contributors
 
 : Rainer Perl 
-  Author of Ruby/DBI 0.0.4 from which many good ideas were taken into the nwe completely rewritten version 0.0.5. 
+  Author of Ruby/DBI 0.0.4 from which many good ideas were taken into the new completely rewritten version 0.0.5. 
 : Jim Weirich
   Author of the PostgreSQL driver (DBD::Pg).
   Wrote many additional code (e.g. sql.rb, testcases). 
