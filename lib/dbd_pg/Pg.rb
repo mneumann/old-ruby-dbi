@@ -62,6 +62,13 @@ module DBI
 	  answer.clear
 	end
 
+        def tables
+          stmt = execute("SELECT relname FROM pg_class WHERE relkind='r'")
+          res = stmt.fetch_all.collect {|row| row[0]} 
+          stmt.finish
+          res
+        end
+
 	def prepare(statement)
 	  Statement.new(self, statement)
 	end
@@ -159,6 +166,9 @@ module DBI
 	      @type_map[id] = proc_to_float
 	    when '_float8'
 	      @type_map[id] = proc_to_float
+            else
+              # added
+              @type_map[id] = proc_identity
 	    end
 	  }
 	end
