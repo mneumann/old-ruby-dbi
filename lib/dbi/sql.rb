@@ -1,5 +1,5 @@
 #
-# $Id: sql.rb,v 1.6 2001/07/17 16:57:09 michael Exp $
+# $Id: sql.rb,v 1.7 2001/09/05 21:56:50 michael Exp $
 #
 # extracted from Jim Weirichs DBD::Pg
 #
@@ -81,7 +81,7 @@ module SQL
     def quote(value)
       case value
       when String
-	value.gsub!(/'/, "''")	# ' (for ruby-mode)
+	value = value.gsub(/'/, "''")	# ' (for ruby-mode)
 	"'#{value}'"
       when NilClass
 	"NULL"
