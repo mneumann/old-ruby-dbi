@@ -1,5 +1,5 @@
 # Ruby/DBI 
-# $Id: dbi.rb,v 1.12 2001/06/29 17:18:33 michael Exp $
+# $Id: dbi.rb,v 1.13 2001/07/06 18:13:10 michael Exp $
 # 
 # Version : 0.0.5
 # Author  : Michael Neumann (neumann@s-direktnet.de)
@@ -262,7 +262,7 @@ end
   # 
   def DBI.connect(driver_url, user=nil, auth=nil, params=nil, &p)
     db_driver, db_args = parse_url(driver_url)
-    load_driver(db_driver)
+    db_driver = load_driver(db_driver)
     dh = @@driver_map[db_driver][0]
 
     dh.connect(db_args, user, auth, params, &p)
@@ -274,7 +274,7 @@ end
   # 
   def get_driver(driver_url)
     db_driver, db_args = parse_url(driver_url)
-    load_driver(db_driver)
+    db_driver = load_driver(db_driver)
     dr = @@driver_map[db_driver]
 
     [dr, db_args]
@@ -289,14 +289,43 @@ end
 
 
   private
+
+  ##
+  # extended by John Gorman <jgorman@webbysoft.com> for
+  # case insensitive DBD names
+  # 
   def load_driver(driver_name)
     if @@driver_map[driver_name].nil?
-      require "#{DBD::DIR}/#{driver_name}/#{driver_name}"
-      dr = DBI::DBD.const_get(driver_name.intern)
+
+      dc = driver_name.downcase
+
+      # caseless look for drivers already loaded
+      found = @@driver_map.keys.find {|key| key.downcase == dc}
+      return found if found
+
+      # try a quick load and then a caseless scan
+      begin
+        require "#{DBD::DIR}/#{driver_name}/#{driver_name}"
+      rescue LoadError
+        $:.each do |dir|
+          path = "#{dir}/#{DBD::DIR}"
+          next unless FileTest.directory?(path)
+          found = Dir.entries(path).find {|e| e.downcase == dc}
+          next unless found
+          next unless FileTest.file?("#{path}/#{found}") 
+
+          require "#{DBD::DIR}/#{found}/#{found}"
+          break
+        end
+      end
+
+      found ||= driver_name
+ 
+      dr = DBI::DBD.const_get(found.intern)
       dbd_dr = dr::Driver.new
       drh = DBI::DriverHandle.new(dbd_dr)
       drh.trace(@@trace_mode, @@trace_output)
-      @@driver_map[driver_name] = [drh, dbd_dr]
+      @@driver_map[found] = [drh, dbd_dr]
     end
   rescue LoadError, NameError
     raise InterfaceError, "Could not load driver (#{$!.message})"
