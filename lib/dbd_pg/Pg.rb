@@ -1,5 +1,5 @@
 #
-# $Id: Pg.rb,v 1.17 2002/01/04 11:53:09 michael Exp $
+# $Id: Pg.rb,v 1.18 2002/04/17 13:38:38 mneumann Exp $
 #
 
 require 'postgres'
@@ -443,6 +443,7 @@ module DBI
 	  @db = db
 	  @pg_result = pg_result
 	  @index = -1
+          @result = @pg_result.result
 	  @row = Array.new
 	end
 
@@ -452,8 +453,8 @@ module DBI
 
 	def fetchrow
 	  @index += 1
-	  if @index < @pg_result.result.size 
-	    fill_array(@pg_result.result[@index])
+	  if @index < @result.size
+	    fill_array(@result[@index])
 	  else
 	    @row = nil
 	  end
