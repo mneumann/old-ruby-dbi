@@ -75,6 +75,11 @@ class TestSqlBind < RUNIT::TestCase
     assert_equal sql, bind(self, sql, []) 
   end
 
+  def test_minus3
+    sql = "SELECT CURRENT_TIMESTAMP-INTERVAL '10 min'"
+    assert_equal sql, bind(self, sql, [])
+  end
+
   def test_slash
     sql = "SELECT 5 / 4"
     res = "SELECT 5 / 4"
