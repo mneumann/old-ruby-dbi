@@ -1,6 +1,6 @@
 # 
 # DBD::SQLRelay
-# $Id: SQLRelay.rb,v 1.1 2001/11/11 20:57:44 michael Exp $
+# $Id: SQLRelay.rb,v 1.2 2001/11/12 20:25:40 michael Exp $
 # 
 # Version : 0.1
 # Author  : Michael Neumann (neumann@s-direktnet.de)
@@ -76,37 +76,30 @@ class Database < DBI::BaseDatabase
   end
 
   def prepare(statement)
-    handle = SQLRCursor.new(@handle)
-    handle.prepareQuery(statement)
-
-    Statement.new(@handle)
+    Statement.new(@handle, statement)
   end
 
   def commit
     $STDERR.puts "Warning: Commit ineffective while AutoCommit is on" if @attr['AutoCommit']
 
     case @handle.commit
-    when 1
-      # ok
     when 0
       # failed
-      raise DBI::DatabaseError.new("Commit failed")
+      raise DBI::OperationalError.new("Commit failed")
     when -1
-      raise DBI::DatabaseError.new("Error occured during commit")
-    end
+      raise DBI::OperationalError.new("Error occured during commit")
+   end
   end
 
   def rollback
     $STDERR.puts "Warning: Rollback ineffective while AutoCommit is on" if @attr['AutoCommit']
 
     case @handle.rollback
-    when 1
-      # ok
     when 0
       # failed
-      raise DBI::DatabaseError.new("Rollback failed")
+      raise DBI::OperationalError.new("Rollback failed")
     when -1
-      raise DBI::DatabaseError.new("Error occured during rollback")
+      raise DBI::OperationalError.new("Error occured during rollback")
     end
   end
 
@@ -133,26 +126,49 @@ end # class Database
 
 
 class Statement < DBI::BaseStatement
-  def initialize(handle)
+  def initialize(handle, stmt)
     super(nil)  # attribs
-    @handle = handle
+
+    @db = handle 
+    @handle = SQLRCursor.new(@db)
+    @handle.prepareQuery(stmt)
   end
 
   def bind_param(param, value, attribs)
     raise InterfaceError, "only :name parameters supported" unless param.is_a? String and param.is_a? Symbol
-    @handle.inputBind(param.to_s, value, attribs['precision'] || 8, attribs['scale'] || 2)
+    if value.kind_of? Float then
+      precision = attribs['precision']
+      scale     = attribs['scale'] 
+      if precision.nil? or scale.nil?
+        pr, sc = value.to_s.split(".")
+        precision ||= pr || 8 
+        scale     ||= sc || 2
+      end
+      @handle.inputBind(param.to_s, value, precision, scale)
+    else
+      @handle.inputBind(param.to_s, value)
+    end
     # TODO: correct default precision/scale
   end
 
   def execute
     if @handle.executeQuery == 0 then 
-      raise DBI::DatabaseError.new(@handle.errorMessage)
+      raise DBI::ProgrammingError.new(@handle.errorMessage)
+    end
+
+    if @db['AutoCommit'] 
+      case @db.commit
+      when 0
+        # failed
+        raise DBI::OperationalError.new("Commit failed")
+      when -1
+        raise DBI::OperationalError.new("Error occured during commit")
+     end
     end
 
     @handle.clearBinds
     @row_index = 0
     @row_count = @handle.rowCount
-    # TODO: AutoCommit
   end
 
   def finish
@@ -163,13 +179,45 @@ class Statement < DBI::BaseStatement
     if @row_index >= @row_count 
       nil
     else
-      @handle.getRow(@row_index)
+      row = @handle.getRow(@row_index)
       @row_index += 1
+      row
     end
   end
 
+  def fetch_scroll(direction, offset=1)
+    fetch_row = case direction
+    when DBI::SQL_FETCH_NEXT     then @row_index
+    when DBI::SQL_FETCH_PRIOR    then @row_index-1  # TODO: -2 ????
+    when DBI::SQL_FETCH_FIRST    then 0
+    when DBI::SQL_FETCH_LAST     then @row_count-1
+    when DBI::SQL_FETCH_ABSOLUTE then offset
+    when DBI::SQL_FETCH_RELATIVE then @row_index+offset-1
+    end
+    
+    if fetch_row > -1 and fetch_row < @row_count
+      row = @handle.getRow(fetch_row)
+    end
+
+    @row_index = fetch_row + 1
+
+    if @row_index < 0 then
+      @row_index = 0
+    elsif @row_index > @row_count
+      @row_index = @row_count
+    end
+
+    return row
+  end
+
   def column_info
-    @handle.getColumnNames.collect do |name| {'name' => name} end
+    (0...@handle.colCount).collect do |nr|
+      {
+        'name'      => @handle.getColumnName(nr),
+        'type_name' => @handle.getColumnType(nr),
+        'precision' => @handle.getColumnLength(nr)
+      }
+    end
   end
 
   def rows
@@ -181,4 +229,3 @@ end # class Statement
 end # module SQLRelay
 end # module DBD
 end # module DBI
-
