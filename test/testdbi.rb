@@ -299,7 +299,19 @@ class TestDbiStatement < RUNIT::TestCase
     db.disconnect if db
   end
 
-  
+  def test_bind_param_bug
+    db = get_db_auto
+    st = db.prepare("SELECT age, name FROM #{$cfg.tables[0]} " +
+		    "WHERE age=? ")
+
+    st.bind_param(1, 21)
+    st.execute
+  ensure
+    st.finish if st
+    db.disconnect if db
+  end
+
+
 end
 
 $last_suite.add_test(TestDbiStatement.suite)
