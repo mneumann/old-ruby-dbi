@@ -1,6 +1,6 @@
 =begin
 = Ruby/DBI - a database independent interface for accessing databases - similar to Perl's DBI
-$Id: index.rd,v 1.16 2001/12/14 15:16:10 michael Exp $
+$Id: index.rd,v 1.17 2001/12/28 10:18:28 michael Exp $
 
 Copyright (c) 2001 by Michael Neumann (neumann@s-direktnet.de)
 
@@ -74,7 +74,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 * Oracle ((*(dbd_oracle)*))
 
-  depend on the "Oracle 7 Module for Ruby" version 0.2.11 by Yoshida Masato, available from RAA.
+  depend on the "Oracle 7 Module for Ruby" version 0.2.11 by Yoshida Masato, available from RAA. Works fine with Oracle 8/8i.
 
 * PostgreSQL ((*(dbd_pg)*))
 
