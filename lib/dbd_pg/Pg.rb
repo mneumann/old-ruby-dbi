@@ -27,7 +27,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: Pg.rb,v 1.32 2003/05/18 20:18:10 mneumann Exp $
+# $Id: Pg.rb,v 1.33 2003/09/16 07:46:12 mneumann Exp $
 #
 
 require 'postgres'
@@ -565,6 +565,12 @@ module DBI
           raise DBI::DatabaseError.new(err.message) 
         end
 
+	def __set_notice_processor(proc)
+	  @connection.set_notice_processor proc
+	rescue PGError => err
+	  raise DBI::DatabaseError.new(err.message) 
+	end
+
      if PGconn.respond_to?(:escape_bytea)
 
         def __encode_bytea(str)
@@ -746,7 +752,7 @@ module DBI
 
         def fill_array(rowdata)
           rowdata.each_with_index { |value, index|
-            @row[index] = @db.convert(rowdata[index],@pg_result.type(index))
+            @row[index] = @db.convert(value,@pg_result.type(index))
           }
         end
 
@@ -767,6 +773,11 @@ module DBI
           a.join("\\")  # \\ => \
         end
 
+        def as_timestamp(str)
+	  return super unless m = /\.\d+(?=(?:[-+]\d+)?$)/.match(str)
+	  (t = super $` + $').fraction = m.to_s.to_f
+	  t
+        end
       end
 
     end # module Pg
