@@ -1,11 +1,11 @@
 # 
 # DBD::Mysql
-# $Id: Mysql.rb,v 1.13 2002/05/14 18:03:19 mneumann Exp $
+# $Id: Mysql.rb,v 1.14 2002/05/21 18:52:17 mneumann Exp $
 # 
-# Version : 0.3.2
+# Version : 0.3.3
 # Author  : Michael Neumann (neumann@s-direktnet.de)
 #
-# Copyright (c) 2001 Michael Neumann
+# Copyright (c) 2001, 2002 Michael Neumann
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -28,7 +28,7 @@ module DBI
 module DBD
 module Mysql
 
-VERSION          = "0.3.2"
+VERSION          = "0.3.3"
 USED_DBD_VERSION = "0.2"
 
 MyError = ::MysqlError
@@ -294,6 +294,11 @@ class Database < DBI::BaseDatabase
   def __reload
     @handle.reload
   end
+
+  def __insert_id
+    @handle.insert_id
+  end
+
 
 end # class Database
 
