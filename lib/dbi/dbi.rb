@@ -1,5 +1,5 @@
 # Ruby/DBI 
-# $Id: dbi.rb,v 1.8 2001/06/07 19:06:54 michael Exp $
+# $Id: dbi.rb,v 1.9 2001/06/08 20:21:48 michael Exp $
 # 
 # Version : 0.0.5
 # Author  : Michael Neumann (neumann@s-direktnet.de)
@@ -59,7 +59,7 @@ end
 #  Constants
 #----------------------------------------------------
 
-VERSION = "0.5"
+VERSION = "0.0.5"
 
 ##
 # Constants for fetch_scroll
@@ -232,6 +232,18 @@ end
 
   @@driver_map = Hash.new 
 
+  DEFAULT_TRACE_MODE = 2
+  DEFAULT_TRACE_OUTPUT = STDERR
+
+  @@trace_mode   = DEFAULT_TRACE_MODE
+  @@trace_output = DEFAULT_TRACE_OUTPUT
+
+
+
+
+
+
+
   ##
   # establish a database connection
   # 
@@ -255,6 +267,11 @@ end
     [dr, db_args]
   end
 
+  def trace(mode=nil, output=nil)
+    @@trace_mode   = mode   || @@trace_mode   || DBI::DEFAULT_TRACE_MODE
+    @@trace_output = output || @@trace_output || DBI::DEFAULT_TRACE_OUTPUT
+  end
+
 
 
 
@@ -264,7 +281,9 @@ end
       require "#{DBD::DIR}/#{driver_name}/#{driver_name}"
       dr = DBI::DBD.const_get(driver_name.intern)
       dbd_dr = dr::Driver.new
-      @@driver_map[driver_name] = [DBI::DriverHandle.new(dbd_dr), dbd_dr]
+      drh = DBI::DriverHandle.new(dbd_dr)
+      drh.trace(@@trace_mode, @@trace_output)
+      @@driver_map[driver_name] = [drh, dbd_dr]
     end
   rescue LoadError, NameError
     raise InterfaceError, "Could not load driver (#{$!.message})"
@@ -324,9 +343,17 @@ end
 #
 
 class Handle
+  attr_reader :trace_mode, :trace_output
+
   def initialize(handle)
     @handle = handle
   end
+
+  def trace(mode=nil, output=nil)
+    @trace_mode   = mode   || @trace_mode   || DBI::DEFAULT_TRACE_MODE
+    @trace_output = output || @trace_output || DBI::DEFAULT_TRACE_OUTPUT
+  end
+
 
   ##
   # call a driver specific function
@@ -363,6 +390,8 @@ class DriverHandle < Handle
 
     db = @handle.connect(db_args, user, auth, new_params)
     dbh = DatabaseHandle.new(db)
+    dbh.trace(@trace_mode, @trace_output)
+
     if block_given?
       begin
         yield dbh
@@ -398,6 +427,8 @@ class DatabaseHandle < Handle
   def prepare(stmt)
     raise InterfaceError, "Database connection was already closed!" if @handle.nil?
     sth = StatementHandle.new(@handle.prepare(stmt), false)
+    sth.trace(@trace_mode, @trace_output)
+
     if block_given?
       begin
         yield sth
@@ -412,6 +443,8 @@ class DatabaseHandle < Handle
   def execute(stmt, *bindvars)
     raise InterfaceError, "Database connection was already closed!" if @handle.nil?
     sth = StatementHandle.new(@handle.execute(stmt, *bindvars), true, false)
+    sth.trace(@trace_mode, @trace_output)
+
     if block_given?
       begin
         yield sth
