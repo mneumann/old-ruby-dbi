@@ -1,7 +1,7 @@
 #
 # Ruby/DBI
 #
-# Copyright (c) 2001, 2002 Michael Neumann <neumann@s-direktnet.de>
+# Copyright (c) 2001, 2002, 2003 Michael Neumann <mneumann@ntecs.de>
 # 
 # All rights reserved.
 #
@@ -27,7 +27,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: dbi.rb,v 1.37 2003/04/27 17:42:56 mneumann Exp $
+# $Id: dbi.rb,v 1.38 2003/05/09 19:54:29 mneumann Exp $
 #
 
 require "dbi/row"
@@ -257,7 +257,7 @@ class Date
   end
 
   def to_s
-    "#{@year}-#{@month}-#{@day}"
+    sprintf("%04d-%02d-%02d", @year, @month, @day)
   end
 end
 
@@ -290,7 +290,7 @@ class Time
   end
 
   def to_s
-    "#{@hour}:#{@minute}:#{@second}"
+    sprintf("%02d:%02d:%02d", @hour, @minute, @second)
   end
 end
 
@@ -324,7 +324,7 @@ class Timestamp
   def sec=(val) @second=val end
 
   def to_s
-    "#{@year}-#{@month}-#{@day} #{@hour}:#{@minute}:#{@second}.#{@fraction}"
+    sprintf("%04d-%02d-%02d %02d:%02d:%02d.%06d", @year, @month, @day, @hour, @minute, @second, @fraction)
   end
 
   def to_time
