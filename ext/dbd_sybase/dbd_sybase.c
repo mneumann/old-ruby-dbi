@@ -3,7 +3,7 @@
 
  Based on (and requires) "FreeTDS" http://www.freetds.org/
  
- Version : 0.0.2
+ Version : 0.0.3
  Author  : Rainer Perl (rainer.perl@sprytech.com)
  Homepage: http://www.sprytech.com/~rainer.perl/ruby/
 
@@ -24,7 +24,7 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-// #include <stdio.h> (used that for debugging)
+// #include <stdio.h> // (used that for debugging)
 #include "ruby.h"
 #include <tds.h>
 
@@ -59,7 +59,7 @@ VALUE tdss_new(VALUE db_host, VALUE db_user, VALUE db_pass);
 static VALUE tdss_init(VALUE self);
 
 // Misc
-char *value_as_string(TDSSOCKET *tds, int col_idx);
+void value_as_string(char *target, int targetlen, TDSSOCKET *tds, int col_idx);
 static void process_results(TDSSOCKET *tds);
 
 VALUE mDBI,
@@ -184,7 +184,9 @@ static VALUE rh_init(VALUE self)
      rc;
  VALUE aRow,
        allRows;
-
+ char  *mystring;
+ int   mystrlen;
+ 
  Data_Get_Struct(self, SYBRESULT, sybres);
 
  if(tds_submit_query(sybres->tds,sybres->sqlstring) != TDS_SUCCEED)
@@ -206,7 +208,25 @@ static VALUE rh_init(VALUE self)
     aRow = rb_ary_new();
     for (i=0; i<sybres->tds->res_info->num_cols; i++)
     {
-     rb_ary_push(aRow, rb_str_new2(value_as_string(sybres->tds, i)));
+     /*      
+      We're calling calloc for every column in every row to get the
+      memory for the string-conversion.
+      There are probably faster ways...
+     */
+     if(sybres->tds->res_info->columns[i]->column_textvalue)
+     { mystrlen=(sybres->tds->res_info->columns[i]->column_textsize)+1; }
+     else
+     { mystrlen = 256; }
+     mystring = calloc(1, mystrlen);
+
+     if(mystring == NULL)
+     {
+      rb_raise(rb_eRuntimeError, "Couldn't malloc - out of memory? (1)");
+     }
+     value_as_string(mystring, mystrlen, sybres->tds, i);
+     rb_ary_push(aRow, rb_str_new2(mystring));
+
+     free(mystring);
     }
     rb_ary_push(allRows, aRow);
    }
@@ -219,7 +239,7 @@ static VALUE rh_init(VALUE self)
     rb_raise(rb_eRuntimeError, "tds_process_row_tokens() unexpected return\n");
    }
   }
-
+  
   if (rc == TDS_FAIL)
   {
    rb_raise(rb_eRuntimeError, "tds_process_result_tokens() returned TDS_FAIL for SELECT\n");
@@ -360,52 +380,27 @@ static VALUE tdss_init(VALUE self)
  return self;
 } // tdss_init
 
-char *value_as_string(TDSSOCKET *tds, int col_idx)
+void value_as_string(char *target, int targetlen, TDSSOCKET *tds, int col_idx)
 {
  /*
   Based on FreeTDS's src/tds/unittest/t0005.c
  */
- static char  result[256];
+ 
  const int    type    = tds->res_info->columns[col_idx]->column_type;
  const char  *row     = tds->res_info->current_row;
  const int    offset  = tds->res_info->columns[col_idx]->column_offset;
  const void  *value   = (row+offset);
-
+ 
  switch(type)
  {
-  case SYBCHAR: SYBVARCHAR;
-  case SYBVARCHAR:
-   strncpy(result, (char *)value, sizeof(result)-1);
-   result[sizeof(result)-1] = '\0';
-   break;
-  case SYBBIT:  SYBINT4;
-  case SYBINTN: SYBINT4;
-  case SYBINT1: SYBINT4;
-  case SYBINT2: SYBINT4;
-  case SYBINT4:
-   sprintf(result, "%d", *(int *)value);
-   break;
-  case SYBFLTN: SYBFLT8;
-  case SYBDATETIMN: SYBDATETIME;
-  case SYBDATETIME:
-   /*
-    The following will return
-    "number_of_days_since_1900-01-01.number_of_ms_since_00:00:00.000"
-    
-    There is some rounding happening (at least with MS-SQL, and that's where
-    I have tested this driver), this *may* be MS-specific.
-   */
-   sprintf(result, "%d.%.0f", *(int *)value, (double)(*(int *)(value+4)/0.3));
-   break;
-  case SYBFLT8:
-   sprintf(result, "%f", *(float *)value);
-   break;
+  case SYBNTEXT: SYBTEXT;
+  case SYBTEXT:
+   strncpy(target, tds->res_info->columns[col_idx]->column_textvalue, targetlen-1);
+   break;   
   default:
-   sprintf(result, "Unexpected column_type %d", type);
-   rb_raise(rb_eRuntimeError, result);
+   tds_convert(type, (char *)value, tds->res_info->columns[col_idx]->column_size,	SYBVARCHAR, target, targetlen);
    break;
  }
- return result;
 } // value_as_string
 
 static void process_results(TDSSOCKET *tds)
