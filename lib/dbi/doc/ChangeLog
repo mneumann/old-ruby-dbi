@@ -1,5 +1,10 @@
 =begin
 
+: 0.0.13
+
+* dbd_odbc: fixed bug in method columns (Norbert Gawor)
+* dbd_proxy, proxyserver: upgraded to DBD API 0.2; fixed bug (Norbert Gawor)
+
 : 0.0.12 (2001-12-28)
 
 * dbd_oracle: added Database#columns method
