@@ -410,17 +410,29 @@ end
 
   def available_drivers
     found_drivers = []
-    $:.each do |path|
-      Dir["#{path}/#{DBD::DIR}/*"].each do |dr| 
-        if FileTest.directory? dr then
-          dir = File.basename(dr)
-          Dir["#{path}/#{DBD::DIR}/#{dir}/*"].each do |fl|
-            next unless FileTest.file? fl 
-            found_drivers << dir if File.basename(fl) =~ /^#{dir}\./
+
+    if rubygems?
+      # RubyGems is available.
+      Gem.manage_gems
+      Gem.cache.search(/dbd-/).each do |spec|
+        if spec.name =~ /^dbd-(.*)$/
+          found_drivers << $1
+        end
+      end
+    else
+      $:.each do |path|
+        Dir["#{path}/#{DBD::DIR}/*"].each do |dr| 
+          if FileTest.directory? dr then
+            dir = File.basename(dr)
+            Dir["#{path}/#{DBD::DIR}/#{dir}/*"].each do |fl|
+              next unless FileTest.file? fl 
+              found_drivers << dir if File.basename(fl) =~ /^#{dir}\./
+            end
           end
         end
       end
     end
+
     found_drivers.uniq.collect {|dr| "dbi:#{dr}:" }
   end
 
@@ -456,22 +468,38 @@ end
       found = @@driver_map.keys.find {|key| key.downcase == dc}
       return found if found
 
-      if $SAFE >= 1
-        # case-sensitive in safe mode
-        require "#{DBD::DIR}/#{driver_name}/#{driver_name}"
-      else
-        # try a quick load and then a caseless scan
-        begin
-          require "#{DBD::DIR}/#{driver_name}/#{driver_name}"
-        rescue LoadError
-          $:.each do |dir|
-            path = "#{dir}/#{DBD::DIR}"
-            next unless FileTest.directory?(path)
-            found = Dir.entries(path).find {|e| e.downcase == dc}
-            next unless found
+      if rubygems? 
+        # RubyGems is available.
+        Gem.manage_gems
+        found = Gem.cache.search(/dbd-/).map {|s| if s.name =~ /^dbd-(.*)$/ then $1 else nil end }
 
-            require "#{DBD::DIR}/#{found}/#{found}"
-            break
+        if found.find {|s| s == driver_name}
+          found = driver_name
+        elsif found.find {|s| s == dc}
+          found = dc
+        else
+          found = nil
+        end
+          
+        require_gem "dbd-#{ found }"
+      else
+        if $SAFE >= 1
+          # case-sensitive in safe mode
+          require "#{DBD::DIR}/#{driver_name}/#{driver_name}"
+        else
+          # try a quick load and then a caseless scan
+          begin
+            require "#{DBD::DIR}/#{driver_name}/#{driver_name}"
+          rescue LoadError
+            $:.each do |dir|
+              path = "#{dir}/#{DBD::DIR}"
+              next unless FileTest.directory?(path)
+              found = Dir.entries(path).find {|e| e.downcase == dc}
+              next unless found
+
+              require "#{DBD::DIR}/#{found}/#{found}"
+              break
+            end
           end
         end
       end
@@ -510,6 +538,10 @@ end
     else
       raise InterfaceError, "Could not load driver (#{$!.message})"
     end
+  end
+
+  def rubygems?
+    defined?(Gem::Specification)
   end
 
   def parse_url(driver_url)
