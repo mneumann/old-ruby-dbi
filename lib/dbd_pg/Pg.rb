@@ -116,7 +116,7 @@ module DBI
 	  return nil if obj.nil?
 	  converter = @type_map[typeid]
 	  raise DBI::InterfaceError, "Unsupported Type (typeid=#{typeid})" if converter.nil?
-	  converter.call(obj)
+	  @coerce.coerce(converter, obj)
 	end
 
 	def in_transaction?
@@ -142,26 +142,20 @@ module DBI
 
 	def load_type_map
 	  @type_map = Hash.new
+          @coerce = DBI::SQL::BasicQuote::Coerce.new
+
 	  res = send_sql("SELECT typname, typelem FROM pg_type")
-	  proc_to_integer = proc { |str| if str=="" then nil else str.to_i end }
-	  proc_to_float   = proc { |str| str.to_f }
-	  proc_identity   = proc { |str| str }
+
 	  res.result.each { |name, idstr|
-	    id = idstr.to_i
-	    case name
-	    when '_int4'
-	      @type_map[id] = proc_to_integer
-	    when '_int2'
-	      @type_map[id] = proc_to_integer
-	    when '_varchar'
-	      @type_map[id] = proc_identity
-	    when '_float4'
-	      @type_map[id] = proc_to_float
-	    when '_float8'
-	      @type_map[id] = proc_to_float
-            else
-              # added
-              @type_map[id] = proc_identity
+	    @type_map[idstr.to_i] = 
+            case name
+            when '_bool'                     then :as_bool
+	    when '_int8', '_int4', '_int2'   then :as_int
+	    when '_varchar'                  then :as_str
+	    when '_float4','_float8'         then :as_float
+            when '_timestamp'                then :as_timestamp
+            when '_date'                     then :as_date
+            else                                  :as_str
 	    end
 	  }
 	end
