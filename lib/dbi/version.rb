@@ -1,9 +1,9 @@
 #
-# $Id: version.rb,v 1.2 2002/07/03 20:09:04 mneumann Exp $
+# $Id: version.rb,v 1.3 2002/10/03 09:53:13 mneumann Exp $
 #
 
 module DBI
 
-VERSION = "0.0.16"
+VERSION = "0.0.17"
 
 end
