@@ -338,12 +338,17 @@ class Installer
                 ((minor >= 5) or
                  ((minor == 4) and (teeny >= 4)))))
   
-  if newpath_p then
+  if c['rubylibdir'] then
+    # 1.6.3 < V
+    stdlibdir = c['rubylibdir']
+    sitelibdir = c['sitelibdir']
+  elsif newpath_p then
+    stdlibdir = File.join( rubylib, version )
     sitelibdir = File.join( rubylib, 'site_ruby', version )
   else
+    stdlibdir = File.join( rubylib, version )
     sitelibdir = File.join( rubylib, version, 'site_ruby' )
   end
-  stdlibdir = File.join( rubylib, version )
 
   siterb = sitelibdir
   siteso = File.join( sitelibdir, arch )
