@@ -1,5 +1,5 @@
 #
-# $Id: utils.rb,v 1.3 2001/06/05 09:44:42 michael Exp $
+# $Id: utils.rb,v 1.4 2001/06/06 15:32:23 michael Exp $
 #
 
 module DBI
@@ -25,13 +25,13 @@ module Utils
 
 
 module XMLFormatter
-  def XMLFormatter.row(dbrow, output=STDOUT)
+  def XMLFormatter.row(dbrow, rowtag="row", output=STDOUT)
     #XMLFormatter.extended_row(dbrow, "row", [],  
-    output << "<row>\n"
+    output << "<#{rowtag}>\n"
     dbrow.each_with_name do |val, name|
       output << "  <#{name}>" + textconv(val) + "</#{name}>\n" 
     end
-    output << "</row>\n"
+    output << "</#{rowtag}>\n"
   end
 
   # nil in cols_as_tag, means "all columns expect those listed in cols_in_row_tag"
@@ -60,11 +60,11 @@ module XMLFormatter
 
 
  
-  def XMLFormatter.table(rows, rootname = "rows", output=STDOUT)
+  def XMLFormatter.table(rows, roottag = "rows", rowtag = "row", output=STDOUT)
     output << '<?xml version="1.0" encoding="UTF-8" ?>'
     output << "\n<#{rootname}>\n"
     rows.each do |row|
-      row(row, output)
+      row(row, rowtag, output)
     end
     output << "</#{rootname}>\n"
   end
