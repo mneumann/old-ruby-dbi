@@ -1,0 +1,6 @@
+= Driver specific attributes
+
+: sqlite_full_column_names
+Report columname as TABLE.COLUMN
+
+
