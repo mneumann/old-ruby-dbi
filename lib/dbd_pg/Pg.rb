@@ -27,7 +27,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: Pg.rb,v 1.26 2002/09/26 13:32:58 mneumann Exp $
+# $Id: Pg.rb,v 1.27 2002/09/26 13:40:32 mneumann Exp $
 #
 
 require 'postgres'
@@ -36,7 +36,7 @@ module DBI
   module DBD
     module Pg
       
-      VERSION          = "0.3.1"
+      VERSION          = "0.3.2"
       USED_DBD_VERSION = "0.2"
       
       class Driver < DBI::BaseDriver
@@ -110,13 +110,13 @@ module DBI
 
         def disconnect
           unless @attr['AutoCommit']
-            send_sql("ROLLBACK", 2)        # rollback outstanding transactions 
+            @connection.exec("ROLLBACK")   # rollback outstanding transactions
           end
           @connection.close
         end
         
         def ping
-          answer = send_sql("SELECT 1", 3)
+          answer = @connection.exec("SELECT 1")
           if answer
             return answer.num_tuples == 1
           else
@@ -250,7 +250,7 @@ module DBI
           case attr
           when 'AutoCommit'
             # TODO: Are outstanding transactions committed?
-            send_sql("SET AUTOCOMMIT TO " + (value ? "ON" : "OFF"), 2)
+            @connection.exec("SET AUTOCOMMIT TO " + (value ? "ON" : "OFF"))
           when 'pg_client_encoding'
             @connection.set_client_encoding(value)
           else
@@ -265,12 +265,12 @@ module DBI
 
         def commit
           # TODO: what if in autocommit mode?
-          send_sql("COMMIT", 2)
+          @connection.exec("COMMIT")
         end
 
         def rollback
           # TODO: what if in autocommit mode?
-          send_sql("ROLLBACK", 2)
+          @connection.exec("ROLLBACK")
         end
 
         # Other Public Methods ---------------------------------------
@@ -280,11 +280,6 @@ module DBI
           converter = @type_map[typeid] || :as_str
           #raise DBI::InterfaceError, "Unsupported Type (typeid=#{typeid})" if converter.nil?
           @coerce.coerce(converter, obj)
-        end
-
-        def send_sql(sql, level=1)
-          #puts "SQL TRACE: |#{sql}|" if @debug_level >= level
-          @connection.exec(sql)
         end
 
         def quote(value)
@@ -304,7 +299,7 @@ module DBI
           @type_map = Hash.new
           @coerce = PgCoerce.new
 
-          res = send_sql("SELECT typname, typelem FROM pg_type")
+          res = @connection.exec("SELECT typname, typelem FROM pg_type")
 
           res.result.each { |name, idstr|
             @type_map[idstr.to_i] = 
@@ -423,7 +418,7 @@ module DBI
 
           boundsql = @prep_sql.bind(@bindvars)
 
-          pg_result = @db.send_sql(boundsql)
+          pg_result = @db.connection.exec(boundsql)
           @result = Tuples.new(@db, pg_result)
 
         rescue PGError, RuntimeError => err
