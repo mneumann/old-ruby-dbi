@@ -1,9 +1,20 @@
 =begin
 
-: 0.0.12
+: 0.0.12 (2001-12-28)
+
+* dbd_oracle: added Database#columns method
+
+* sql.rb: nil as argument in methods of DBI::SQL::BasicQuote::Coerce results in nil
+
+* examples: added xmlgen.rb (library to generate XML; requires REXML)
+
+* dbd_sqlrelay: updated version included (by David Muse).
+
+* dbd_pg: fixed bug (displayed wrong default values) in method
+  Database#columns (Joseph McDoanlds)
 
 * dbd_oracle:
-  * added ?-style parameter markers (don't use together with :1 or :name style)
+  * added ?-style parameter markers (don't use them together with :1 or :name style)
 
 * dbd_sqlite: added type conversion
 
@@ -16,8 +27,8 @@
 * proxyserver.rb: moved into directory bin/proxyserver
 
 * sqlsh.rb:
-  * moved from examples to bin/commandline; install it
-  * refactored source a bit
+  * moved from examples to bin/commandline; install it by default
+  * refactored source a lot
   * added \irb (start irb in context) and \rb (execute ruby command) commands
   * SQL statements end with ";" (over multiple lines) 
 

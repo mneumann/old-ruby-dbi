@@ -10,6 +10,11 @@
 <body>
 <h1><a name="label:0" id="label:0">ToDo</a></h1><!-- RDLabel: "ToDo" -->
 <ul>
+<li>SQL statement parser like Perl's SQL::Statement </li>
+<li>LDAP DBD</li>
+<li>column_info: precision == column_size or == column_size - scale ??? </li>
+<li>fetch_many callable as iterator</li>
+<li>make SQL::bind preparable (parse SQL statement before)</li>
 <li>columns / column_info with more DBDs (DB2, Oracle, Interbase, ODBC)</li>
 <li>Tainting</li>
 <li>table_info</li>
@@ -17,18 +22,20 @@
 <li>type_info / type_info_all</li>
 <li>bind_col ?</li>
 <li>Rewrite DBI-dispatching in C?</li>
-<li>fetch_many callable as iterator</li>
 <li>warn if commit/rollback and AutoCommit is on</li>
 <li>bind_out_param/bind_inout_param</li>
 <li>tracing/logging for DBDs by calling log(...)</li>
 <li>define exact behaviour of fetch_scroll</li>
 <li>define exact behaviour of exception classes</li>
 <li>do not pass *args paramters to DBD (it's harder for C-extensions to handle them)</li>
+<li>thead safety ?</li>
+<li>asynchronous execution</li>
 </ul>
 <h1><a name="label:1" id="label:1">Done</a></h1><!-- RDLabel: "Done" -->
 <ul>
+<li>fetch_all should always return an array, as well as select_all etc., fetch_many always []</li>
 <li>get a Driver object, call methods on it</li>
-<li>blob_import etc for DBD::Pg</li>
+<li>blob_import etc. for DBD::Pg</li>
 <li>parameter markers in DB2</li>
 </ul>
 

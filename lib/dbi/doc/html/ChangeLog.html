@@ -9,7 +9,36 @@
 </head>
 <body>
 <dl>
-<dt><a name="label:0" id="label:0">0.0.11 (2001-11-14)
+<dt><a name="label:0" id="label:0">0.0.12 (2001-12-28)
+</a></dt><!-- RDLabel: "0.0.12 (2001-12-28)
+" -->
+</dl>
+<ul>
+<li>dbd_oracle: added Database#columns method</li>
+<li>sql.rb: nil as argument in methods of DBI::SQL::BasicQuote::Coerce results in nil</li>
+<li>examples: added xmlgen.rb (library to generate XML; requires REXML)</li>
+<li>dbd_sqlrelay: updated version included (by David Muse).</li>
+<li>dbd_pg: fixed bug (displayed wrong default values) in method
+  Database#columns (Joseph McDoanlds)</li>
+<li><p>dbd_oracle:</p>
+<ul>
+<li>added ?-style parameter markers (don't use them together with :1 or :name style)</li>
+</ul></li>
+<li>dbd_sqlite: added type conversion</li>
+<li>sql.rb: added class PreparedStatement</li>
+<li>dbd_odbc: fixed method Database#tables, added Database#ping and columns, extended Statement#column_info</li>
+<li>dbi.rb: fetch_all and fetch_many now always return an Array ([] instead of nil)</li>
+<li>proxyserver.rb: moved into directory bin/proxyserver</li>
+<li><p>sqlsh.rb:</p>
+<ul>
+<li>moved from examples to bin/commandline; install it by default</li>
+<li>refactored source a lot</li>
+<li>added \irb (start irb in context) and \rb (execute ruby command) commands</li>
+<li>SQL statements end with ";" (over multiple lines) </li>
+</ul></li>
+</ul>
+<dl>
+<dt><a name="label:1" id="label:1">0.0.11 (2001-11-14)
 </a></dt><!-- RDLabel: "0.0.11 (2001-11-14)
 " -->
 </dl>
@@ -29,7 +58,7 @@
 <li>sqlsh.rb: added commands \dt (describe table), \s (select * from table) and \pl (page length).</li>
 </ul>
 <dl>
-<dt><a name="label:1" id="label:1">0.0.10 (2001-10-22)
+<dt><a name="label:2" id="label:2">0.0.10 (2001-10-22)
 </a></dt><!-- RDLabel: "0.0.10 (2001-10-22)
 " -->
 </dl>
@@ -41,7 +70,7 @@
 <li>dbd_mysql: added StatementHandle#fetch_scroll</li>
 </ul>
 <dl>
-<dt><a name="label:2" id="label:2">0.0.9 (2001-09-07)
+<dt><a name="label:3" id="label:3">0.0.9 (2001-09-07)
 </a></dt><!-- RDLabel: "0.0.9 (2001-09-07)
 " -->
 </dl>
@@ -60,7 +89,7 @@
 <li>fixed bug in utils.rb XMLFormatter.table (thanks to Jim Menard)</li>
 </ul>
 <dl>
-<dt><a name="label:3" id="label:3">0.0.8 (2001-07-28)
+<dt><a name="label:4" id="label:4">0.0.8 (2001-07-28)
 </a></dt><!-- RDLabel: "0.0.8 (2001-07-28)
 " -->
 </dl>
@@ -70,7 +99,7 @@
 <li>corrected quoting for Date, Time and Timestamp</li>
 </ul>
 <dl>
-<dt><a name="label:4" id="label:4">0.0.7 (2001-07-11)
+<dt><a name="label:5" id="label:5">0.0.7 (2001-07-11)
 </a></dt><!-- RDLabel: "0.0.7 (2001-07-11)
 " -->
 </dl>
@@ -78,7 +107,7 @@
 <li>fixed bug in dbi.rb, which was newly introduced in 0.0.6</li>
 </ul>
 <dl>
-<dt><a name="label:5" id="label:5">0.0.6 (2001-07-06)
+<dt><a name="label:6" id="label:6">0.0.6 (2001-07-06)
 </a></dt><!-- RDLabel: "0.0.6 (2001-07-06)
 " -->
 </dl>
@@ -89,7 +118,7 @@
 <li>fixed bug in dbi/sql.rb method bind.</li>
 </ul>
 <dl>
-<dt><a name="label:6" id="label:6">0.0.5 (2001-06-09)
+<dt><a name="label:7" id="label:7">0.0.5 (2001-06-09)
 </a></dt><!-- RDLabel: "0.0.5 (2001-06-09)
 " -->
 </dl>
@@ -97,7 +126,7 @@
 <li>almost complete rewrite of DBI by Michael Neumann.</li>
 </ul>
 <dl>
-<dt><a name="label:7" id="label:7">0.0.4 (2001-05-05)
+<dt><a name="label:8" id="label:8">0.0.4 (2001-05-05)
 </a></dt><!-- RDLabel: "0.0.4 (2001-05-05)
 " -->
 </dl>
@@ -106,7 +135,7 @@
    into a new namespace: DBI::DBD::[driver]</li>
 </ul>
 <dl>
-<dt><a name="label:8" id="label:8">0.0.3 (2001-04-28)
+<dt><a name="label:9" id="label:9">0.0.3 (2001-04-28)
 </a></dt><!-- RDLabel: "0.0.3 (2001-04-28)
 " -->
 </dl>
@@ -114,7 +143,7 @@
 <li>changed 'driver not found' error-message to something more generic</li>
 </ul>
 <dl>
-<dt><a name="label:9" id="label:9">0.0.2 
+<dt><a name="label:10" id="label:10">0.0.2 
 </a></dt><!-- RDLabel: "0.0.2 
 " -->
 </dl>

@@ -8,9 +8,9 @@
 <link href="http://www.ruby-projects.org/dbi/rubyStyle.css" type="text/css" rel="stylesheet"/>
 </head>
 <body>
-<h1><a name="label:0" id="label:0">DBI Interface Specification Version 0.2 (Draft)</a></h1><!-- RDLabel: "DBI Interface Specification Version 0.2 (Draft)" -->
+<h1><a name="label:0" id="label:0">DBI Interface Specification Version 0.2.1 (Draft)</a></h1><!-- RDLabel: "DBI Interface Specification Version 0.2.1 (Draft)" -->
 <p>by Michael Neumann (neumann@s-direknet.de)</p>
-<pre>$Id: DBI_SPEC.html,v 1.17 2001/11/14 14:08:16 michael Exp $</pre>
+<pre>$Id: DBI_SPEC.html,v 1.18 2001/12/28 14:05:29 michael Exp $</pre>
 <h2><a name="label:1" id="label:1">Module DBD</a></h2><!-- RDLabel: "Module DBD" -->
 <h3><a name="label:2" id="label:2">Constants</a></h3><!-- RDLabel: "Constants" -->
 <dl>
@@ -306,7 +306,7 @@ row is available.</p>
 <dd>
 <p>Returns an <code>Array</code> of the next <em>cnt</em> rows, which are
 stored as <code>DBI::Row</code> objects. </p>
-<p>Returns <code>nil</code> if there are no more rows.</p></dd>
+<p>Returns the empty array <code>[]</code> if there are no more rows.</p></dd>
 <dt><a name="label:95" id="label:95"><code>fetch_all</code></a></dt><!-- RDLabel: "fetch_all" -->
 <dd>
 <p>Same as <a href="#label:94">fetch_many</a> only that all rows are returned.</p></dd>
