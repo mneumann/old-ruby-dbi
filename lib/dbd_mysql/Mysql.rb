@@ -27,7 +27,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: Mysql.rb,v 1.16 2002/09/26 18:37:27 mneumann Exp $
+# $Id: Mysql.rb,v 1.17 2003/02/08 00:37:20 pdubois Exp $
 #
 
 require "mysql"
@@ -52,9 +52,9 @@ class Driver < DBI::BaseDriver
     # connect to database
     hash = Utils.parse_params(dbname)
 
-    if hash['database'].nil? 
-      raise DBI::InterfaceError, "must specify database"
-    end
+    #if hash['database'].nil? 
+    #  raise DBI::InterfaceError, "must specify database"
+    #end
 
     hash['host'] ||= 'localhost'
 
