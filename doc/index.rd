@@ -1,8 +1,8 @@
 =begin
 = Ruby/DBI - a database independent interface for accessing databases - similar to Perl's DBI
-$Id: index.rd,v 1.17 2001/12/28 10:18:28 michael Exp $
+$Id: index.rd,v 1.18 2002/04/16 20:24:34 mneumann Exp $
 
-Copyright (c) 2001 by Michael Neumann (neumann@s-direktnet.de)
+Copyright (c) 2001, 2002 by Michael Neumann (neumann@s-direktnet.de)
 
 == License
 
@@ -24,6 +24,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 == Contributors
 
+: Michael Neumann
+  Author of Ruby/DBI; wrote the DBI and most of the DBDs (except DBD::Pg).
 : Rainer Perl 
   Author of Ruby/DBI 0.0.4 from which many good ideas were taken into the new completely rewritten version 0.0.5. 
 : Jim Weirich
@@ -100,54 +102,21 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 == ChangeLog
 
-See ((<URL:http://www.ruby-projects.org/dbi/dbi/ChangeLog.html>)).
+See ((<URL:http://ruby-dbi.sourceforge.net/ChangeLog.html>)).
 
 == ToDo
 
-See ((<URL:http://www.ruby-projects.org/dbi/dbi/ToDo.html>)).
+See ((<URL:http://ruby-dbi.sourceforge.net/ToDo.html>)).
 
 
 == Download
 
+Ruby/DBI is available for from the ((<SourceForge project page|URL:http://sourceforge.net/project/showfiles.php?group_id=43737>)).
+
 If you're running FreeBSD or NetBSD, have a look at their package collections. FreeBSD has for DBI and each DBD an easy to
 install package, NetBSD currently only for PostgreSQL but more is to come.
 
-A NetBSD package for MySQL is available from at ((<URL:http://www.fantasy-coders.de/ruby/ruby-mysql-2.4.tar.gz>)).
-
-Latest development snapshot available at ((<URL:http://www.ruby-projects.org/downloads/dbi/ruby-dbi-all-current.tar.gz>)).
-
-: Ruby/DBI 0.0.12
-
-  ((<URL:http://www.ruby-projects.org/downloads/dbi/ruby-dbi-all-0.0.12.tar.gz>))
-
-: Ruby/DBI 0.0.11
-
-  ((<URL:http://www.ruby-projects.org/downloads/dbi/ruby-dbi-all-0.0.11.tar.gz>))
-
-: Ruby/DBI 0.0.10
-
-  ((<URL:http://www.ruby-projects.org/downloads/dbi/ruby-dbi-all-0.0.10.tar.gz>))
-
-: Ruby/DBI 0.0.9
-
-  ((<URL:http://www.ruby-projects.org/downloads/dbi/ruby-dbi-all-0.0.9.tar.gz>))
-
-: Ruby/DBI 0.0.8
-
-  ((<URL:http://www.ruby-projects.org/downloads/dbi/ruby-dbi-all-0.0.8.tar.gz>))
-
-: Ruby/DBI 0.0.7
-
-  ((<URL:http://www.ruby-projects.org/downloads/dbi/ruby-dbi-all-0.0.7.tar.gz>))
-
-: Ruby/DBI 0.0.6
-
-  ((<URL:http://www.ruby-projects.org/downloads/dbi/ruby-dbi-all-0.0.6.tar.gz>))
-
-: Ruby/DBI 0.0.5
-
-  ((<URL:http://www.ruby-projects.org/downloads/dbi/ruby-dbi-all-0.0.5.tar.gz>))
-
+A NetBSD package for MySQL is available at ((<URL:http://www.fantasy-coders.de/ruby/ruby-mysql-2.4.tar.gz>)).
 
 == Installation
 
@@ -170,18 +139,20 @@ Choose the packages to install by specifing them after the option (({--with})).
 
 
 == Mailing List
-There is also a mailing-list for DBI-specific discussions, see
-((<URL:http://groups.yahoo.com/group/ruby-dbi-talk>))
+A mailinglist for DBI-specific discussions is available from the ((<SourceForge project page|URL:http://sourceforge.net/projects/ruby-dbi>)).
+
+Our former mailing-list was at ((<URL:http://groups.yahoo.com/group/ruby-dbi-talk>)); 
+please, don't use it!
 
 == Documentation
 
 See the directories lib/*/doc or ext/*/doc for DBI and DBD specific informations.
 
 The DBI specification is lib/dbi/doc/DBI_SPEC or lib/dbi/doc/html/DBI_SPEC.html or available
-from WWW at ((<URL:http://www.ruby-projects.org/dbi/dbi/DBI_SPEC.html>)).
+from WWW at ((<URL:http://ruby-dbi.sourceforge.net/DBI_SPEC.html>)).
 
 The DBD specification (how to write a database driver) is lib/dbi/doc/DBD_SPEC or lib/dbi/doc/html/DBD_SPEC.html or available
-from WWW at ((<URL:http://www.ruby-projects.org/dbi/dbi/DBD_SPEC.html>)).
+from WWW at ((<URL:http://ruby-dbi.sourceforge.net/DBD_SPEC.html>)).
 
 
 == Applications
@@ -243,4 +214,5 @@ to access databases remote over a TCP/IP network.
 
   end
 
+<<< sf_logo
 =end 
