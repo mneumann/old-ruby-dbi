@@ -1,5 +1,10 @@
 =begin
 
+: 0.0.8 (2001-07-28)
+ * fixed bug in DBI::Row (dup/clone did not work) (Jim Weirich)
+ * fixed bug in dbi.rb (load_driver)
+ * corrected quoting for Date, Time and Timestamp
+
 : 0.0.7 (2001-07-11)
  * fixed bug in dbi.rb, which was newly introduced in 0.0.6
 
