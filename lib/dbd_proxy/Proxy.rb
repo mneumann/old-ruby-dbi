@@ -1,8 +1,8 @@
 # 
 # DBD::Proxy
-# $Id: Proxy.rb,v 1.6 2001/08/30 14:06:03 michael Exp $
+# $Id: Proxy.rb,v 1.7 2002/02/06 17:26:37 mneumann Exp $
 # 
-# Version : 0.1
+# Version : 0.2
 # Author  : Michael Neumann (neumann@s-direktnet.de)
 #
 # Copyright (c) 2001 Michael Neumann
@@ -28,8 +28,8 @@ module DBI
 module DBD
 module Proxy
 
-VERSION          = "0.1"
-USED_DBD_VERSION = "0.1"
+VERSION          = "0.2"
+USED_DBD_VERSION = "0.2"
 
 module HelperMixin
   def check_exception(obj)
@@ -101,7 +101,7 @@ end
 class Database < DBI::BaseDatabase
   include HelperMixin 
   METHODS = %w(disconnect ping commit rollback tables execute
-               do quote [] []=)
+               do quote [] []= columns)
 
   def initialize(db_handle)
     @handle = db_handle
@@ -121,7 +121,7 @@ class Statement < DBI::BaseStatement
   include HelperMixin
 
   METHODS = %w(bind_param execute finish fetch column_info bind_params
-               cancel fetch_scroll fetch_many fetch_all)
+               cancel fetch_scroll fetch_many fetch_all rows)
 
   def initialize(handle)
     @handle = handle
@@ -134,4 +134,3 @@ end # class Statement
 end # module Proxy
 end # module DBD
 end # module DBI
-
