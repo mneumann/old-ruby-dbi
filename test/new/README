@@ -1,0 +1,10 @@
+TC_Common contains the basic testing methods that are included by all
+other test cases.
+
+Test cases are named TC_#{dbdname}, e.g. TC_SQLite. Every test case
+includes TC_Common and inherits from Test::Unit::TestCase. A test case
+implements at least the "connect" method, but may overwrite/add methods
+as needed.
+
+It might make sense to create other includable modules like
+TC_Transactions.
