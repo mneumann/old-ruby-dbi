@@ -172,14 +172,14 @@ module DBI
 
               row = {}
               row['name']           = name
-              row['type']           = sql_type
+              row['sql_type']       = sql_type
               row['type_name']      = type
               row['nullable']       = ! notnullable
               row['indexed']        = indexed
               row['primary']        = primary
               row['unique']         = unique
-              row['size']           = size
-              row['decimal_digits'] = decimal
+              row['precision']      = size
+              row['scale']          = decimal
               row['default']        = nil
               row
             end # collect

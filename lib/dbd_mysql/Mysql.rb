@@ -1,6 +1,6 @@
 # 
 # DBD::Mysql
-# $Id: Mysql.rb,v 1.6 2001/08/23 22:04:54 michael Exp $
+# $Id: Mysql.rb,v 1.7 2001/08/30 14:37:30 michael Exp $
 # 
 # Version : 0.2
 # Author  : Michael Neumann (neumann@s-direktnet.de)
@@ -148,14 +148,14 @@ class Database < DBI::BaseDatabase
         sqltype, type, size, decimal = mysql_type_info(row[1])
         col = Hash.new
         col['name']           = name
-        col['type']           = sqltype
+        col['sql_type']       = sqltype
         col['type_name']      = type
         col['nullable']       = nullable == "YES"
         col['indexed']        = key != ""
         col['primary']        = key == "PRI"
         col['unique']         = uniques.index(name) != nil
-        col['size']           = size
-        col['decimal_digits'] = decimal
+        col['precision']      = size
+        col['scale']          = decimal
         col['default']        = row[4]
         col
       end # collect
@@ -207,7 +207,7 @@ class Database < DBI::BaseDatabase
       type = typedef
     end
 
-    type_info = MYSQL_to_XOPEN[type.upcase]
+    type_info = MYSQL_to_XOPEN[type.upcase] || MYSQL_to_XOPEN[nil]
     sqltype = type_info[0]
     if size.nil? then size = type_info[1] end
     if decimal.nil? then decimal = type_info[2] end
