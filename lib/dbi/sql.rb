@@ -1,5 +1,5 @@
 #
-# $Id: sql.rb,v 1.5 2001/06/29 17:18:33 michael Exp $
+# $Id: sql.rb,v 1.6 2001/07/17 16:57:09 michael Exp $
 #
 # extracted from Jim Weirichs DBD::Pg
 #
@@ -91,8 +91,9 @@ module SQL
         "'f'"
       when Array
 	value.collect { |v| quote(v) }.join(", ")
+      when Date, Time, Timestamp
+        "'#{value.to_s}'"
       else
-        # includes Binary, Date, Time, Timestamp
 	value.to_s
       end
     end
