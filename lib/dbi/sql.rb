@@ -1,5 +1,5 @@
 #
-# $Id: sql.rb,v 1.12 2002/02/06 14:24:21 mneumann Exp $
+# $Id: sql.rb,v 1.13 2003/02/01 13:45:23 mneumann Exp $
 #
 # parts extracted from Jim Weirichs DBD::Pg
 #
@@ -140,12 +140,27 @@ module SQL
     # This is NOT a full lexer for SQL.  It just breaks up the SQL
     # string enough so that question marks, double question marks and
     # quoted strings are separated.  This is used when binding
-    # arguments to "?" in the SQL string.  Note: comments are not
-    # handled.  
+    # arguments to "?" in the SQL string.  
+    #
+    # C-style (/* */) and Ada-style (--) comments are handled.
+    # Note: Nested C-style comments are NOT handled!
     #
     def tokens(sql)
-      toks = sql.scan(/('([^'\\]|''|\\.)*'|"([^"\\]|""|\\.)*"|\?\??|[^'"?]+)/)
-      toks.collect {|t| t[0]}
+      sql.scan(%r{
+        (
+            -- .*                               (?# matches "--" style comments to the end of line or string )
+        |
+            /[*] .*? [*]/                       (?# matches C-style comments )
+        |
+            ' ( [^'\\]  |  ''  |  \\. )* '      (?# match strings surrounded by apostophes )
+        |
+            " ( [^"\\]  |  ""  |  \\. )* "      (?# match strings surrounded by " )
+        |
+            \?\??                               (?# match one or two question marks )
+        |
+            [^-/'"?]+                           (?# match all characters except ' " ? - and / )
+            
+        )}x).collect {|t| t.first}
     end
 
   end # module BasicBind
