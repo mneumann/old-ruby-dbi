@@ -1,9 +1,25 @@
 #
-# $Id: utils.rb,v 1.4 2001/06/06 15:32:23 michael Exp $
+# $Id: utils.rb,v 1.5 2001/06/18 13:49:06 michael Exp $
 #
 
 module DBI
 module Utils
+
+  module ConvParam
+    def conv_param(*params)
+      params.collect do |p|
+        case p
+        when ::Date
+          DBI::Date.new(p)
+        when ::Time
+          DBI::Timestamp.new(p)
+        else
+          p
+        end
+      end
+    end
+  end
+
 
   def Utils.measure
     start = ::Time.now
