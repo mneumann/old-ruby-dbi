@@ -1,5 +1,5 @@
 #
-# $Id: utils.rb,v 1.10 2001/11/22 14:26:43 michael Exp $
+# $Id: utils.rb,v 1.11 2003/05/31 15:52:20 mneumann Exp $
 #
 
 module DBI
@@ -99,7 +99,7 @@ module XMLFormatter
     def textconv(str)
       str = str.to_s.gsub('&', "&#38;")
       str = str.gsub('\'', "&#39;")
-      str = str.gsub('\"', "&#34;")
+      str = str.gsub('"', "&#34;")
       str = str.gsub('<', "&#60;")
       str.gsub('>', "&#62;")
     end
