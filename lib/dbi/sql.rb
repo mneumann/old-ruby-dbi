@@ -1,11 +1,12 @@
 #
-# $Id: sql.rb,v 1.17 2004/04/27 16:29:37 mneumann Exp $
+# $Id: sql.rb,v 1.18 2004/05/19 20:31:37 mneumann Exp $
 #
 # parts extracted from Jim Weirichs DBD::Pg
 #
 
 module DBI
 require "parsedate"
+require "time"
 
 module SQL
 
@@ -96,8 +97,10 @@ module SQL
         "'f'"
       when Array
 	value.collect { |v| quote(v) }.join(", ")
-      when DBI::Date, DBI::Time, DBI::Timestamp, ::Date, ::Time
+      when DBI::Date, DBI::Time, DBI::Timestamp, ::Date
         "'#{value.to_s}'"
+      when ::Time
+        "'#{value.rfc2822}'"
       else
 	value.to_s
       end
