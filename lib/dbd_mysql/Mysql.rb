@@ -1,6 +1,6 @@
 # 
 # DBD::Mysql
-# $Id: Mysql.rb,v 1.11 2001/11/22 14:19:24 michael Exp $
+# $Id: Mysql.rb,v 1.12 2002/01/04 11:52:40 michael Exp $
 # 
 # Version : 0.3.1
 # Author  : Michael Neumann (neumann@s-direktnet.de)
@@ -307,10 +307,6 @@ class Statement < DBI::BaseStatement
   def bind_param(param, value, attribs)
     raise InterfaceError, "only ? parameters supported" unless param.is_a? Fixnum
     @params[param-1] = value 
-  end
-
-  def bind_params(*params)
-    @params = params
   end
 
   def execute

@@ -1,5 +1,5 @@
 #
-# $Id: Pg.rb,v 1.16 2002/01/02 00:54:32 michael Exp $
+# $Id: Pg.rb,v 1.17 2002/01/04 11:53:09 michael Exp $
 #
 
 require 'postgres'
@@ -375,11 +375,6 @@ module DBI
 	def bind_param(index, value, options)
 	  @bindvars[index-1] = value
 	end
-
-	def bind_params(*params)
-	  @bindvars = params
-	end
-
 
 	def execute
           # replace DBI::Binary object by oid returned by lo_import 
