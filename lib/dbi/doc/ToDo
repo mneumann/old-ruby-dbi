@@ -1,6 +1,7 @@
 =begin
 = ToDo
 
+* version.rb; don't update everytime dbi.rb when version changes
 * SQL statement parser like Perl's SQL::Statement 
 * LDAP DBD
 * column_info: precision == column_size or == column_size - scale ??? 

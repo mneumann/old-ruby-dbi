@@ -1,7 +1,11 @@
 =begin
 
-: 0.0.14 
+: 0.0.14 (2002-05-14)
 
+* dbd_mysql: fixed bug: method #do and #execute both set query_with_result of 
+  the same underlying database object. This results in errors if you mix both 
+  method calls (not neccessarily called concurrently). Solution: Mutex.
+ 
 * dbd_pg: cache calls to PGResult#result in class Tuples (patch by James
   F.Hranicky); increase performance of a factor around 100
  
