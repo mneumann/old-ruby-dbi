@@ -2,6 +2,8 @@
 
 : 0.0.17
 
+* dbd_pg: fixed back-slash quote bug (586785) (Brad Hilton)
+
 * contrib: added dbrc (Daniel Berger) 
 
 * dbd_pg: enhanced conversion: default is to_str, added timestamp
