@@ -9,7 +9,17 @@
 </head>
 <body>
 <dl>
-<dt><a name="label:0" id="label:0">0.0.13 (2002-04-16)</a></dt><!-- RDLabel: "0.0.13 (2002-04-16)" -->
+<dt><a name="label:0" id="label:0">0.0.14 (2002-05-14)</a></dt><!-- RDLabel: "0.0.14 (2002-05-14)" -->
+</dl>
+<ul>
+<li>dbd_mysql: fixed bug: method #do and #execute both set query_with_result of 
+  the same underlying database object. This results in errors if you mix both 
+  method calls (not neccessarily called concurrently). Solution: Mutex.</li>
+<li>dbd_pg: cache calls to PGResult#result in class Tuples (patch by James
+  F.Hranicky); increase performance of a factor around 100</li>
+</ul>
+<dl>
+<dt><a name="label:1" id="label:1">0.0.13 (2002-04-16)</a></dt><!-- RDLabel: "0.0.13 (2002-04-16)" -->
 </dl>
 <ul>
 <li>Moved project to SourceForge.</li>
@@ -17,7 +27,7 @@
 <li>dbd_proxy, proxyserver: upgraded to DBD API 0.2; fixed bug (Norbert Gawor)</li>
 </ul>
 <dl>
-<dt><a name="label:1" id="label:1">0.0.12 (2001-12-28)</a></dt><!-- RDLabel: "0.0.12 (2001-12-28)" -->
+<dt><a name="label:2" id="label:2">0.0.12 (2001-12-28)</a></dt><!-- RDLabel: "0.0.12 (2001-12-28)" -->
 </dl>
 <ul>
 <li>dbd_oracle: added Database#columns method</li>
@@ -44,7 +54,7 @@
 </ul></li>
 </ul>
 <dl>
-<dt><a name="label:2" id="label:2">0.0.11 (2001-11-14)</a></dt><!-- RDLabel: "0.0.11 (2001-11-14)" -->
+<dt><a name="label:3" id="label:3">0.0.11 (2001-11-14)</a></dt><!-- RDLabel: "0.0.11 (2001-11-14)" -->
 </dl>
 <ul>
 <li>dbd_sqlite:   new DBD for SQLite</li>
@@ -62,7 +72,7 @@
 <li>sqlsh.rb: added commands \dt (describe table), \s (select * from table) and \pl (page length).</li>
 </ul>
 <dl>
-<dt><a name="label:3" id="label:3">0.0.10 (2001-10-22)</a></dt><!-- RDLabel: "0.0.10 (2001-10-22)" -->
+<dt><a name="label:4" id="label:4">0.0.10 (2001-10-22)</a></dt><!-- RDLabel: "0.0.10 (2001-10-22)" -->
 </dl>
 <ul>
 <li>dbd_odbc: added odbc_ignorecase option (submitted by Sean O'Halpin), requires Ruby/ODBC 0.93</li>
@@ -72,7 +82,7 @@
 <li>dbd_mysql: added StatementHandle#fetch_scroll</li>
 </ul>
 <dl>
-<dt><a name="label:4" id="label:4">0.0.9 (2001-09-07)</a></dt><!-- RDLabel: "0.0.9 (2001-09-07)" -->
+<dt><a name="label:5" id="label:5">0.0.9 (2001-09-07)</a></dt><!-- RDLabel: "0.0.9 (2001-09-07)" -->
 </dl>
 <ul>
 <li>Fixed bug in sql.rb, method "quote" (gsub! =&gt; gsub). (thanks to Stephen Davies)</li>
@@ -89,7 +99,7 @@
 <li>fixed bug in utils.rb XMLFormatter.table (thanks to Jim Menard)</li>
 </ul>
 <dl>
-<dt><a name="label:5" id="label:5">0.0.8 (2001-07-28)</a></dt><!-- RDLabel: "0.0.8 (2001-07-28)" -->
+<dt><a name="label:6" id="label:6">0.0.8 (2001-07-28)</a></dt><!-- RDLabel: "0.0.8 (2001-07-28)" -->
 </dl>
 <ul>
 <li>fixed bug in DBI::Row (dup/clone did not work) (Jim Weirich)</li>
@@ -97,13 +107,13 @@
 <li>corrected quoting for Date, Time and Timestamp</li>
 </ul>
 <dl>
-<dt><a name="label:6" id="label:6">0.0.7 (2001-07-11)</a></dt><!-- RDLabel: "0.0.7 (2001-07-11)" -->
+<dt><a name="label:7" id="label:7">0.0.7 (2001-07-11)</a></dt><!-- RDLabel: "0.0.7 (2001-07-11)" -->
 </dl>
 <ul>
 <li>fixed bug in dbi.rb, which was newly introduced in 0.0.6</li>
 </ul>
 <dl>
-<dt><a name="label:7" id="label:7">0.0.6 (2001-07-06)</a></dt><!-- RDLabel: "0.0.6 (2001-07-06)" -->
+<dt><a name="label:8" id="label:8">0.0.6 (2001-07-06)</a></dt><!-- RDLabel: "0.0.6 (2001-07-06)" -->
 </dl>
 <ul>
 <li>added supports for dbi:DBD:database:host instead of dbi:DBD:database=aaa;host=bbb (John Gorman)</li>
@@ -112,26 +122,26 @@
 <li>fixed bug in dbi/sql.rb method bind.</li>
 </ul>
 <dl>
-<dt><a name="label:8" id="label:8">0.0.5 (2001-06-09)</a></dt><!-- RDLabel: "0.0.5 (2001-06-09)" -->
+<dt><a name="label:9" id="label:9">0.0.5 (2001-06-09)</a></dt><!-- RDLabel: "0.0.5 (2001-06-09)" -->
 </dl>
 <ul>
 <li>almost complete rewrite of DBI by Michael Neumann.</li>
 </ul>
 <dl>
-<dt><a name="label:9" id="label:9">0.0.4 (2001-05-05)</a></dt><!-- RDLabel: "0.0.4 (2001-05-05)" -->
+<dt><a name="label:10" id="label:10">0.0.4 (2001-05-05)</a></dt><!-- RDLabel: "0.0.4 (2001-05-05)" -->
 </dl>
 <ul>
 <li>based on Jim Weirich's suggestion, the drivers have been moved
    into a new namespace: DBI::DBD::[driver]</li>
 </ul>
 <dl>
-<dt><a name="label:10" id="label:10">0.0.3 (2001-04-28)</a></dt><!-- RDLabel: "0.0.3 (2001-04-28)" -->
+<dt><a name="label:11" id="label:11">0.0.3 (2001-04-28)</a></dt><!-- RDLabel: "0.0.3 (2001-04-28)" -->
 </dl>
 <ul>
 <li>changed 'driver not found' error-message to something more generic</li>
 </ul>
 <dl>
-<dt><a name="label:11" id="label:11">0.0.2</a></dt><!-- RDLabel: "0.0.2" -->
+<dt><a name="label:12" id="label:12">0.0.2</a></dt><!-- RDLabel: "0.0.2" -->
 </dl>
 <ul>
 <li>initial release</li>
