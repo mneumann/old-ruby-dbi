@@ -1,5 +1,5 @@
 #
-# $Id: Pg.rb,v 1.18 2002/04/17 13:38:38 mneumann Exp $
+# $Id: Pg.rb,v 1.19 2002/06/13 15:45:18 mneumann Exp $
 #
 
 require 'postgres'
@@ -8,7 +8,7 @@ module DBI
   module DBD
     module Pg
       
-      VERSION          = "0.2.1"
+      VERSION          = "0.3.0"
       USED_DBD_VERSION = "0.2"
       
       class Driver < DBI::BaseDriver
@@ -285,7 +285,7 @@ module DBI
 
 	def load_type_map
 	  @type_map = Hash.new
-          @coerce = DBI::SQL::BasicQuote::Coerce.new
+          @coerce = PgCoerce.new
 
 	  res = send_sql("SELECT typname, typelem FROM pg_type")
 
@@ -298,6 +298,7 @@ module DBI
 	    when '_float4','_float8'         then :as_float
             when '_timestamp'                then :as_timestamp
             when '_date'                     then :as_date
+            when '_bytea'                    then :as_bytea
             else                                  :as_str
 	    end
 	  }
@@ -356,6 +357,21 @@ module DBI
           data
 	rescue PGError => err
           raise DBI::DatabaseError.new(err.message) 
+        end
+
+        #
+        # encodes a string as bytea value.
+        #
+        # for encoding rules see:
+        #   http://www.postgresql.org/idocs/index.php?datatype-binary.html
+        #
+        def __encode_bytea(str)
+          a = str.split(/\\/, -1).collect! {|s|
+            s.gsub!(/'/,    "\\\\047")  # '  => \\047 
+            s.gsub!(/\000/, "\\\\000")  # \0 => \\000  
+            s
+          }
+          a.join("\\\\")                # \  => \\
         end
 
       end # Database
@@ -478,7 +494,22 @@ module DBI
 	end
 
       end # Tuples
-      
+
+      ################################################################
+      class PgCoerce < DBI::SQL::BasicQuote::Coerce
+        #
+        # for decoding rules see:
+        #   http://www.postgresql.org/idocs/index.php?datatype-binary.html
+        #
+        def as_bytea(str)
+          a = str.split(/\\\\/, -1).collect! {|s|
+            s.gsub!(/\\[0-7][0-7][0-7]/) {|o| o[1..-1].oct.chr}  #  \### => chr(###)
+            s
+          }
+          a.join("\\")  # \\ => \
+        end
+      end
+
     end # module Pg
   end # module DBD
 end # module DBI
