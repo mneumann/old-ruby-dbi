@@ -1,6 +1,6 @@
 # 
 # DBD::ADO
-# $Id: ADO.rb,v 1.3 2001/05/31 13:19:18 michael Exp $
+# $Id: ADO.rb,v 1.4 2001/06/05 10:28:01 michael Exp $
 # 
 # Version : 0.1
 # Author  : Michael Neumann (neumann@s-direktnet.de)
@@ -94,6 +94,8 @@ end # class Database
 
 
 class Statement < DBI::BaseStatement
+  include SQL::BasicBind
+  include SQL::BasicQuote
 
   def initialize(handle, statement, db)
     @handle = handle
@@ -111,7 +113,8 @@ class Statement < DBI::BaseStatement
   def execute
     # TODO: use Command and Parameter
     # TODO: substitute all ? by the parametes
-    @res_handle = @handle.Execute(@statement) 
+    sql = bind(self, @statement, @params)
+    @res_handle = @handle.Execute(sql) 
 
     # TODO: SELECT and AutoCommit finishes the result-set
     #       what to do?
@@ -124,7 +127,11 @@ class Statement < DBI::BaseStatement
   end
 
   def finish
-    @res_handle.Close()
+    # if DCL, DDL or INSERT UPDATE and DELETE, this gives an Error
+    # because no Result-Set is available
+    if @res_handle.Fields.Count() != 0 then
+      @res_handle.Close()
+    end
   rescue RuntimeError => err
     raise DBI::Error, err.message
   end
