@@ -3,3 +3,4 @@ dbd_mysql dbd_mysql DBD/Mysql
 dbd_interbase dbd_interbase DBD/InterBase
 dbd_oracle dbd_oracle DBD/Oracle
 dbd_db2 dbd_db2 DBD/DB2
+dbd_ado dbd_ado DBD/ADO
