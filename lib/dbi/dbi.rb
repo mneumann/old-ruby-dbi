@@ -1,5 +1,5 @@
 # Ruby/DBI 
-# $Id: dbi.rb,v 1.18 2001/08/23 22:11:06 michael Exp $
+# $Id: dbi.rb,v 1.19 2001/08/30 13:34:39 michael Exp $
 # 
 # Version : 0.0.9
 # Author  : Michael Neumann (neumann@s-direktnet.de)
@@ -26,6 +26,7 @@
 require "dbi/row"
 require "dbi/utils"
 require "dbi/sql"
+require "dbi/columninfo"
 require "date"
 
 module DBI
@@ -33,7 +34,6 @@ module DBI
 module DBD
   DIR = "DBD"
   API_VERSION = "0.2"
-  COMPATIBLE_API_VERSIONS = ["0.1", "0.2"]
 end
 
 
@@ -81,56 +81,14 @@ SQL_LONGVARBINARY = -4
 # TODO
 # Find types for these (XOPEN?)
 #SQL_ARRAY = 
-#SQL_BLOB = 
-#SQL_CLOB = 
+SQL_BLOB = -10   # TODO
+SQL_CLOB = -11   # TODO
 #SQL_DISTINCT = 
 #SQL_OBJECT = 
 #SQL_NULL = 
 SQL_OTHER = 100
 #SQL_REF = 
 #SQL_STRUCT = 
-
-class ColumnInfo
-
-  # define attribute accessors for the following attributes:
-  attrs = %w(name type type_name size decimal_digits default nullable indexed primary unique)
-  attrs.each do | attr |
-    eval %{
-      def #{ attr }()         @hash['#{ attr }']         end
-      def #{ attr }=( value ) @hash['#{ attr }'] = value end
-    }
-  end
-
-  alias nullable? nullable
-  alias is_nullable? nullable
-
-  alias indexed? indexed
-  alias is_indexed? indexed
-
-  alias primary? primary
-  alias is_primary? primary
-
-  alias unique? unique
-  alias is_unique unique
-
-  # Constructor methods ------------------------------------------------------------------------
-
-  def initialize( hash=nil )
-    @hash = hash || Hash.new
-  end
-
-  # Attribute getter/setter --------------------------------------------------------------------
-  
-  def []( attr ) 
-    @hash[attr]
-  end
-
-  def []=( attr, value ) 
-    @hash[attr] = value
-  end
-
-end
-
 
 
 
@@ -902,7 +860,8 @@ end
 class BaseDriver < Base
 
   def initialize(dbd_version)
-    unless DBD::COMPATIBLE_API_VERSIONS.include?( dbd_version )
+    major, minor = dbd_version.split(".")
+    unless major.to_i == DBD::API_VERSION.split(".")[0].to_i
       raise InterfaceError, "Wrong DBD API version used"
     end
   end
