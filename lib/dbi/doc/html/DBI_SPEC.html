@@ -8,13 +8,13 @@
 <link href="http://www.ruby-projects.org/dbi/rubyStyle.css" type="text/css" rel="stylesheet" />
 </head>
 <body>
-<h1><a name="label:0" id="label:0">DBI Interface Specification Version 0.5 (Draft)
-</a></h1><!-- RDLabel: "DBI Interface Specification Version 0.5 (Draft)" -->
+<h1><a name="label:0" id="label:0">DBI Interface Specification Version 0.0.5 (Draft)
+</a></h1><!-- RDLabel: "DBI Interface Specification Version 0.0.5 (Draft)" -->
 <p>
 by Michael Neumann (neumann@s-direknet.de)
 </p>
 <pre>
-$Id: DBI_SPEC.html,v 1.2 2001/06/05 22:40:12 michael Exp $
+$Id: DBI_SPEC.html,v 1.3 2001/06/08 20:28:06 michael Exp $
 </pre>
 <h2><a name="label:1" id="label:1">Module DBD
 </a></h2><!-- RDLabel: "Module DBD" -->
@@ -174,9 +174,67 @@ Disconnects all active connections of <em>driver</em> or
 all drivers if <em>driver</em> is <code>nil</code>.
 </p>
 </dd>
+<dt><a name="DBI_S_trace" id="DBI_S_trace"><code>DBI.trace(<var>mode</var>=<var>nil</var>, <var>output</var>=<var>nil</var>)</code></a></dt><!-- RDLabel: "DBI.trace" -->
+<dd>
+<p>
+Set the trace mode for all following created Handles to these values.
+</p>
+
+<p>
+If a parameter is <code>nil</code> the value is not changed.
+<var>mode</var> defaults to 2 if it is <code>nil</code>, and <var>output</var> to <code>STDERR</code> if a value was not
+set before.
+For <var>mode</var> the values 0, 1, 2 or 3 are allowed.
+</p>
+
+<p>
+Note: Tracing is only activated, if you load the module "dbi/trace", because tracing currently
+depends on AspectR &gt; 0.3.3.
+</p>
+</dd>
 </dl>
-<h2><a name="label:6" id="label:6">Class DBI::DatabaseHandle
+<h2><a name="label:6" id="label:6">Class DBI::Handle
+</a></h2><!-- RDLabel: "Class DBI::Handle" -->
+<p>
+Abstract base class for all "Handles" (DriverHandle, DatabaseHandle, StatementHandle).
+</p>
+<h3><a name="label:7" id="label:7">Instance Methods
+</a></h3><!-- RDLabel: "Instance Methods" -->
+<dl>
+<dt><a name="func" id="func"><code>func( <var>function</var>, *<var>values</var> )</code></a></dt><!-- RDLabel: "func" -->
+<dd>
+<p>
+Calls the driver specific extension function named by
+<var>function</var> with <var>values</var> as parameters.
+</p>
+</dd>
+<dt><a name="trace" id="trace"><code>trace(<var>mode</var>=<var>nil</var>, <var>output</var>=<var>nil</var>)</code></a></dt><!-- RDLabel: "trace" -->
+<dd>
+<p>
+Set the trace mode for this handle as well as for all sub-handles (in the case of DriverHandle and 
+DatabaseHandle).
+</p>
+
+<p>
+If a parameter is <code>nil</code> the value is not changed.
+<var>mode</var> defaults to 2 if it is <code>nil</code>, and <var>output</var> to <code>STDERR</code> if a value was not
+set before.
+For <var>mode</var> the values 0, 1, 2 or 3 are allowed.
+</p>
+
+<p>
+Note: Tracing is only activated, if you load the module "dbi/trace", because tracing currently
+depends on AspectR &gt; 0.3.3.
+</p>
+</dd>
+</dl>
+<h2><a name="label:8" id="label:8">Class DBI::DatabaseHandle
 </a></h2><!-- RDLabel: "Class DBI::DatabaseHandle" -->
+<h3><a name="label:9" id="label:9">Superclass
+</a></h3><!-- RDLabel: "Superclass" -->
+<dl>
+<dt><a name="DBI_Handle" id="DBI_Handle"><code>DBI::Handle</code></a><!-- RDLabel: "DBI::Handle" -->
+</dl>
 <h3><a name="label:7" id="label:7">Instance Methods
 </a></h3><!-- RDLabel: "Instance Methods" -->
 <dl>
@@ -296,17 +354,15 @@ An attribute can for example be "AutoCommit", which can be set to
 <code>true</code> or <code>false</code>. Attributes are database dependant.
 </p>
 </dd>
-<dt><a name="func" id="func"><code>func( <var>function</var>, *<var>values</var> )</code></a></dt><!-- RDLabel: "func" -->
-<dd>
-<p>
-Calls the driver specific extension function named by
-<var>function</var> with <var>values</var> as parameters.
-</p>
-</dd>
 </dl>
-<h2><a name="label:8" id="label:8">Class DBI::StatementHandle
+<h2><a name="label:10" id="label:10">Class DBI::StatementHandle
 </a></h2><!-- RDLabel: "Class DBI::StatementHandle" -->
-<h3><a name="label:9" id="label:9">Mixins
+<h3><a name="label:9" id="label:9">Superclass
+</a></h3><!-- RDLabel: "Superclass" -->
+<dl>
+<dt><a name="DBI_Handle" id="DBI_Handle"><code>DBI::Handle</code></a><!-- RDLabel: "DBI::Handle" -->
+</dl>
+<h3><a name="label:11" id="label:11">Mixins
 </a></h3><!-- RDLabel: "Mixins" -->
 <dl>
 <dt><a name="Enumerable" id="Enumerable"><code>Enumerable</code></a><!-- RDLabel: "Enumerable" -->
@@ -474,13 +530,6 @@ Returns a <code>DBI::Row</code> object, if not possible, returns <code>nil</code
 <p>
 Note that the returned <code>DBI::Row</code> object is only a reference and
 should be copied (dup) if it is stored elsewhere.
-</p>
-</dd>
-<dt><a name="func" id="func"><code>func( <var>function</var>, *<var>values</var> )</code></a></dt><!-- RDLabel: "func" -->
-<dd>
-<p>
-Calls the driver specific extension function named by
-<var>function</var> with <var>values</var> as parameters.
 </p>
 </dd>
 </dl>
