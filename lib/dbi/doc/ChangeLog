@@ -1,5 +1,17 @@
 =begin
 
+: 0.0.16 (2002-07-03)
+
+* dbd_pg: Added Statement#fetch_scroll (patch by Stephen Davies).
+
+* dbi: Added StatementHandle#[] and #[]=. Updated DBI and DBD specs.
+
+* dbd_pg: Fixed semantic of method Statement#rows (affects also Database#do): 
+  Now returns the Row Processed Count instead of the number of rows in the result. 
+  The old behaviour is still available through method Statement#['pg_row_count']. 
+
+* changed license from GNU GPL to BSD
+
 : 0.0.15 (2002-05-21)
 
 * added example trace_test.rb

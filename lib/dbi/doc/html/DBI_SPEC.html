@@ -8,9 +8,9 @@
 <link href="rubyStyle.css" type="text/css" rel="stylesheet" />
 </head>
 <body>
-<h1><a name="label:0" id="label:0">DBI Interface Specification Version 0.2.1 (Draft)</a></h1><!-- RDLabel: "DBI Interface Specification Version 0.2.1 (Draft)" -->
+<h1><a name="label:0" id="label:0">DBI Interface Specification Version 0.2.2 (Draft)</a></h1><!-- RDLabel: "DBI Interface Specification Version 0.2.2 (Draft)" -->
 <p>by Michael Neumann (neumann@s-direknet.de)</p>
-<pre>$Id: DBI_SPEC.html,v 1.22 2002/05/21 19:02:23 mneumann Exp $</pre>
+<pre>$Id: DBI_SPEC.html,v 1.23 2002/07/03 20:06:26 mneumann Exp $</pre>
 <h2><a name="label:1" id="label:1">Module DBD</a></h2><!-- RDLabel: "Module DBD" -->
 <h3><a name="label:2" id="label:2">Constants</a></h3><!-- RDLabel: "Constants" -->
 <dl>
@@ -327,6 +327,10 @@ if e.g. you get the last row. </p>
 <p>Returns a <code>DBI::Row</code> object, if not possible, returns <code>nil</code>.</p>
 <p>Note that the returned <code>DBI::Row</code> object is only a reference and
 should be copied (dup) if it is stored elsewhere.</p></dd>
+<dt><a name="label:97" id="label:97"><code>[<var>attr</var>]</code></a><!-- RDLabel: "[]" -->
+<dt><a name="label:98" id="label:98"><code>[<var>attr</var>] = <var>val</var></code></a></dt><!-- RDLabel: "[]=" -->
+<dd>
+<p>Sets or gets the attribute <em>attr</em>.</p></dd>
 </dl>
 
 </body>

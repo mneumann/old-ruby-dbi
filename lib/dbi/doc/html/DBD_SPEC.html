@@ -8,9 +8,9 @@
 <link href="rubyStyle.css" type="text/css" rel="stylesheet" />
 </head>
 <body>
-<h1><a name="label:0" id="label:0">DBD Specification Version 0.2 (Draft)</a></h1><!-- RDLabel: "DBD Specification Version 0.2 (Draft)" -->
+<h1><a name="label:0" id="label:0">DBD Specification Version 0.2.2 (Draft)</a></h1><!-- RDLabel: "DBD Specification Version 0.2.2 (Draft)" -->
 <p>by Michael Neumann (neumann@s-direknet.de)</p>
-<pre>$Id: DBD_SPEC.html,v 1.22 2002/05/21 19:02:23 mneumann Exp $</pre>
+<pre>$Id: DBD_SPEC.html,v 1.23 2002/07/03 20:06:26 mneumann Exp $</pre>
 <h2><a name="label:1" id="label:1">DBD Directory Layout</a></h2><!-- RDLabel: "DBD Directory Layout" -->
 <p>The directory layout is the following:</p>
 <pre>DBD/
@@ -146,7 +146,7 @@ do not return a result-set.</p>
 <dd>
 <p>Set value of attribute <em>attr</em> to <em>value</em>.
 An attribute is e.g. "AutoCommit".
-Raise an NotSupportedError, if the database do not support an attribute.</p>
+Raise a NotSupportedError, if the database do not support an attribute.</p>
 <p>The default implementation is to raise a NotSupportedError.</p></dd>
 </dl>
 <h2><a name="label:27" id="label:27">Class Statement</a></h2><!-- RDLabel: "Class Statement" -->
@@ -236,6 +236,15 @@ itself an <code>Array</code> (see Statement#fetch_many).</p>
 <p>Note: Unlike <code>fetch</code>, this method should return a new Array object.</p>
 <p>Return <code>nil</code> if no rows are available.</p>
 <p>Defaults to multiple calls to <code>fetch</code>.</p></dd>
+<dt><a name="label:41" id="label:41"><code>[ <var>attr</var> ]</code></a></dt><!-- RDLabel: "[]" -->
+<dd>
+<p>Return value of attribute <em>attr</em>.</p>
+<p>Defauls to return the value of <code>@attr[attr]</code>.</p></dd>
+<dt><a name="label:42" id="label:42"><code>[<var>attr</var>] = <var>value</var></code></a></dt><!-- RDLabel: "[]=" -->
+<dd>
+<p>Set value of attribute <em>attr</em> to <em>value</em>.
+Raise a NotSupportedError, if the database do not support an attribute.</p>
+<p>The default implementation is to raise a NotSupportedError.</p></dd>
 </dl>
 <hr />
 <p class="foottext">
