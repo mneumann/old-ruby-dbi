@@ -42,6 +42,7 @@ make all
 cd ..
 
 # remove all CVS directories
+pwd
 find . -name "CVS" -print | xargs rm -rf
 
 # upload HTML pages and CSS
@@ -58,15 +59,13 @@ cd ..
 mv src ruby-dbi-all
 tar -cvzf ${FILE} ruby-dbi-all
 
-# upload tar.gz 
-#echo "cd incoming\nbinary\nput ${FILE}\nbye\n" | /usr/bin/ftp -a upload.sourceforge.net 
-
-dialog --msgbox "Now log into RubyForge Admin page and make a release. Release is named like '0.0.17'; platform independent, source .gz." 8 40
-w3m http://rubyforge.org/account/login.php
+dialog --msgbox "Now log into RubyForge Admin page and make a release. Release is named like '0.0.17'; choose Any and source .gz." 8 40
+#w3m http://rubyforge.org/account/login.php
 
 dialog --msgbox "Finally, update the page at the RAA." 8 40
 w3m "http://raa.ruby-lang.org/update.rhtml?name=ruby-dbi"
 
+dialog --msgbox "Proceed to clean up the work/ directory." 8 40
 # remove work
 cd ..
 rm -rf work
