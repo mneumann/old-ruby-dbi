@@ -1,7 +1,7 @@
 #
 # DBD::Pg
 #
-# Copyright (c) 2001, 2002 Jim Weirich, Michael Neumann <neumann@s-direktnet.de>
+# Copyright (c) 2001, 2002, 2003 Jim Weirich, Michael Neumann <mneumann@ntecs.de>
 # 
 # All rights reserved.
 #
@@ -27,7 +27,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: Pg.rb,v 1.30 2002/10/25 12:48:37 mneumann Exp $
+# $Id: Pg.rb,v 1.31 2003/05/11 15:29:08 mneumann Exp $
 #
 
 require 'postgres'
@@ -36,7 +36,7 @@ module DBI
   module DBD
     module Pg
       
-      VERSION          = "0.3.2"
+      VERSION          = "0.3.3"
       USED_DBD_VERSION = "0.2"
       
       class Driver < DBI::BaseDriver
@@ -82,8 +82,6 @@ module DBI
           nil                         => [SQL_OTHER, nil, nil]
         }
         
-        attr_reader :connection
-
         def initialize(dbname, user, auth, attr)
           hash = Utils.parse_params(dbname)
 
@@ -98,7 +96,10 @@ module DBI
           @connection = PGconn.new(hash['host'], hash['port'], hash['options'], hash['tty'], 
             hash['dbname'] || hash['database'], user, auth)
 
+          @exec_method = :exec
+
           @attr = attr
+          @attr['NonBlocking'] ||= false
           @attr.each { |k,v| self[k] = v} 
 
           load_type_map
@@ -114,13 +115,13 @@ module DBI
 
         def disconnect
           if not @attr['AutoCommit'] and @in_transaction
-            @connection.exec("ROLLBACK")   # rollback outstanding transactions
+            _exec("ROLLBACK")   # rollback outstanding transactions
           end
           @connection.close
         end
         
         def ping
-          answer = @connection.exec("SELECT 1")
+          answer = _exec("SELECT 1")
           if answer
             return answer.num_tuples == 1
           else
@@ -256,7 +257,7 @@ module DBI
               if value    # turn AutoCommit ON
                 if @in_transaction
                   # TODO: commit outstanding transactions?
-                  @connection.exec("COMMIT")
+                  _exec("COMMIT")
                   @in_transaction = false
                 end
               else        # turn AutoCommit OFF
@@ -264,6 +265,8 @@ module DBI
               end
             end
             # value is assigned below
+          when 'NonBlocking'
+            @exec_method = if value then :async_exec else :exec end
           when 'pg_client_encoding'
             @connection.set_client_encoding(value)
           else
@@ -278,7 +281,7 @@ module DBI
 
         def commit
           if @in_transaction
-            @connection.exec("COMMIT")
+            _exec("COMMIT")
             @in_transaction = false
           else
             # TODO: Warn?
@@ -287,7 +290,7 @@ module DBI
 
         def rollback
           if @in_transaction
-            @connection.exec("ROLLBACK")
+            _exec("ROLLBACK")
             @in_transaction = false
           else
             # TODO: Warn?
@@ -308,8 +311,12 @@ module DBI
         end
 
         def start_transaction
-          @connection.exec("BEGIN")
+          _exec("BEGIN")
           @in_transaction = true
+        end
+
+        def _exec(sql)
+          @connection.send(@exec_method, sql)
         end
 
      if PGconn.respond_to?(:quote)
@@ -345,7 +352,7 @@ module DBI
           @type_map = Hash.new
           @coerce = PgCoerce.new
 
-          res = @connection.exec("SELECT typname, typelem FROM pg_type")
+          res = _exec("SELECT typname, typelem FROM pg_type")
 
           res.result.each { |name, idstr|
             @type_map[idstr.to_i] = 
@@ -375,7 +382,7 @@ module DBI
           start_transaction unless @in_transaction
           @connection.lo_import(file)
           #if @attr['AutoCommit']
-          #  @connection.exec("COMMIT")
+          #  _exec("COMMIT")
           #  @in_transaction = false
           #end
         rescue PGError => err
@@ -386,7 +393,7 @@ module DBI
           start_transaction unless @in_transaction
           @connection.lo_export(oid.to_i, file)
           #if @attr['AutoCommit']
-          #  @connection.exec("COMMIT")
+          #  _exec("COMMIT")
           #  @in_transaction = false
           #end
         rescue PGError => err
@@ -397,7 +404,7 @@ module DBI
           start_transaction unless @in_transaction
           @connection.lo_create(mode)
           #if @attr['AutoCommit']
-          #  @connection.exec("COMMIT")
+          #  _exec("COMMIT")
           #  @in_transaction = false
           #end
         rescue PGError => err
@@ -408,7 +415,7 @@ module DBI
           start_transaction unless @in_transaction
           @connection.lo_open(oid.to_i, mode)
           #if @attr['AutoCommit']
-          #  @connection.exec("COMMIT")
+          #  _exec("COMMIT")
           #  @in_transaction = false
           #end
         rescue PGError => err
@@ -419,7 +426,7 @@ module DBI
           start_transaction unless @in_transaction
           @connection.lo_unlink(oid.to_i)
           #if @attr['AutoCommit']
-          #  @connection.exec("COMMIT")
+          #  _exec("COMMIT")
           #  @in_transaction = false
           #end
         rescue PGError => err
@@ -504,7 +511,7 @@ module DBI
           if not SQL.query?(boundsql) and not @db['AutoCommit'] then
             @db.start_transaction unless @db.in_transaction?
           end
-          pg_result = @db.connection.exec(boundsql)
+          pg_result = @db._exec(boundsql)
           @result = Tuples.new(@db, pg_result)
 
         rescue PGError, RuntimeError => err
