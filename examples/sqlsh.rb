@@ -36,7 +36,7 @@ class ReadlineControl
       Readline.readline(@prompt, true)
     else
       print @prompt
-      readline
+      $stdin.readline
     end
   end
 
@@ -108,17 +108,19 @@ loop {
     if line =~ /^\\/ then
 
       if line =~ /^\\q(uit)?/i then
-        puts
-        puts "BYE"
-        puts
-        Conn.disconnect
-        break 
+        break
       elsif line =~ /^\\h(elp)?/i then
         head = %w(Function Description)
         rows = [
-          ["\\h[elp]",   "Display this help screen"],
-          ["\\t[ables]", "Display all available tables"],
-          ["\\q[uit]",   "Quit this program"]
+          ["\\h[elp]",     "Display this help screen"],
+          ["\\t[ables]",   "Display all available tables"],
+
+          ["\\c[ommit]",   "Commits the current transaction"],
+          ["\\r[ollback]", "Rolls back the current transaction"],
+          ["\\a[utocommit]", "Show current autocommit mode"],
+          ["\\a[utocommit] on|off", "Switch autocommit mode on/off"],
+
+          ["\\q[uit]",     "Quit this program"]
         ]
           
         puts
@@ -136,7 +138,43 @@ loop {
         puts
         next 
 
-
+      elsif line =~ /^\\c(ommit)?/i then
+        Conn.commit
+        puts
+        puts "COMMIT"
+        puts
+        next
+      elsif line =~ /^\\r(ollback)?/i then
+        Conn.rollback
+        puts
+        puts "ROLLBACK"
+        puts
+        next
+      elsif line =~ /^\\a(utocommit)?(\s+(on|off)?)?/i then
+        mode = $3
+        if mode =~ /on/i
+          Conn['AutoCommit'] = true
+          puts
+          puts "AUTOCOMMIT IS NOW ON"
+          puts
+        elsif mode =~ /off/i
+          Conn['AutoCommit'] = false
+          puts
+          puts "AUTOCOMMIT IS NOW OFF"
+          puts
+        else
+          puts
+          if Conn['AutoCommit'] == true
+            puts "AUTOCOMMIT is currently switched ON"
+          elsif Conn['AutoCommit'] == false
+            puts "AUTOCOMMIT is currently switched OFF"
+          else
+            puts "AUTOCOMMIT is in unknown state"
+          end
+          puts 
+          
+        end 
+        next
       else
         puts
         puts "Unknown command!"
@@ -208,9 +246,25 @@ loop {
   rescue DBI::Error => err
     puts
     puts err.message
+    p err.backtrace if $DEBUG
     puts
   end
 }
 
 
+
+# exit the program
+
+puts
+puts "BYE"
+puts
+
+begin
+  Conn.disconnect
+rescue DBI::Error => err
+  puts
+  puts err.message
+  p err.backtrace if $DEBUG
+  puts
+end
 
