@@ -1,5 +1,5 @@
 #
-# $Id: row.rb,v 1.7 2001/08/30 13:31:51 michael Exp $
+# $Id: row.rb,v 1.8 2003/09/07 12:36:43 mneumann Exp $
 #
 
 require "delegate"
@@ -119,6 +119,8 @@ class Row < DelegateClass(Array)
   def clone
     clone_with(@arr.dup)
   end
+
+  alias dup clone
 
   private # ----------------------------------------------------------
 

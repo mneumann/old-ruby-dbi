@@ -4,8 +4,10 @@
 require 'runit/testcase'
 require 'runit/cui/testrunner'
 
-require "../dbi"
-require "../sql"
+require 'require_dispatch'
+require "dbi"
+require "sql"
+
 
 $last_suite = RUNIT::TestSuite.new
 
@@ -79,6 +81,23 @@ class TestSqlBind < RUNIT::TestCase
     assert_equal res, bind(self, sql, []) 
   end
 
+  def test_much
+    sql = <<ENDSQL
+SELECT s.id, cwajga_magic_number((cwajga_product(r.rating) ^ (1 / 1)), MAX(lastplay.lastheard), 5) as magic
+INTO TEMP magic_order
+FROM song AS s LEFT OUTER JOIN rating AS r ON s.id = r.song LEFT OUTER JOIN last play ON lastplay.song = s.id
+WHERE r.name ILIKE 'omega697'
+GROUP BY s.id;
+
+SELECT SUM(magic) as total INTO TEMP magic_tot FROM magic_order;
+
+SELECT id, 100.0*magic/total as percent
+FROM magic_order, magic_tot
+order by percent;
+ENDSQL
+    res = sql
+    assert_equal res, bind(self, sql, [])
+  end
 
 end
 

@@ -4,8 +4,9 @@
 require 'runit/testcase'
 require 'runit/cui/testrunner'
 
-require "../dbi"
-require "../sql"
+require 'require_dispatch'
+require "dbi"
+require "sql"
 
 $last_suite = RUNIT::TestSuite.new
 

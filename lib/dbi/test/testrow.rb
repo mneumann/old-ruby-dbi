@@ -89,6 +89,19 @@ class TestDbRow < RUNIT::TestCase
     assert_equal sample_data, cloned.to_a
   end
 
+  def test_dup_ruby18
+    res = []
+    r = DBI::Row.new(["col1","col2"],[nil,nil])
+
+    [["one",1],["two",2],["three",3]].each do |x,y|
+      r["col1"] = x
+      r["col2"] = y
+      res << r.dup
+    end
+
+    assert_equal res, [["one", 1], ["two", 2], ["three", 3]]
+  end
+
   private
 
   def make_row
