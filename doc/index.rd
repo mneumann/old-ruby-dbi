@@ -1,6 +1,6 @@
 =begin
 = Ruby/DBI - a database independent interface for accessing databases - similar to Perl's DBI
-$Id: index.rd,v 1.25 2002/10/03 09:33:35 mneumann Exp $
+$Id: index.rd,v 1.26 2002/10/22 15:25:38 mneumann Exp $
 
 == License
 
@@ -70,6 +70,8 @@ License).
   Column coercing patch for DBD Mysql.
 : Sean Chittenden
   Submitted several patches and helped with lots of comments; Co-owner of the project.
+: MoonWolf
+  quote/escape_bytea patch for DBD Pg.
 
 == Database Drivers (DBDs)
 
