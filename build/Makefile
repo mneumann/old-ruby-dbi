@@ -1,10 +1,10 @@
 all: ChangeLog.html doc
 
-ChangeLog.html: ChangeLog
+ChangeLog.html: ../ChangeLog
 	./cl2html.sh
 
-ChangeLog:
-	ruby create_changelog.rb
+../ChangeLog:
+	(cd .. && ./build/cvs2cl.pl --no-wrap --usermap build/USER --prune --tagdates --separate-header --summary --gmt) 
 
 doc:
 	./create_html

@@ -1,6 +1,6 @@
 =begin
 = Ruby/DBI - a database independent interface for accessing databases - similar to Perl's DBI
-$Id: index.rd,v 1.33 2004/04/22 18:46:59 mneumann Exp $
+$Id: index.rd,v 1.34 2004/04/22 19:59:46 mneumann Exp $
 
 == License
 
@@ -159,11 +159,13 @@ License).
 
 == ChangeLog
 
-See ((<URL:http://ruby-dbi.sourceforge.net/ChangeLog.html>)).
+See ((<URL:http://ruby-dbi.rubyforge.org/ChangeLog.html>)).
+
+See ((<URL:http://ruby-dbi.rubyforge.org/ChangeLog>)) for the plain-text version.
 
 == ToDo
 
-See ((<URL:http://ruby-dbi.sourceforge.net/ToDo.html>)).
+See ((<URL:http://ruby-dbi.rubyforge.org/ToDo.html>)).
 
 
 == Download

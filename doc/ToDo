@@ -1,6 +1,7 @@
 =begin
 = ToDo
 
+* num_rows, which returns the number of rows in a result-set.
 * SQL statement parser like Perl's SQL::Statement 
 * LDAP DBD
 * column_info: precision == column_size or == column_size - scale ??? 

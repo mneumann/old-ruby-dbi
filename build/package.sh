@@ -21,14 +21,6 @@ if [ $? != 0 ]; then
   exit 1
 fi
 
-dialog --yesno "Added release date of new version in build/DBI-VERSIONS?" 8 40
-if [ $? != 0 ]; then
-  dialog --msgbox "Exiting! Please modify build/DBI-VERSIONS appropriately, before trying again." 8 40
-  rm -rf work/
-  exit 1
-fi
-
-
 dialog --inputbox "Tagged repository (e.g. cvs tag dbi-0-0-17)? Enter tag (without preceeding 'dbi-') below or choose 'Cancel'" 12 40 "0-0-" 2> work/VERSION
 if [ $? != 0 ]; then
   dialog --msgbox "Exiting! Please tag repository, before trying again." 8 40
@@ -41,7 +33,7 @@ TAG=dbi-${VERSION}
 
 # checkout sources
 cd work
-cvs -z3 -d:ext:mneumann@cvs.ruby-dbi.sourceforge.net:/cvsroot/ruby-dbi co -r ${TAG} src
+cvs -z3 -d:ext:mneumann@rubyforge.org:/var/cvs/ruby-dbi co -r ${TAG} src
 cd src
 
 # make documentation and ChangeLog
@@ -55,10 +47,10 @@ find . -name "CVS" -print | xargs rm -rf
 # upload HTML pages and CSS
 cd doc/html
 for i in *.html *.css ;
-do scp $i mneumann@shell.sourceforge.net:/home/groups/r/ru/ruby-dbi/htdocs/$i
+do scp $i mneumann@rubyforge.org:/var/www/gforge-projects/ruby-dbi
 done
 cd ../..
-
+scp ChangeLog mneumann@rubyforge.org:/var/www/gforge-projects/ruby-dbi
 
 # create tar.gz
 FILE=ruby-dbi-all-${DOT_VERSION}.tar.gz
@@ -67,10 +59,10 @@ mv src ruby-dbi-all
 tar -cvzf ${FILE} ruby-dbi-all
 
 # upload tar.gz 
-echo "cd incoming\nbinary\nput ${FILE}\nbye\n" | /usr/bin/ftp -a upload.sourceforge.net 
+#echo "cd incoming\nbinary\nput ${FILE}\nbye\n" | /usr/bin/ftp -a upload.sourceforge.net 
 
-dialog --msgbox "Now log into SourceForge Admin page and make a release. Release is named like '0.0.17'; platform independent, source .gz." 8 40
-links http://www.sourceforge.net/account/login.php
+dialog --msgbox "Now log into RubyForge Admin page and make a release. Release is named like '0.0.17'; platform independent, source .gz." 8 40
+w3m http://rubyforge.org/account/login.php
 
 dialog --msgbox "Finally, update the page at the RAA." 8 40
 w3m "http://raa.ruby-lang.org/update.rhtml?name=ruby-dbi"
