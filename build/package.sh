@@ -10,18 +10,22 @@ mkdir work
 dialog --yesno "Modified lib/dbi/version.rb?" 8 40
 if [ $? != 0 ]; then
   dialog --msgbox "Exiting! Please modify lib/dbi/version.rb appropriately, before trying again." 8 40
+  rm -rf work/
   exit 1
 fi
 
 dialog --yesno "Added release date of new version in build/DBI-VERSIONS?" 8 40
 if [ $? != 0 ]; then
   dialog --msgbox "Exiting! Please modify build/DBI-VERSIONS appropriately, before trying again." 8 40
+  rm -rf work/
   exit 1
 fi
+
 
 dialog --inputbox "Tagged repository (e.g. cvs tag dbi-0-0-17)? Enter tag (without preceeding 'dbi-') below or choose 'Cancel'" 12 40 "0-0-" 2> work/VERSION
 if [ $? != 0 ]; then
   dialog --msgbox "Exiting! Please tag repository, before trying again." 8 40
+  rm -rf work/
   exit 1
 fi
 VERSION=`cat work/VERSION`
