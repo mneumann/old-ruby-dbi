@@ -1,0 +1,287 @@
+=begin
+= DBD Specification Version 0.2.2 (Draft)
+by Michael Neumann (neumann@s-direknet.de)
+
+ $Id: DBD_SPEC,v 1.1 2002/10/02 18:10:37 mneumann Exp $
+
+== DBD Directory Layout
+The directory layout is the following:
+
+  DBD/
+  DBD/Driver1
+  DBD/Driver1/Driver1.rb
+  DBD/Driver1/helper.rb
+  .
+  .
+
+  DBD/Driver2
+  .
+  .
+  .
+
+Where "Driver1" and "Driver2" are the names of DBD driver.
+For example if you have two drivers installed, "Oracle" and 
+"Sybase" it would look like:
+
+  DBD/
+  DBD/Oracle
+  DBD/Oracle/Oracle.rb         # <== this is the main driver
+  DBD/Oracle/oracle.so         # <== is used by Oracle.rb
+
+  DBD/Sybase/Sybase.so         # <== this is the main driver
+                               # has no helper files
+
+When DBI loads a DBD driver it search all "DBD" directories in Ruby's
+LOAD_PATH ($:).
+
+Database dependent functions, that should be callable with DBI::func, must
+use the prefix "__" before their method names, to prevent nameclashes with 
+further versions of Ruby/DBI!
+
+== Driver Name
+The DBD driver is simply named after the Database, e.g. Oracle, DB2 etc.
+The suffix will normally be ".rb" but can be any other valid suffix, 
+which Ruby is possible to load, e.g. ".so", ".sl" or ".dll", and depends
+for non-Ruby DBD driver on the underlying operating system.
+When I refer to the driver name, then I speak of the filename without
+the suffix, e.g. Oracle or DB2.
+
+The name specified in the DSN ((-Data Source Name, e.g. "dbi:Oracle:oracle.neumann"-)) 
+must be the same as the driver name. 
+
+== Classes provided by a DBD
+A DBD driver has to provide three classes in the namespace
+(({DBI::DBD::}))((*DriverName*)) where ((*DriverName*)) is the name of the 
+driver, e.g. Oracle or DB2.
+
+The three classes must be named (({Driver})), (({Database})) and (({Statement})).
+
+== Class Driver
+This class must inherit from (({DBI::BaseDriver})).
+
+=== Methods which must be provided by (({Driver}))
+
+--- connect( dbname, user, auth, attr )
+    Connect to a database and return a newly created (({Database})) object.
+
+=== Optional methods which can be specified by (({Driver}))
+
+--- default_user
+    Return an array of the form (({['username', 'password']})) which represent
+    the default user when no user and password was specified.
+
+    Defaults to (({['', '']})) if not implemented.
+
+--- default_attributes
+    Return a (({Hash})) containing the default attributes which are used
+    in (({connect})) additional to the ones the user specify.
+  
+    Defaults to (({{}})) (empty hash) if not implemented.   
+ 
+--- data_sources
+    Return an array of all valid DSN this driver can access.
+    
+    Defaults to (({[]})) (empty array) if not implemented.     
+
+
+--- disconnect_all
+    Disconnect all connections made with this driver.
+
+    Defaults to raise a NotImplementedError.
+
+
+== Class Database
+This class must inherit from (({DBI::BaseDatabase})).
+
+=== Methods which must be provided by (({Database}))
+
+--- disconnect
+    Disconnect from database.
+    But before you have to rollback all outstanding transactions, so 
+    all changes not yet commited get lost.
+
+--- prepare( statement )
+    Prepare the SQL ((*statement*)) and return an object of class (({Statement})).
+
+--- ping
+    Ping the database, and check if the connection is alive.
+    This can be implemented by executing a SQL statement like
+    "SELECT 1 FROM DUAL" for Oracle database, or for other databases
+    this should be query on a table which normally always exists.
+
+    Return (({true})) if the connection is alive, otherwise (({false})).
+
+=== Optional methods which can be specified by (({Database}))
+
+--- commit
+--- rollback
+    Commit or roll back the current transaction.
+ 
+    Defauls to raise a NotSupportedError, so if the database do not implement 
+    transactions (mSQL, mySQL, CSV) do not overwrite this method.
+
+--- tables
+    Return an Array of all tables and views. 
+    
+    Defaults to return the empty Array [].
+
+--- columns( table )
+    Return more information about the columns of table ((*table*)). 
+    Return an Array of Hashes, like Statement#column_info do.
+    
+    Defaults to return an empty Array [].
+ 
+--- execute( statement, *bindvars )
+    Immediate execution (without preparation) of SQL ((*statement*))
+    with binding of placeholders to values given in ((*bindvars*)) before.
+
+    Return a (({Statement})) object.
+ 
+    Defaults to the call sequence of Database#prepare(), Statement#bind_params() and 
+    Statement#execute().
+
+--- do( statement, *bindvars )
+    Execution of SQL ((*statement*)) with binding of placeholders to values given
+    in ((*bindvars*)) before, but without returning a (({Statement})) object.
+    So this is used for 'INSERT', 'UPDATE', 'DELETE' as well as for DCL, which
+    do not return a result-set.
+
+    Return the RPC (Row Processed Count) or (({nil})) if no RPC is available.
+
+    Defaults to Database#execute() and Statement#rows() followed by Statement#finish(). 
+
+--- quote( value )
+    Quote the given value ((*value*)) database specific and return the result.
+
+    NOTE: This method is not really useful, because of Statement#bind_param. 
+
+--- []( attr )
+    Return value of attribute ((*attr*)).
+
+    Defauls to return the value of (({@attr[attr]})).
+
+--- []=( attr, value ) 
+    Set value of attribute ((*attr*)) to ((*value*)).
+    An attribute is e.g. "AutoCommit".
+    Raise a NotSupportedError, if the database do not support an attribute.
+
+    The default implementation is to raise a NotSupportedError.
+
+   
+
+== Class Statement
+This class must inherit from (({DBI::BaseStatement})).
+
+=== Methods which must be provided by (({Statement}))
+
+--- bind_param( param, value, attribs )
+    Bind ((|param|)) which is either a (({String})) which is then the name of the 
+    placeholder used in the SQL statement (e.g. Oracle: "SELECT * FROM EMP WHERE ENAME = :ename") 
+    or it is a (({Fixnum})) which is then the number of the placeholder where counting starts at 1.
+
+    ((|value|)) is the value which is bound to the placeholder.
+    If ((|value|)) is a (({String})), then the default SQL type is (({VARCHAR})) or (({CHAR})).
+    If ((|value|)) is a (({Fixnum})) or (({Bignum})), the default SQL type is (({INT})).
+    If ((|value|)) is a (({Float})), the default SQL type is (({FLOAT})).
+
+    ((*attribs*)) is not yet used in this version but could be a hash containing more information
+    like parameter type etc.
+
+--- execute
+    Execute the statement.
+
+--- finish
+    Free all the resources for the statement.
+    After calling (({finish})) no other operation on this
+    statement is valid.
+
+--- fetch
+    Fetch the current row.
+    Return a (({Array})) containing all column-data or (({nil})) if
+    the last column has been read.
+
+    Note: This method should return not a newly created object on each call, 
+    instead you should return one and the same Array object but with 
+    changed data. 
+
+
+--- column_info
+    Return an (({Array})) of (({Hash}))'s, one for each column.
+    Each (({Hash})) object must have at least one key 'name' which 
+    value is the name of that column.
+    Further possible values are 'sql_type' (integer, e.g. DBI::SQL_INT), 
+    'type_name' (string), 'precision' (= column size), 'scale' (= decimal digits),
+    'default', 'nullable', 'indexed', 'primary' and 'unique'.
+
+--- rows
+    Return the RPC (Row Processed Count) of the last executed statement, or
+    (({nil})) if no such exist.
+
+
+=== Optional methods which can be specified by (({Statement}))
+
+--- bind_params( *bindvars )
+    Binds the placeholders in the statement to the values of ((|bindvars|)).
+
+    Defaults to calling ((<bind_param>)) for each value, with ((*param*)) starting
+    from 1 increasingly.
+
+--- cancel 
+    Free any result set resources which were made after a call to (({execute})).
+    After calling this method, a call to one of the ((*fetch*)) methods is no more valid.
+
+    Defaults to do nothing.
+
+--- fetch_scroll( direction, offset )
+    ((*direction*)) is one of the following constants:
+    * SQL_FETCH_NEXT
+    * SQL_FETCH_PRIOR
+    * SQL_FETCH_FIRST
+    * SQL_FETCH_LAST
+    * SQL_FETCH_ABSOLUTE
+    * SQL_FETCH_RELATIVE
+    
+    ((*offset*)) is a positive or negativ number (only when SQL_FETCH_RELATIVE is used).
+
+    By default only SQL_FETCH_NEXT, SQL_FETCH_LAST, SQL_FETCH_RELATIVE (if positive) are
+    implemented, otherwise it raises NotSupportedError.
+
+    Note: This method should return not a newly created object on each call, 
+    instead you should return one and the same Array object but with 
+    changed data. 
+
+
+--- fetch_many( cnt )
+    Return an (({Array})) of the next ((*cnt*)) rows, where a row is itself an (({Array})).
+
+    Note: Unlike (({fetch})), this method should return a new Array object.
+ 
+    If there are no more ((*cnt*)) rows available return the rest.
+    Return (({nil})) if no rows are available.
+
+    Defaults to multiple calls to (({fetch})).
+
+--- fetch_all
+    Return an (({Array})) of all rows which have not yet been fetched, where a row is 
+    itself an (({Array})) (see Statement#fetch_many).
+
+    Note: Unlike (({fetch})), this method should return a new Array object.
+
+    Return (({nil})) if no rows are available.
+
+    Defaults to multiple calls to (({fetch})).
+
+--- []( attr )
+    Return value of attribute ((*attr*)).
+
+    Defauls to return the value of (({@attr[attr]})).
+
+--- []=( attr, value ) 
+    Set value of attribute ((*attr*)) to ((*value*)).
+    Raise a NotSupportedError, if the database do not support an attribute.
+
+    The default implementation is to raise a NotSupportedError.
+
+
+=end
+
