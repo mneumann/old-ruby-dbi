@@ -27,7 +27,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: Mysql.rb,v 1.20 2003/02/08 02:03:16 pdubois Exp $
+# $Id: Mysql.rb,v 1.21 2003/04/02 15:42:52 pdubois Exp $
 #
 
 require "mysql"
@@ -272,7 +272,7 @@ class Database < DBI::BaseDatabase
 
   def commit
     if @have_transactions
-      @handle.query("COMMIT")
+      self.do("COMMIT")
     else
       raise NotSupportedError
     end
@@ -282,7 +282,7 @@ class Database < DBI::BaseDatabase
 
   def rollback
     if @have_transactions
-      @handle.query("ROLLBACK")
+      self.do("ROLLBACK")
     else
       raise NotSupportedError
     end
@@ -306,7 +306,7 @@ class Database < DBI::BaseDatabase
     case attr
     when 'AutoCommit'
       if @have_transactions
-        @handle.query("SET AUTOCOMMIT=" + (value ? "1" : "0"))
+        self.do("SET AUTOCOMMIT=" + (value ? "1" : "0"))
       else
         raise NotSupportedError
       end
