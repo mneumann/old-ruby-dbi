@@ -40,7 +40,7 @@ module DBI
 
           hash = Utils.parse_params(dbname)
 
-          if hash['dbname'].nil? 
+          if hash['dbname'].nil? and hash['database'].nil?
             raise DBI::InterfaceError, "must specify database"
           end
 
@@ -48,7 +48,8 @@ module DBI
           hash['tty'] ||= ''
           hash['port'] = hash['port'].to_i unless hash['port'].nil? 
 
-	  @connection = PGconn.new(hash['host'], hash['port'], hash['options'], hash['tty'], hash['dbname'], user, auth)
+	  @connection = PGconn.new(hash['host'], hash['port'], hash['options'], hash['tty'], 
+            hash['dbname'] || hash['database'], user, auth)
 
 	  load_type_map
 	  @in_transaction = false
