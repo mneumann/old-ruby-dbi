@@ -27,7 +27,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: dbi.rb,v 1.30 2002/07/03 16:48:36 mneumann Exp $
+# $Id: dbi.rb,v 1.31 2002/07/03 19:24:25 mneumann Exp $
 #
 
 require "dbi/row"
@@ -862,6 +862,15 @@ class StatementHandle < Handle
     end
   end
 
+  def [] (attr)
+    raise InterfaceError, "Statement was already closed!" if @handle.nil?
+    @handle[attr]
+  end
+
+  def []= (attr, val)
+    raise InterfaceError, "Statement was already closed!" if @handle.nil?
+    @handle[attr] = val
+  end
 
 end # class StatementHandle
 

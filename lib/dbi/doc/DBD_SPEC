@@ -1,8 +1,8 @@
 =begin
-= DBD Specification Version 0.2 (Draft)
+= DBD Specification Version 0.2.2 (Draft)
 by Michael Neumann (neumann@s-direknet.de)
 
- $Id: DBD_SPEC,v 1.4 2001/10/22 16:01:30 michael Exp $
+ $Id: DBD_SPEC,v 1.5 2002/07/03 19:24:25 mneumann Exp $
 
 == DBD Directory Layout
 The directory layout is the following:
@@ -163,7 +163,7 @@ This class must inherit from (({DBI::BaseDatabase})).
 --- []=( attr, value ) 
     Set value of attribute ((*attr*)) to ((*value*)).
     An attribute is e.g. "AutoCommit".
-    Raise an NotSupportedError, if the database do not support an attribute.
+    Raise a NotSupportedError, if the database do not support an attribute.
 
     The default implementation is to raise a NotSupportedError.
 
@@ -270,6 +270,18 @@ This class must inherit from (({DBI::BaseStatement})).
     Return (({nil})) if no rows are available.
 
     Defaults to multiple calls to (({fetch})).
+
+--- []( attr )
+    Return value of attribute ((*attr*)).
+
+    Defauls to return the value of (({@attr[attr]})).
+
+--- []=( attr, value ) 
+    Set value of attribute ((*attr*)) to ((*value*)).
+    Raise a NotSupportedError, if the database do not support an attribute.
+
+    The default implementation is to raise a NotSupportedError.
+
 
 =end
 

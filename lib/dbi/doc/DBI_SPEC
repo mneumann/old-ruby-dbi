@@ -1,8 +1,8 @@
 =begin
-= DBI Interface Specification Version 0.2.1 (Draft)
+= DBI Interface Specification Version 0.2.2 (Draft)
 by Michael Neumann (neumann@s-direknet.de)
 
- $Id: DBI_SPEC,v 1.6 2001/11/26 00:14:32 michael Exp $
+ $Id: DBI_SPEC,v 1.7 2002/07/03 19:24:25 mneumann Exp $
  
 == Module DBD
 
@@ -348,7 +348,9 @@ Abstract base class for all "Handles" (DriverHandle, DatabaseHandle, StatementHa
     Note that the returned (({DBI::Row})) object is only a reference and
     should be copied (dup) if it is stored elsewhere.
 
-
+--- [](attr)
+--- []=(attr)
+    Sets or gets the attribute ((*attr*)).
 
 =end
 
