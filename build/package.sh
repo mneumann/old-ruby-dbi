@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# works only for tags above 0.0.16
+# works only for tags above 0.0.17
 
 export CVS_RSH=ssh
 
@@ -63,7 +63,7 @@ mv src ruby-dbi-all
 tar -cvzf ${FILE} ruby-dbi-all
 
 # upload tar.gz 
-echo "cd incoming\nbinary\nput ${FILE}\nbye\n" ftp -a upload.sourceforge.net 
+echo "cd incoming\nbinary\nput ${FILE}\nbye\n" | ftp -a upload.sourceforge.net 
 
 dialog --msgbox "Now log into SourceForge Admin page and make a release. Release is named like '0.0.17'; platform independent, source .gz." 8 40
 links http://www.sourceforge.net/account/login.php
