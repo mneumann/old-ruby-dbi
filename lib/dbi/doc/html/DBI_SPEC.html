@@ -10,7 +10,7 @@
 <body>
 <h1><a name="label:0" id="label:0">DBI Interface Specification Version 0.2 (Draft)</a></h1><!-- RDLabel: "DBI Interface Specification Version 0.2 (Draft)" -->
 <p>by Michael Neumann (neumann@s-direknet.de)</p>
-<pre>$Id: DBI_SPEC.html,v 1.9 2001/08/23 22:06:32 michael Exp $</pre>
+<pre>$Id: DBI_SPEC.html,v 1.10 2001/08/30 14:10:17 michael Exp $</pre>
 <h2><a name="label:1" id="label:1">Module DBD</a></h2><!-- RDLabel: "Module DBD" -->
 <h3><a name="label:2" id="label:2">Constants</a></h3><!-- RDLabel: "Constants" -->
 <dl>
@@ -272,8 +272,7 @@ is no more valid.</p></dd>
 <p>Returns an <code>Array</code> of all column names.</p></dd>
 <dt><a name="label:87" id="label:87"><code>column_info</code></a></dt><!-- RDLabel: "column_info" -->
 <dd>
-<p>Returns an <code>Array</code> containing <code>Hash</code>'s, one for
-each column, which describes each column.</p></dd>
+<p>Returns an <code>Array</code> containing fore each column one <code>DBI::ColumnInfo</code> object.</p></dd>
 <dt><a name="label:88" id="label:88"><code>rows</code></a></dt><!-- RDLabel: "rows" -->
 <dd>
 <p>Returns the RPC (Row Processed Count) of the last executed statement, or
