@@ -1,7 +1,7 @@
 #
 # DBD::ODBC
 #
-# Copyright (c) 2001, 2002 Michael Neumann <neumann@s-direktnet.de>
+# Copyright (c) 2001-2004 Michael Neumann <mneumann@ntecs.de>
 # 
 # All rights reserved.
 #
@@ -27,7 +27,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: ODBC.rb,v 1.9 2004/05/20 10:27:21 mneumann Exp $
+# $Id: ODBC.rb,v 1.10 2004/05/20 10:28:01 mneumann Exp $
 #
 
 $:.delete(".")
