@@ -1,5 +1,5 @@
 # Ruby/DBI 
-# $Id: dbi.rb,v 1.28 2002/05/21 18:33:34 mneumann Exp $
+# $Id: dbi.rb,v 1.29 2002/05/21 18:41:29 mneumann Exp $
 # 
 # Author  : Michael Neumann (neumann@s-direktnet.de)
 #
@@ -451,6 +451,7 @@ class Handle
 
   def initialize(handle)
     @handle = handle
+    @trace_mode = @trace_output = nil
   end
 
   def trace(mode=nil, output=nil)
