@@ -1,5 +1,5 @@
 # Ruby/DBI 
-# $Id: dbi.rb,v 1.7 2001/06/07 10:42:16 michael Exp $
+# $Id: dbi.rb,v 1.8 2001/06/07 19:06:54 michael Exp $
 # 
 # Version : 0.0.5
 # Author  : Michael Neumann (neumann@s-direktnet.de)
@@ -38,14 +38,13 @@
 #
 #  * let the DBD driver call cancel or
 #    should this be done by DBI?
-#  * make DbRow (or Row) faster, do not call
+#  * make Row (or Row) faster, do not call
 #    everytime column_names
 #
 
 require "dbi/row"
 require "dbi/utils"
 require "dbi/sql"
-
 
 
 module DBI
@@ -183,6 +182,33 @@ class Binary
     @data
   end
 end
+
+class Date
+  attr_accessor :year, :month, :day
+  def initialize(year=0, month=0, day=0)
+    @year, @month, @day = year, month, day
+  end
+  def to_s
+    "#{@year}-#{@month}-#{@day}"
+  end
+end
+
+
+class Time
+  attr_accessor :hour, :minute, :second
+  def initialize(hour=0, minute=0, second=0)
+    if hour.is_a? ::Time
+      @hour, @minute, @second = hour.hour, hour.min, hour.sec
+    else
+      @hour, @minute, @second = hour, minute, second
+    end
+  end
+
+  def to_s
+    "#{@hour}:#{@minute}:#{@second}"
+  end
+end
+
 
 class Timestamp
   attr_accessor :year, :month, :day
