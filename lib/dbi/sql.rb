@@ -1,10 +1,11 @@
 #
-# $Id: sql.rb,v 1.3 2001/06/17 20:04:07 jweirich Exp $
+# $Id: sql.rb,v 1.4 2001/06/18 13:48:27 michael Exp $
 #
 # extracted from Jim Weirichs DBD::Pg
 #
 
 module DBI
+require "parsedate"
 
 module SQL
 
@@ -18,18 +19,81 @@ module SQL
   # Mixin module useful for expanding SQL statements.
   #
   module BasicQuote
+
+    # by Masatoshi SEKI
+    class Coerce
+      def as_int(str)
+        if str == "" then nil else str.to_i end 
+      end 
+
+      def as_float(str)
+        str.to_f
+      end
+
+      def as_str(str)
+        str
+      end
+
+      def as_bool(str)
+        if str == "t"
+          true
+        elsif str == "f"
+          false
+        else
+          nil
+        end
+      end
+
+      def as_time(str)
+        t = as_timestamp(str)
+        DBI::Time.new(t.hour, t.min, t.sec)
+      end
+
+
+      def as_timestamp(str)
+        ary = ParseDate.parsedate(str)
+        time = ::Time.gm(*(ary[0,6]))
+        if ary[6] =~ /^(\+|\-)\d+$/
+          diff = ary[6].to_i * 60 * 60
+          time -= diff
+          time.localtime
+        end 
+        DBI::Timestamp.new(time)
+      end
+
+
+      def as_date(str)
+        ary = ParseDate.parsedate(str)
+        DBI::Date.new(*ary[0,3])
+      rescue
+        nil
+      end
+
+
+      def coerce(sym, str)
+        self.send(sym, str)
+      end
+
+    end # class Coerce
+
     
     ## Quote strings appropriately for SQL statements
     def quote(value)
       case value
       when String
 	value.gsub!(/'/, "''")	# ' (for ruby-mode)
+        #value.gsub!(/\?/, '??') # Added by Agt (2001-06-15)
 	"'#{value}'"
       when NilClass
 	"NULL"
+      when TrueClass
+        "'t'"
+      when FalseClass
+        "'f'"
       when Array
 	value.collect { |v| quote(v) }.join(", ")
       else
+        # includes Binary, Date, Time, Timestamp
 	value.to_s
       end
     end
