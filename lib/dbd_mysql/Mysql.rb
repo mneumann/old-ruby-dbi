@@ -1,8 +1,8 @@
 # 
 # DBD::Mysql
-# $Id: Mysql.rb,v 1.10 2001/11/13 14:25:53 michael Exp $
+# $Id: Mysql.rb,v 1.11 2001/11/22 14:19:24 michael Exp $
 # 
-# Version : 0.3
+# Version : 0.3.1
 # Author  : Michael Neumann (neumann@s-direktnet.de)
 #
 # Copyright (c) 2001 Michael Neumann
@@ -27,7 +27,7 @@ module DBI
 module DBD
 module Mysql
 
-VERSION          = "0.3"
+VERSION          = "0.3.1"
 USED_DBD_VERSION = "0.2"
 
 MyError = ::MysqlError
@@ -292,15 +292,16 @@ end # class Database
 
 
 class Statement < DBI::BaseStatement
-  include SQL::BasicBind
+  #include SQL::BasicBind
 
   def initialize(parent, handle, statement)
     super(nil)
-    #@attr['mysql_use_result'] = false
-    #@attr['mysql_store_result'] = true
 
-    @parent, @handle, @statement = parent, handle, statement
+    @parent, @handle = parent, handle
     @params = []
+
+    @handle.query_with_result = true # automatically switches store_result on 
+    @prep_stmt = DBI::SQL::PreparedStatement.new(@parent, statement)
   end
 
   def bind_param(param, value, attribs)
@@ -308,16 +309,12 @@ class Statement < DBI::BaseStatement
     @params[param-1] = value 
   end
 
-  def execute
-    @handle.query_with_result = true # automatically switches store_result on 
-    #if @attr['mysql_use_result']
-    #  @handle.use_result
-    #else
-    #  @handle.store_result
-    #end
+  def bind_params(*params)
+    @params = params
+  end
 
-    sql = bind(@parent, @statement, @params)
-    @res_handle = @handle.query(sql)
+  def execute
+    @res_handle = @handle.query(@prep_stmt.bind(@params))
     @current_row = 0
     @rows = @handle.affected_rows
   rescue MyError => err
@@ -338,9 +335,6 @@ class Statement < DBI::BaseStatement
   end
 
   def fetch_scroll(direction, offset)
-    #if @attr['mysql_use_result'] then
-    #  super
-    #else
       case direction
       when SQL_FETCH_NEXT
         @current_row += 1
