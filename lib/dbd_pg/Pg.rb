@@ -1,5 +1,5 @@
 #
-# $Id: Pg.rb,v 1.13 2001/11/13 11:00:57 michael Exp $
+# $Id: Pg.rb,v 1.14 2001/11/22 15:20:58 michael Exp $
 #
 
 require 'postgres'
@@ -240,13 +240,17 @@ module DBI
 	end
 
 	def commit
-	  send_sql("COMMIT WORK", 2)
-	  @in_transaction = false
+          if @in_transaction
+  	    send_sql("COMMIT WORK", 2)
+	    @in_transaction = false
+          end
 	end
 
 	def rollback
-	  send_sql("ROLLBACK WORK", 2)
-	  @in_transaction = false
+          if @in_transaction
+  	    send_sql("ROLLBACK WORK", 2)
+	    @in_transaction = false
+          end
 	end
 
 	# Other Public Methods ---------------------------------------
@@ -360,11 +364,10 @@ module DBI
       class Statement < DBI::BaseStatement
 	
 	include SQL::BasicQuote
-	include SQL::BasicBind
 
 	def initialize(db, sql)
 	  @db  = db
-	  @sql = sql
+          @prep_sql = DBI::SQL::PreparedStatement.new(self, sql)
 	  @result = nil
 	  @bindvars = []
 	end
@@ -372,6 +375,11 @@ module DBI
 	def bind_param(index, value, options)
 	  @bindvars[index-1] = value
 	end
+
+	def bind_params(*params)
+	  @bindvars = params
+	end
+
 
 	def execute
           # replace DBI::Binary object by oid returned by lo_import 
@@ -388,7 +396,7 @@ module DBI
             end
           end
 
-	  boundsql = bind(self, @sql, @bindvars)
+	  boundsql = @prep_sql.bind(@bindvars)
 
 	  if SQL.query?(boundsql) then
 	    pg_result = @db.send_sql(boundsql)
