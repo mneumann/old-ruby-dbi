@@ -1,5 +1,5 @@
 #
-# $Id: InterBase.rb,v 1.1 2001/05/30 12:40:21 michael Exp $
+# $Id: InterBase.rb,v 1.2 2001/06/05 12:14:25 michael Exp $
 # Copyright (c) 2001 by Michael Neumann
 #
 
@@ -11,6 +11,8 @@ module InterBase
 
 VERSION          = "0.1"
 USED_DBD_VERSION = "0.1"
+
+IBError = ::InterBase::Error
 
 class Driver < DBI::BaseDriver
 
@@ -32,6 +34,8 @@ class Driver < DBI::BaseDriver
 
     handle = ::InterBase::Connection.connect(hash['database'], user, auth, *params)
     return Database.new(handle, attr)
+  rescue IBError => err
+    raise DBI::Error.new(err.message)
   end
 
 end
@@ -41,16 +45,17 @@ class Database < DBI::BaseDatabase
   def disconnect
     #@handle.rollback   # is called implicit by #close
     @handle.close
+  rescue IBError => err
+    raise DBI::Error.new(err.message)  
   end
 
   def ping
-    klass = ::InterBase::Error
     begin
       stmt = execute("SELECT * FROM RDB$RELATIONS")
       stmt.fetch
       stmt.finish
       return true
-    rescue klass 
+    rescue IBError
       return false
     end
   end
@@ -84,10 +89,14 @@ class Database < DBI::BaseDatabase
 
   def commit
     @handle.commit
+  rescue IBError => err
+    raise DBI::Error.new(err.message)
   end
 
   def rollback
     @handle.rollback
+  rescue IBError => err
+    raise DBI::Error.new(err.message)
   end
 
 end # class Database
@@ -103,20 +112,25 @@ class Statement < DBI::BaseStatement
 
   def bind_param(param, value, attribs)
     raise InterfaceError, "only ? parameters supported" unless param.is_a? Fixnum
-
     @params[param-1] = value 
   end
 
   def execute
     @handle.execute(@statement, *@params)
+  rescue IBError => err
+    raise DBI::Error.new(err.message)
   end
 
   def finish
     @handle.drop
+  rescue IBError => err
+    raise DBI::Error.new(err.message)
   end
 
   def fetch
     @handle.fetch
+  rescue IBError => err
+    raise DBI::Error.new(err.message)
   end
 
   def column_info
@@ -126,6 +140,8 @@ class Statement < DBI::BaseStatement
       retval << {'name' => col[0] }
     }
     retval
+  rescue IBError => err
+    raise DBI::Error.new(err.message)
   end
 
   def rows
