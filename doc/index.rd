@@ -1,6 +1,6 @@
 =begin
 = Ruby/DBI - a database independent interface for accessing databases - similar to Perl's DBI
-$Id: index.rd,v 1.3 2001/06/07 19:10:25 michael Exp $
+$Id: index.rd,v 1.4 2001/06/08 20:30:49 michael Exp $
 
 Copyright (c) 2001 by Michael Neumann (neumann@s-direktnet.de)
 
@@ -76,7 +76,7 @@ The newest version in 0.0.5.
 
 : Ruby/DBI 0.0.5
 
-  ((<URL:http://www.ruby-projects.org/dbi/ruby-dbi-all-0.0.5.tar.gz>))
+  ((<URL:http://www.ruby-projects.org/downloads/dbi/ruby-dbi-all-0.0.5.tar.gz>))
 
 
 == Installation
