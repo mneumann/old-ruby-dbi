@@ -1,8 +1,8 @@
 # 
 # DBD::Mysql
-# $Id: Mysql.rb,v 1.12 2002/01/04 11:52:40 michael Exp $
+# $Id: Mysql.rb,v 1.13 2002/05/14 18:03:19 mneumann Exp $
 # 
-# Version : 0.3.1
+# Version : 0.3.2
 # Author  : Michael Neumann (neumann@s-direktnet.de)
 #
 # Copyright (c) 2001 Michael Neumann
@@ -22,12 +22,13 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 require "mysql"
+require "thread"   # for Mutex
 
 module DBI
 module DBD
 module Mysql
 
-VERSION          = "0.3.1"
+VERSION          = "0.3.2"
 USED_DBD_VERSION = "0.2"
 
 MyError = ::MysqlError
@@ -146,6 +147,11 @@ class Database < DBI::BaseDatabase
     nil          => [SQL_OTHER, nil, nil]
   }
 
+  def initialize(handle, attr)
+    super
+    @mutex = Mutex.new 
+  end
+
   def disconnect
     @handle.close
   rescue MyError => err
@@ -205,19 +211,20 @@ class Database < DBI::BaseDatabase
     ret
   end
 
-
   def do(stmt, *bindvars)
-    @handle.query_with_result = false
     sql = bind(self, stmt, bindvars)
-    @handle.query(sql)
-    @handle.affected_rows
+    @mutex.synchronize { 
+      @handle.query_with_result = false
+      @handle.query(sql)
+      @handle.affected_rows     # return value
+    }
   rescue MyError => err
     raise DBI::DatabaseError.new(err.message)
   end
  
 
   def prepare(statement)
-    Statement.new(self, @handle, statement)
+    Statement.new(self, @handle, statement, @mutex)
   end
 
   # TODO: Raise Error
@@ -294,13 +301,12 @@ end # class Database
 class Statement < DBI::BaseStatement
   #include SQL::BasicBind
 
-  def initialize(parent, handle, statement)
+  def initialize(parent, handle, statement, mutex)
     super(nil)
 
-    @parent, @handle = parent, handle
+    @parent, @handle, @mutex = parent, handle, mutex
     @params = []
 
-    @handle.query_with_result = true # automatically switches store_result on 
     @prep_stmt = DBI::SQL::PreparedStatement.new(@parent, statement)
   end
 
@@ -310,9 +316,13 @@ class Statement < DBI::BaseStatement
   end
 
   def execute
-    @res_handle = @handle.query(@prep_stmt.bind(@params))
-    @current_row = 0
-    @rows = @handle.affected_rows
+    sql = @prep_stmt.bind(@params)
+    @mutex.synchronize {
+      @handle.query_with_result = true
+      @res_handle = @handle.query(sql)
+      @current_row = 0
+      @rows = @handle.affected_rows
+    }
   rescue MyError => err
     raise DBI::DatabaseError.new(err.message)
   end
