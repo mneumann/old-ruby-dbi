@@ -1,5 +1,5 @@
 # Ruby/DBI 
-# $Id: dbi.rb,v 1.23 2001/11/13 11:32:10 michael Exp $
+# $Id: dbi.rb,v 1.24 2001/11/14 13:41:05 michael Exp $
 # 
 # Version : 0.0.11
 # Author  : Michael Neumann (neumann@s-direktnet.de)
@@ -130,7 +130,7 @@ end
 class DatabaseError < Error
   attr_reader :err, :errstr, :state
 
-  def initialize(errstr, err=nil, state=nil)
+  def initialize(errstr="", err=nil, state=nil)
     super(errstr)
     @err, @errstr, @state = err, errstr, state
   end
