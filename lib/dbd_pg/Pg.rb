@@ -41,7 +41,7 @@ module DBI
 	  @in_transaction = false
 	  initialize_autocommit
 	rescue PGError => err
-	  raise DBI::OperationalError.new(err.type.to_s, err.message, 0)
+	  raise DBI::OperationalError.new(err.message)
 	end
 	
 	# DBD Protocol -----------------------------------------------
@@ -110,7 +110,7 @@ module DBI
 	def convert(obj,typeid)
 	  return nil if obj.nil?
 	  converter = @type_map[typeid]
-	  raise "Unsupported Type (typeid=#{typeid})" if converter.nil?
+	  raise DBI::InterfaceError, "Unsupported Type (typeid=#{typeid})" if converter.nil?
 	  converter.call(obj)
 	end
 
@@ -206,7 +206,7 @@ module DBI
 	    @result = Tuples.new(@db, pg_result)
 	  end
 	rescue PGError, RuntimeError => err
-	  raise DBI::ProgrammingError.new(err.type.to_s, err.message, 0)
+	  raise DBI::ProgrammingError.new(err.message)
 	end
 	
 	def fetch

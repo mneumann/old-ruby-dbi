@@ -3,7 +3,7 @@
 # Based on (and requires) the "IBM DB2 Module for Ruby"
 # by myself (Michael Neumann) <neumann@s-direktnet.de> http://www.fantasy-coders.de/ruby
 # 
-# Version : $Id: DB2.rb,v 1.1 2001/05/30 12:40:14 michael Exp $
+# Version : $Id: DB2.rb,v 1.2 2001/06/07 10:42:12 michael Exp $
 # Author  : Michael Neumann (neumann@s-direktnet.de)
 # Homepage: http://www.s-direktnet.de/homepages/neumann/
 # DBD API : 0.1
@@ -31,7 +31,7 @@ USED_DBD_VERSION = "0.1"
     end
    
     def error(rc, msg)
-      raise DBI::Error.new(msg) unless rc_ok(rc)
+      raise DBI::DatabaseError.new(msg) unless rc_ok(rc)
     end
   end # module DB2Util
 

@@ -1,6 +1,6 @@
 # 
 # DBD::ADO
-# $Id: ADO.rb,v 1.4 2001/06/05 10:28:01 michael Exp $
+# $Id: ADO.rb,v 1.5 2001/06/07 10:42:11 michael Exp $
 # 
 # Version : 0.1
 # Author  : Michael Neumann (neumann@s-direktnet.de)
@@ -46,6 +46,8 @@ class Driver < DBI::BaseDriver
     handle.BeginTrans()  # start new Transaction
 
     return Database.new(handle, attr)
+  rescue RuntimeError => err
+    raise DBI::DatabaseError.new(err.message)
   end
 
 end
@@ -56,7 +58,7 @@ class Database < DBI::BaseDatabase
     @handle.RollbackTrans()
     @handle.Close()
   rescue RuntimeError => err
-    raise DBI::Error, err.message
+    raise DBI::DatabaseError.new(err.message)
   end
 
   def prepare(statement)
@@ -69,7 +71,7 @@ class Database < DBI::BaseDatabase
     @handle.CommitTrans()
     @handle.BeginTrans()
   rescue RuntimeError => err
-    raise DBI::Error, err.message
+    raise DBI::DatabaseError.new(err.message)
   end
 
   def rollback
@@ -77,7 +79,7 @@ class Database < DBI::BaseDatabase
     @handle.RollbackTrans()
     @handle.BeginTrans()
   rescue RuntimeError => err
-    raise DBI::Error, err.message
+    raise DBI::DatabaseError.new(err.message)
   end
 
   def []=(attr, value)
@@ -123,7 +125,7 @@ class Statement < DBI::BaseStatement
     end
 
   rescue RuntimeError => err
-    raise DBI::Error, err.message
+    raise DBI::DatabaseError.new(err.message)
   end
 
   def finish
@@ -133,7 +135,7 @@ class Statement < DBI::BaseStatement
       @res_handle.Close()
     end
   rescue RuntimeError => err
-    raise DBI::Error, err.message
+    raise DBI::DatabaseError.new(err.message)
   end
 
   def fetch        
@@ -141,7 +143,7 @@ class Statement < DBI::BaseStatement
     @res_handle.MoveNext() unless retval.nil?
     retval
   rescue RuntimeError => err
-    raise DBI::Error, err.message
+    raise DBI::DatabaseError.new(err.message)
   end
 
 
@@ -169,10 +171,10 @@ class Statement < DBI::BaseStatement
       @res_handle.Move(offset-ap)
       return fetch_currentrow      
     else
-      raise InterfaceError
+      raise DBI::InterfaceError
     end    
   rescue RuntimeError => err
-    raise DBI::Error, err.message
+    raise DBI::DatabaseError.new(err.message)
   end
 
   def column_info
@@ -185,7 +187,7 @@ class Statement < DBI::BaseStatement
 
     retval
   rescue RuntimeError => err
-    raise DBI::Error, err.message
+    raise DBI::DatabaseError.new(err.message)
   end
 
   def rows
@@ -217,7 +219,4 @@ end
 end # module ADO
 end # module DBD
 end # module DBI
-
-
-
 

@@ -1,11 +1,34 @@
+# 
+# DBD::Oracle
+# $Id: Oracle.rb,v 1.3 2001/06/07 10:42:14 michael Exp $
+# 
+# Version : 0.1
+# Author  : Michael Neumann (neumann@s-direktnet.de)
 #
-# $Id: Oracle.rb,v 1.2 2001/06/01 11:04:51 michael Exp $
-# Copyright (c) 2001 by Michael Neumann
+# Copyright (c) 2001 Michael Neumann
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+
+
+
 #
 # copied some code from lib/oracle.rb of Oracle 7 Module
 # 
 
-require "oracle"
+require "oracle"    # only depends on the oracle.so 
 class OCIError
   def to_i
     if self.to_s =~ /^ORA-(\d+):/
@@ -60,7 +83,7 @@ class Driver < DBI::BaseDriver
     handle = ::ORAconn.logon(user, auth, dbname)
     return Database.new(handle, attr)
   rescue OCIError => err
-    raise DBI::DatabaseError.new(err.to_i, err.message)
+    raise DBI::DatabaseError.new(err.message, err.to_i)
   end
 
 end # class Driver
@@ -72,7 +95,7 @@ class Database < DBI::BaseDatabase
     @handle.rollback
     @handle.logoff 
   rescue OCIError => err
-    raise DBI::DatabaseError.new(err.to_i, err.message)
+    raise DBI::DatabaseError.new(err.message, err.to_i)
   end
 
   def ping
@@ -111,19 +134,19 @@ class Database < DBI::BaseDatabase
     @attr[attr] = value
 
   rescue OCIError => err
-    raise DBI::DatabaseError.new(err.to_i, err.message)
+    raise DBI::DatabaseError.new(err.message, err.to_i)
   end
 
   def commit
     @handle.commit
   rescue OCIError => err
-    raise DBI::DatabaseError.new(err.to_i, err.message)
+    raise DBI::DatabaseError.new(err.message, err.to_i)
   end
 
   def rollback
     @handle.rollback
   rescue OCIError => err
-    raise DBI::DatabaseError.new(err.to_i, err.message)
+    raise DBI::DatabaseError.new(err.message, err.to_i)
   end
 
 end # class Database
@@ -157,23 +180,25 @@ class Statement < DBI::BaseStatement
     @handle.bindrv(param, value.to_s, vtype)
    
   rescue OCIError => err
-    raise DBI::DatabaseError.new(err.to_i, err.message)
+    raise DBI::DatabaseError.new(err.message, err.to_i)
   end
 
   def cancel
     @handle.cancel
+  rescue OCIError => err
+    raise DBI::DatabaseError.new(err.message, err.to_i)
   end
 
   def execute
     @rows = @handle.exec
   rescue OCIError => err
-    raise DBI::DatabaseError.new(err.to_i, err.message)
+    raise DBI::DatabaseError.new(err.message, err.to_i)
   end
 
   def finish
     @handle.close
   rescue OCIError => err
-    raise DBI::DatabaseError.new(err.to_i, err.message)
+    raise DBI::DatabaseError.new(err.message, err.to_i)
   end
 
   def fetch
@@ -186,7 +211,7 @@ class Statement < DBI::BaseStatement
 
     @arr
   rescue OCIError => err
-    raise DBI::DatabaseError.new(err.to_i, err.message)
+    raise DBI::DatabaseError.new(err.message, err.to_i)
   end
 
   def column_info
@@ -247,7 +272,7 @@ class Statement < DBI::BaseStatement
     @ncols = colnr - 1
 
   rescue OCIError => err
-    raise DBI::DatabaseError.new(err.to_i, err.message)
+    raise DBI::DatabaseError.new(err.message, err.to_i)
   end
 
 end
@@ -256,7 +281,4 @@ end
 end # module Oracle
 end # module DBD
 end # module DBI
-
-
-
 

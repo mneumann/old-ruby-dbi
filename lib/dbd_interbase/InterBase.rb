@@ -1,7 +1,27 @@
+# 
+# DBD::InterBase
+# $Id: InterBase.rb,v 1.3 2001/06/07 10:42:13 michael Exp $
+# 
+# Version : 0.1
+# Author  : Michael Neumann (neumann@s-direktnet.de)
 #
-# $Id: InterBase.rb,v 1.2 2001/06/05 12:14:25 michael Exp $
-# Copyright (c) 2001 by Michael Neumann
+# Copyright (c) 2001 Michael Neumann
 #
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+
 
 require "interbase"
 
@@ -35,7 +55,7 @@ class Driver < DBI::BaseDriver
     handle = ::InterBase::Connection.connect(hash['database'], user, auth, *params)
     return Database.new(handle, attr)
   rescue IBError => err
-    raise DBI::Error.new(err.message)
+    raise DBI::DatabaseError.new(err.message)
   end
 
 end
@@ -46,7 +66,7 @@ class Database < DBI::BaseDatabase
     #@handle.rollback   # is called implicit by #close
     @handle.close
   rescue IBError => err
-    raise DBI::Error.new(err.message)  
+    raise DBI::DatabaseError.new(err.message)
   end
 
   def ping
@@ -90,13 +110,13 @@ class Database < DBI::BaseDatabase
   def commit
     @handle.commit
   rescue IBError => err
-    raise DBI::Error.new(err.message)
+    raise DBI::DatabaseError.new(err.message)
   end
 
   def rollback
     @handle.rollback
   rescue IBError => err
-    raise DBI::Error.new(err.message)
+    raise DBI::DatabaseError.new(err.message)
   end
 
 end # class Database
@@ -118,19 +138,19 @@ class Statement < DBI::BaseStatement
   def execute
     @handle.execute(@statement, *@params)
   rescue IBError => err
-    raise DBI::Error.new(err.message)
+    raise DBI::DatabaseError.new(err.message)
   end
 
   def finish
     @handle.drop
   rescue IBError => err
-    raise DBI::Error.new(err.message)
+    raise DBI::DatabaseError.new(err.message)
   end
 
   def fetch
     @handle.fetch
   rescue IBError => err
-    raise DBI::Error.new(err.message)
+    raise DBI::DatabaseError.new(err.message)
   end
 
   def column_info
@@ -141,7 +161,7 @@ class Statement < DBI::BaseStatement
     }
     retval
   rescue IBError => err
-    raise DBI::Error.new(err.message)
+    raise DBI::DatabaseError.new(err.message)
   end
 
   def rows
@@ -154,7 +174,4 @@ end
 end # module InterBase
 end # module DBD
 end # module DBI
-
-
-
 

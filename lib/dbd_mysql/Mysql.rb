@@ -1,6 +1,6 @@
 # 
 # DBD::Mysql
-# $Id: Mysql.rb,v 1.3 2001/06/05 12:06:21 michael Exp $
+# $Id: Mysql.rb,v 1.4 2001/06/07 10:42:13 michael Exp $
 # 
 # Version : 0.1
 # Author  : Michael Neumann (neumann@s-direktnet.de)
@@ -43,7 +43,7 @@ class Driver < DBI::BaseDriver
     hash = Utils.parse_params(dbname)
 
     if hash['database'].nil? 
-      raise InterfaceError, "must specify database"
+      raise DBI::InterfaceError, "must specify database"
     end
 
     hash['host'] ||= 'localhost'
@@ -52,7 +52,7 @@ class Driver < DBI::BaseDriver
     handle.select_db(hash['database'])
     return Database.new(handle, attr)
   rescue MyError => err
-    raise DBI::Error.new(err.message)
+    raise DBI::DatabaseError.new(err.message)
   end
 
   def data_sources
@@ -61,7 +61,7 @@ class Driver < DBI::BaseDriver
     handle.close
     return res
   rescue MyError => err
-    raise DBI::Error.new(err.message)
+    raise DBI::DatabaseError.new(err.message)
   end
 
 end # class Driver
@@ -71,7 +71,7 @@ class Database < DBI::BaseDatabase
   def disconnect
     @handle.close
   rescue MyError => err
-    raise DBI::Error.new(err.message)
+    raise DBI::DatabaseError.new(err.message)
   end
 
   def ping
@@ -86,7 +86,7 @@ class Database < DBI::BaseDatabase
   def tables
     @handle.list_tables
   rescue MyError => err
-    raise DBI::Error.new(err.message)
+    raise DBI::DatabaseError.new(err.message)
   end
 
   # TODO: 
@@ -128,19 +128,19 @@ class Statement < DBI::BaseStatement
     @res_handle = @handle.query(sql)
     @rows = @handle.affected_rows
   rescue MyError => err
-    raise DBI::Error.new(err.message)
+    raise DBI::DatabaseError.new(err.message)
   end
 
   def finish
     @res_handle.free
-   rescue MyError => err
-    raise DBI::Error.new(err.message)
+  rescue MyError => err
+    raise DBI::DatabaseError.new(err.message)
   end
 
   def fetch
     @res_handle.fetch_row
-   rescue MyError => err
-    raise DBI::Error.new(err.message)
+  rescue MyError => err
+    raise DBI::DatabaseError.new(err.message)
   end
 
   def column_info
@@ -152,8 +152,8 @@ class Statement < DBI::BaseStatement
       retval << {'name' => col.name }
     }
     retval
-   rescue MyError => err
-    raise DBI::Error.new(err.message)
+  rescue MyError => err
+    raise DBI::DatabaseError.new(err.message)
   end
 
   def rows
@@ -166,7 +166,4 @@ end # class Statement
 end # module Mysql
 end # module DBD
 end # module DBI
-
-
-
 
