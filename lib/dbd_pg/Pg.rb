@@ -1,10 +1,14 @@
+#
+# $Id: Pg.rb,v 1.11 2001/11/08 22:38:31 michael Exp $
+#
+
 require 'postgres'
 
 module DBI
   module DBD
     module Pg
       
-      VERSION          = "0.2"
+      VERSION          = "0.2.1"
       USED_DBD_VERSION = "0.2"
       
       class Driver < DBI::BaseDriver
@@ -112,7 +116,7 @@ module DBI
           sql1 = %[
             SELECT a.attname, i.indisprimary, i.indisunique 
                    FROM pg_class bc, pg_class ic, pg_index i, pg_attribute a 
-            WHERE bc.relkind = 'r' AND UPPER(bc.relname) = UPPER(?) AND i.indrelid = bc.oid AND 
+            WHERE bc.relkind = 'r' AND bc.relname = ? AND i.indrelid = bc.oid AND 
                   i.indexrelid = ic.oid AND ic.oid = a.attrelid
           ]
 
@@ -122,13 +126,23 @@ module DBI
             WHERE a.attnum > 0 AND a.attrelid = c.oid AND a.atttypid = t.oid AND c.relname = ?
           ]
 
+          # by Michael Neumann (get default value)
+          sql3 = %[
+            SELECT b.adsrc, a.attname 
+                   FROM pg_attribute a, pg_attrdef b, pg_class c
+            WHERE a.attnum > 0 AND a.attrelid = c.oid AND c.relname = ? AND b.adrelid = a.attrelid 
+          ]
+
           dbh = DBI::DatabaseHandle.new(self)
 	  indices = {}
+          default_values = {}
 
-          dbh.execute(sql1, table) do |sth|
-            sth.each do |name, primary, unique|
-              indices[name] = [primary, unique]
-            end
+          dbh.select_all(sql3, table) do |default, name|
+            default_values[name] = default
+          end
+
+          dbh.select_all(sql1, table) do |name, primary, unique|
+            indices[name] = [primary, unique]
           end
 
           ########## 
@@ -180,7 +194,7 @@ module DBI
               row['unique']         = unique
               row['precision']      = size
               row['scale']          = decimal
-              row['default']        = nil
+              row['default']        = default_values[name]
               row
             end # collect
           end # execute
