@@ -1,5 +1,5 @@
 # Ruby/DBI 
-# $Id: dbi.rb,v 1.4 2001/05/31 10:20:54 michael Exp $
+# $Id: dbi.rb,v 1.5 2001/05/31 13:23:23 michael Exp $
 # 
 # Version : 0.0.5
 # Author  : Michael Neumann (neumann@s-direktnet.de)
@@ -44,9 +44,11 @@
 
 require "dbi/row"
 require "dbi/utils"
+require "dbi/sql"
+
+
 
 module DBI
-
 
 module DBD
   DIR = "DBD"
@@ -760,17 +762,8 @@ class BaseDatabase < Base
     return res
   end
 
-  ##
-  # quotes a given value
-  def quote(val)
-    if val.nil? then
-      "NULL"
-    elsif val.kind_of? String then
-      "'#{val}'"
-    else
-      val
-    end
-  end
+  # includes quote
+  include DBI::SQL::BasicQuote
 
   def [](attr)
     @attr[attr]
@@ -780,9 +773,7 @@ class BaseDatabase < Base
     raise NotSupportedError
   end
 
-
-
-end
+end # class BaseDatabase
 
 
 class BaseStatement < Base
@@ -872,32 +863,7 @@ class BaseStatement < Base
     end
   end
 
-
-end
-
-     
-
-
-
-module Utils
-  def Utils.measure
-    start = ::Time.now
-    yield
-    ::Time.now - start
-  end
-  
-  # parse a string of the form "database=xxx;key=val;..."
-  def Utils.parse_params(str)
-    params = str.split(";")
-    hash = {}
-    params.each do |param| 
-      key, val = param.split("=") 
-      hash[key] = val
-    end 
-    hash 
-  end
-
-end
+end # class BaseStatement
 
 
 end # module DBI
