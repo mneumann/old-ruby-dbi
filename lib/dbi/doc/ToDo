@@ -1,11 +1,16 @@
 =begin
 * columns / column_info with more DBDs (DB2, Oracle, Interbase, ODBC)
-* get a Driver object, call methods on it
+- get a Driver object, call methods on it
 * Tainting
 * table_info
 * bind_param_inout
 * type_info / type_info_all
 * bind_col ?
 * Rewrite DBI-dispatching in C?
-
+* fetch_many callable as iterator
+* warn if commit/rollback and AutoCommit is on
+* bind_out_param/bind_inout_param
+* tracing/logging for DBDs by calling log(...)
+- blob_import etc for DBD::Pg
+- parameter markers in DB2
 =end
