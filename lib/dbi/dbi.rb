@@ -27,7 +27,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: dbi.rb,v 1.34 2002/08/01 19:00:20 mneumann Exp $
+# $Id: dbi.rb,v 1.35 2002/10/22 15:06:04 mneumann Exp $
 #
 
 require "dbi/row"
@@ -439,18 +439,23 @@ end
       found = @@driver_map.keys.find {|key| key.downcase == dc}
       return found if found
 
-      # try a quick load and then a caseless scan
-      begin
+      if $SAFE >= 1
+        # case-sensitive in safe mode
         require "#{DBD::DIR}/#{driver_name}/#{driver_name}"
-      rescue LoadError
-        $:.each do |dir|
-          path = "#{dir}/#{DBD::DIR}"
-          next unless FileTest.directory?(path)
-          found = Dir.entries(path).find {|e| e.downcase == dc}
-          next unless found
+      else
+        # try a quick load and then a caseless scan
+        begin
+          require "#{DBD::DIR}/#{driver_name}/#{driver_name}"
+        rescue LoadError
+          $:.each do |dir|
+            path = "#{dir}/#{DBD::DIR}"
+            next unless FileTest.directory?(path)
+            found = Dir.entries(path).find {|e| e.downcase == dc}
+            next unless found
 
-          require "#{DBD::DIR}/#{found}/#{found}"
-          break
+            require "#{DBD::DIR}/#{found}/#{found}"
+            break
+          end
         end
       end
 
@@ -466,7 +471,11 @@ end
       return driver_name
     end
   rescue LoadError, NameError
-    raise InterfaceError, "Could not load driver (#{$!.message})"
+    if $SAFE >= 1
+      raise InterfaceError, "Could not load driver (#{$!.message}). Note that in SAFE mode >= 1, driver URLs have to be case sensitive!"
+    else
+      raise InterfaceError, "Could not load driver (#{$!.message})"
+    end
   end
 
   def parse_url(driver_url)
