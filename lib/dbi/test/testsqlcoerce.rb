@@ -63,6 +63,14 @@ class TestSqlCoerce < RUNIT::TestCase
 
   def test_timestamp
     assert_equal nil, @coerce.as_timestamp(nil)
+    assert_equal nil, @coerce.as_timestamp("")
+    assert_equal DBI::Timestamp.new(2003, 1, 2, 12, 34, 56), @coerce.as_timestamp("2003-01-02 12:34:56")
+
+    assert_equal Time.gm(2003, 1, 2, 12, 34, 56), @coerce.as_timestamp("2003-01-02 12:34:56+00").to_time.getutc
+    assert_equal Time.gm(2003, 1, 2, 11, 34, 56), @coerce.as_timestamp("2003-01-02 12:34:56+01").to_time.getutc
+    assert_equal Time.gm(2003, 1, 2, 14, 34, 56), @coerce.as_timestamp("2003-01-02 12:34:56-02").to_time.getutc
+
+    assert_equal Time.gm(2003, 1, 2, 10, 34, 56), @coerce.as_timestamp("2003-01-02 12:34:56+02:00").to_time.getutc
   end
 
   def test_date

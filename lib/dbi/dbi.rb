@@ -27,7 +27,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: dbi.rb,v 1.41 2003/11/05 20:46:16 mneumann Exp $
+# $Id: dbi.rb,v 1.42 2004/04/27 16:29:37 mneumann Exp $
 #
 
 require "dbi/row"
@@ -314,6 +314,14 @@ class Timestamp
       @year, @month, @day = year, month, day
       @hour, @minute, @second, @fraction = hour, minute, second, fraction
     end
+  end
+
+  def ==(otherTimestamp)
+    a = otherTimestamp
+
+    @year == a.year and @month == a.month and @day == a.day and
+    @hour == a.hour and @minute == a.minute and @second == a.second and
+    (fraction() == a.fraction)
   end
 
   def fraction() @fraction || 0 end

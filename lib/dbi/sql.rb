@@ -1,5 +1,5 @@
 #
-# $Id: sql.rb,v 1.16 2003/06/10 21:40:16 mneumann Exp $
+# $Id: sql.rb,v 1.17 2004/04/27 16:29:37 mneumann Exp $
 #
 # parts extracted from Jim Weirichs DBD::Pg
 #
@@ -57,8 +57,8 @@ module SQL
         return nil if str.nil? or str.empty?
         ary = ParseDate.parsedate(str)
         time = ::Time.gm(*(ary[0,6]))
-        if ary[6] =~ /^(\+|\-)\d+$/
-          diff = ary[6].to_i * 60 * 60
+        if ary[6] =~ /^((\+|\-)\d+)(:\d+)?$/
+          diff = $1.to_i * 3600  # seconds per hour 
           time -= diff
           time.localtime
         end 
