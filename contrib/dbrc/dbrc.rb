@@ -18,6 +18,9 @@
    puts dbrc.timeout
    puts dbrc.max_reconn
    puts dbrc.interval
+   puts dbrc.dsn
+
+   dbh = DBI.connect(dbrc.dsn, dbrc.user, dbrc.password)
 
 = Requirements
    The 'etc' module
@@ -79,10 +82,22 @@
     The number of seconds to wait before attempting to reconnect to the database
     again should a network/database glitch occur.
 
+--- <dsn>
+    Returns a string in "dbi:<driver>:<database>" format.
+
 = Summary
 
    These "methods" don't really do anything.  They're simply meant as a convenience
    mechanism for you dbi connections, plus a little bit of obfuscation (for passwords).
+
+= Changelog
+
+--- 0.1.1 - 14:54 on 26-Jul-2002
+   - Added 'dsn()' method
+   - Minor documentation additions
+
+--- 0.1.0 - 12:24 on 26-Jul-2002
+   - Initial release
 
 = Author
 
@@ -94,7 +109,7 @@
 require 'etc'
 
 class DBRC
-   attr_accessor :db, :user, :password, :driver
+   attr_accessor :db, :user, :password, :driver, :dsn
    attr_accessor :max_reconn, :timeout, :interval
 
    def initialize(db,user=nil)
@@ -153,6 +168,8 @@ class DBRC
          @timeout    = a[4]
          @max_reconn = a[5]
          @interval   = a[6]
+
+         @dsn = "dbi:" + a[3] + ":" + @db
 
       end
       f.close
