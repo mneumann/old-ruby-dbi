@@ -1,4 +1,4 @@
-# $Id: trace.rb,v 1.1 2001/06/08 20:21:49 michael Exp $
+# $Id: trace.rb,v 1.2 2001/06/11 12:58:18 michael Exp $
 # 
 # Tracing for DBI programs
 # 
@@ -21,6 +21,7 @@
 
 # works only correct with the newest version > 0.3.3
 require "aspectr"
+require "dbi"      # to work as "ruby -r dbi/trace myapp.rb"
 
 module DBI
 
