@@ -1,4 +1,0 @@
-#!/bin/sh
-
-rd2 -r rd/rd2html-lib --with-css=rubyStyle.css --html-title="Homepage of Ruby's DBI" index.rd > html/index.html
-
