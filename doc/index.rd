@@ -1,6 +1,6 @@
 =begin
 = Ruby/DBI - a database independent interface for accessing databases - similar to Perl's DBI
-$Id: index.rd,v 1.31 2003/06/06 10:48:22 mneumann Exp $
+$Id: index.rd,v 1.32 2003/09/11 16:10:15 mneumann Exp $
 
 == License
 
@@ -86,6 +86,8 @@ License).
   async_exec vs. exec.
 : Oliver M. Bolzer
   Patches to support Postgres arrays for DBD::Pg
+: Stephen R. Veit
+  ruby-db2 and DBD::DB2 enhancements.
 
 
 == Database Drivers (DBDs)
