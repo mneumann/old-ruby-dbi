@@ -27,7 +27,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: dbi.rb,v 1.36 2003/02/08 02:26:15 pdubois Exp $
+# $Id: dbi.rb,v 1.37 2003/04/27 17:42:56 mneumann Exp $
 #
 
 require "dbi/row"
@@ -285,7 +285,7 @@ class Time
       @original_time
     else
       t = ::Time.now
-      ::Time.local(t.year, t.month, t.day, @hour, @min, @sec)
+      ::Time.local(t.year, t.month, t.day, @hour, @minute, @second)
     end
   end
 
