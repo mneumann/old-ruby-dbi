@@ -1,6 +1,6 @@
 =begin
 = Ruby/DBI - a database independent interface for accessing databases - similar to Perl's DBI
-$Id: index.rd,v 1.5 2001/06/11 10:45:46 michael Exp $
+$Id: index.rd,v 1.6 2001/07/06 18:21:24 michael Exp $
 
 Copyright (c) 2001 by Michael Neumann (neumann@s-direktnet.de)
 
@@ -57,7 +57,7 @@ lot and wrote the database driver for PostgreSQL.
 
   depend on the "Oracle 7 Module for Ruby" version 0.2.11 by Yoshida Masato, available from RAA.
 
-* PostgreSQL ((*(dbd_postgresql)*))
+* PostgreSQL ((*(dbd_pg)*))
 
   depend on Noboru Saitou's Postgres Package:
   ((<URL:http://www.ruby-lang.org/en/raa-list.rhtml?name=postgres>))
@@ -81,6 +81,10 @@ See ((<URL:http://www.ruby-projects.org/dbi/dbi/ToDo.html>)).
 
 
 == Download
+
+: Ruby/DBI 0.0.6
+
+  ((<URL:http://www.ruby-projects.org/downloads/dbi/ruby-dbi-all-0.0.6.tar.gz>))
 
 : Ruby/DBI 0.0.5
 
