@@ -1,6 +1,6 @@
 =begin
 = Ruby/DBI - a database independent interface for accessing databases - similar to Perl's DBI
-$Id: index.rd,v 1.1 2001/06/05 22:25:21 michael Exp $
+$Id: index.rd,v 1.2 2001/06/07 13:52:12 michael Exp $
 
 Copyright (c) 2001 by Michael Neumann (neumann@s-direktnet.de)
 
@@ -37,6 +37,10 @@ lot and wrote the database driver for PostgreSQL.
 * InterBase ((*(dbd_interbase)*))
 
   depend on the InterBase module available from RAA.
+
+* mSQL ((*(dbd_msql)*))
+
+  depend on the "mSQL Library" by DATE Ken available from the RAA.
 
 * MySQL ((*(dbd_mysql)*))
 
