@@ -1,5 +1,26 @@
 =begin
 
+: 0.0.12
+
+* dbd_oracle:
+  * added ?-style parameter markers (don't use together with :1 or :name style)
+
+* dbd_sqlite: added type conversion
+
+* sql.rb: added class PreparedStatement
+
+* dbd_odbc: fixed method Database#tables, added Database#ping and columns, extended Statement#column_info
+
+* dbi.rb: fetch_all and fetch_many now always return an Array ([] instead of nil)
+
+* proxyserver.rb: moved into directory bin/proxyserver
+
+* sqlsh.rb:
+  * moved from examples to bin/commandline; install it
+  * refactored source a bit
+  * added \irb (start irb in context) and \rb (execute ruby command) commands
+  * SQL statements end with ";" (over multiple lines) 
+
 : 0.0.11 (2001-11-14)
 
 * dbd_sqlite:   new DBD for SQLite
