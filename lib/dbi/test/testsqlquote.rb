@@ -51,6 +51,12 @@ class TestSqlQuote < RUNIT::TestCase
   def test_nil_quoting
     assert_equal 'NULL', @sql.quote(nil)
   end
+
+  def test_time_quoting
+    tm = Time.at(1084995693)
+    assert_equal("'#{ tm.to_s }'", @sql.quote(tm))
+  end
+
 end
 
 $last_suite.add_test(TestSqlQuote.suite)
