@@ -24,8 +24,9 @@ module SQL
     # by Masatoshi SEKI
     class Coerce
       def as_int(str)
-        return nil if str.nil?
-        if str == "" then nil else str.to_i end 
+        return nil if str.nil? or str.empty?
+        # TODO: use Integer(str), which raises an exception on malformed integers?
+        str.to_i
       end 
 
       def as_float(str)
