@@ -1,5 +1,6 @@
 dbi dbi dbi 
 dbd_mysql dbd_mysql DBD/Mysql
+dbd_msql dbd_msql DBD/Msql
 dbd_interbase dbd_interbase DBD/InterBase
 dbd_oracle dbd_oracle DBD/Oracle
 dbd_db2 dbd_db2 DBD/DB2

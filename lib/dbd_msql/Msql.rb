@@ -1,6 +1,6 @@
 # 
-# DBD::Mysql
-# $Id: Mysql.rb,v 1.5 2001/06/07 13:53:00 michael Exp $
+# DBD::Msql
+# $Id: Msql.rb,v 1.1 2001/06/07 13:53:00 michael Exp $
 # 
 # Version : 0.1
 # Author  : Michael Neumann (neumann@s-direktnet.de)
@@ -21,16 +21,16 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-require "mysql"
+require "msql"
 
 module DBI
 module DBD
-module Mysql
+module Msql
 
 VERSION          = "0.1"
 USED_DBD_VERSION = "0.1"
 
-MyError = ::MysqlError
+MyError = ::MsqlError
 
 class Driver < DBI::BaseDriver
 
@@ -46,18 +46,17 @@ class Driver < DBI::BaseDriver
       raise DBI::InterfaceError, "must specify database"
     end
 
-    hash['host'] ||= 'localhost'
+    #hash['host'] ||= 'localhost'
 
-    handle = ::Mysql.connect(hash['host'], user, auth)
-    handle.select_db(hash['database'])
+    handle = ::Msql.connect(hash['host'], hash['database'])
     return Database.new(handle, attr)
   rescue MyError => err
     raise DBI::DatabaseError.new(err.message)
   end
 
   def data_sources
-    handle = ::Mysql.new
-    res = handle.list_dbs.collect {|db| "dbi:Mysql:database=#{db}" }
+    handle = ::Msql.connect
+    res = handle.list_dbs.fetch_all_rows.collect {|db| "dbi:Msql:database=#{db[0]}" }
     handle.close
     return res
   rescue MyError => err
@@ -76,31 +75,29 @@ class Database < DBI::BaseDatabase
   end
 
   def ping
-    begin
-      @handle.ping
-      return true
-    rescue MyError
-      return false
-    end
+    super
+    #begin
+    #  @handle.ping
+    #  return true
+    #rescue MyError
+    #  return false
+    #end
   end
 
   def tables
-    @handle.list_tables
+    @handle.list_tables.fetch_all_rows.collect {|tab| tab[0] }
   rescue MyError => err
     raise DBI::DatabaseError.new(err.message)
   end
 
 
   def do(stmt, *bindvars)
-    @handle.query_with_result = false
     sql = bind(self, stmt, bindvars)
     @handle.query(sql)
-    @handle.affected_rows
   rescue MyError => err
     raise DBI::DatabaseError.new(err.message)
   end
  
-
   def prepare(statement)
     Statement.new(@handle, statement)
   end
@@ -132,32 +129,79 @@ class Statement < DBI::BaseStatement
   end
 
   def execute
-    @handle.query_with_result = true
     sql = bind(self, @statement, @params)
-    @res_handle = @handle.query(sql)
-    @rows = @handle.affected_rows
+    @rows = @handle.query(sql)
+    @res_handle = @handle.get_result # only SELECT ?
+    @row_pos = 0
   rescue MyError => err
     raise DBI::DatabaseError.new(err.message)
   end
 
   def finish
-    @res_handle.free
+    @res_handle = nil
   rescue MyError => err
     raise DBI::DatabaseError.new(err.message)
   end
 
   def fetch
-    @res_handle.fetch_row
+    res = @res_handle.fetch_row
+    if res.nil?
+      @row_pos = nil 
+    else
+      @row_pos += 1 unless @row_pos.nil?
+    end
+    res
   rescue MyError => err
     raise DBI::DatabaseError.new(err.message)
   end
+
+  def fetch_scroll( direction, offset )
+    case direction
+    when DBI::SQL_FETCH_NEXT
+      fetch
+    when DBI::SQL_FETCH_PRIOR
+      if @row_pos.nil?
+        @row_pos = @res_handle.num_rows-1
+        @res_handle.data_seek(@row_pos)
+        fetch
+      elsif @row_pos == 0
+        nil
+      else
+        @row_pos -= 1
+        @res_handle.data_seek(@row_pos)
+        fetch
+      end 
+    when DBI::SQL_FETCH_FIRST
+      @row_pos = 0
+      @res_handle.data_seek(@row_pos)
+      fetch
+    when DBI::SQL_FETCH_LAST
+      @res_handle.data_seek(@res_handle.num_rows-1)
+      @row_pos = nil 
+      @res_handle.fetch_row
+    when DBI::SQL_FETCH_ABSOLUTE
+      @row_pos = offset
+      @res_handle.data_seek(@row_pos)
+      fetch
+    when DBI::SQL_FETCH_RELATIVE
+      if @row_pos.nil?
+        @row_pos = @res_handle.num_rows
+      end
+      @row_pos += offset 
+      @res_handle.data_seek(@row_pos)
+      fetch
+    end
+  rescue MyError => err
+    raise DBI::DatabaseError.new(err.message)
+  end
+
 
   def column_info
     retval = []
 
     return [] if @res_handle.nil?
 
-    @res_handle.fetch_fields.each {|col| 
+    @res_handle.each_field {|col| 
       retval << {'name' => col.name }
     }
     retval
@@ -172,7 +216,7 @@ class Statement < DBI::BaseStatement
 end # class Statement
 
 
-end # module Mysql
+end # module Msql
 end # module DBD
 end # module DBI
 
