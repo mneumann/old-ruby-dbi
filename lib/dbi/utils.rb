@@ -1,18 +1,64 @@
 #
-# $Id: utils.rb,v 1.1 2001/05/29 11:16:53 michael Exp $
+# $Id: utils.rb,v 1.2 2001/05/31 13:27:44 michael Exp $
 #
 
 module DBI
 module Utils
 
+  def Utils.measure
+    start = ::Time.now
+    yield
+    ::Time.now - start
+  end
+  
+  # parse a string of the form "database=xxx;key=val;..."
+  # and return hash of these key/value pairs
+  def Utils.parse_params(str)
+    params = str.split(";")
+    hash = {}
+    params.each do |param| 
+      key, val = param.split("=") 
+      hash[key] = val
+    end 
+    hash 
+  end
+
+
 module XMLFormatter
   def XMLFormatter.row(dbrow, output=STDOUT)
+    #XMLFormatter.extended_row(dbrow, "row", [],  
     output << "<row>\n"
     dbrow.each_with_name do |val, name|
       output << "  <#{name}>" + textconv(val) + "</#{name}>\n" 
     end
     output << "</row>\n"
   end
+
+  # nil in cols_as_tag, means "all columns expect those listed in cols_in_row_tag"
+  # add_row_tag_attrs are additional attributes which are inserted into the row-tag
+  def XMLFormatter.extended_row(dbrow, rowtag="row", cols_in_row_tag=[], cols_as_tag=nil, add_row_tag_attrs={}, output=STDOUT)
+    if cols_as_tag.nil?
+      cols_as_tag = dbrow.column_names - cols_in_row_tag
+    end
+
+    output << "<#{rowtag}"
+    add_row_tag_attrs.each do |key, val|  
+      # TODO: use textconv ? " substitution?
+      output << %{ #{key}="#{textconv(val)}"}
+    end
+    cols_in_row_tag.each do |key|
+       # TODO: use textconv ? " substitution?
+      output << %{ #{key}="#{dbrow[key])}"}
+    end
+    output << ">\n"
+
+    cols_as_tag.each do |key|
+      output << "  <#{key}>" + textconv(dbrow[key]) + "</#{key}>\n" 
+    end
+    output << "</#{rowtag}>\n"
+  end
+
+
  
   def XMLFormatter.table(rows, rootname = "rows", output=STDOUT)
     output << '<?xml version="1.0" encoding="UTF-8" ?>'
