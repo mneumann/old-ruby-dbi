@@ -1,8 +1,8 @@
 # 
 # DBD::Oracle
-# $Id: Oracle.rb,v 1.3 2001/06/07 10:42:14 michael Exp $
+# $Id: Oracle.rb,v 1.4 2001/11/25 23:26:16 michael Exp $
 # 
-# Version : 0.1
+# Version : 0.2
 # Author  : Michael Neumann (neumann@s-direktnet.de)
 #
 # Copyright (c) 2001 Michael Neumann
@@ -60,7 +60,7 @@ module Oracle
 
 
 
-VERSION          = "0.1"
+VERSION          = "0.2"
 USED_DBD_VERSION = "0.1"
 
 class Driver < DBI::BaseDriver
@@ -223,9 +223,23 @@ class Statement < DBI::BaseStatement
   end
 
   private # ---------------------------------------------------
+  
+  class DummyQuoter
+    # dummy to substitute ?-style parameter markers by :1 :2 etc.
+    def quote(str)
+      str
+    end
+  end
 
   def parse(handle, statement)
     @handle = handle.open
+
+    # convert ?-style parameters to :1, :2 etc.
+    prep_statement = DBI::SQL::PreparedStatement.new(DummyQuoter.new, statement)
+    if prep_statement.unbound.size > 0
+      arr = (1..(prep_statement.unbound.size)).collect{|i| ":#{i}"}
+      statement = prep_statement.bind( arr ) 
+    end
 
     begin
       @handle.parse(statement)
