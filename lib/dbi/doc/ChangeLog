@@ -1,5 +1,8 @@
 =begin
 
+: 0.0.9
+ * fixed bug in utils.rb XMLFormatter.table (thanks to Jim Menard)
+
 : 0.0.8 (2001-07-28)
  * fixed bug in DBI::Row (dup/clone did not work) (Jim Weirich)
  * fixed bug in dbi.rb (load_driver)
