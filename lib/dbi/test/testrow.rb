@@ -108,6 +108,6 @@ $last_suite.add_test (TestDbRow.suite)
 # --------------------------------------------------------------------
 
 if __FILE__ == $0 then
-  RUNIT::CUI::TestRunner.quiet_mode = true
+  RUNIT::CUI::TestRunner.quiet_mode = false
   RUNIT::CUI::TestRunner.run ($last_suite)
 end
