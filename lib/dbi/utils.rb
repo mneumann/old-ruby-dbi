@@ -1,5 +1,5 @@
 #
-# $Id: utils.rb,v 1.2 2001/05/31 13:27:44 michael Exp $
+# $Id: utils.rb,v 1.3 2001/06/05 09:44:42 michael Exp $
 #
 
 module DBI
@@ -48,7 +48,7 @@ module XMLFormatter
     end
     cols_in_row_tag.each do |key|
        # TODO: use textconv ? " substitution?
-      output << %{ #{key}="#{dbrow[key])}"}
+      output << %{ #{key}="#{dbrow[key]}"}
     end
     output << ">\n"
 
