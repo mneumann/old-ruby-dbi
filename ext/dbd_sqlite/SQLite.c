@@ -27,7 +27,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: SQLite.c,v 1.7 2003/06/03 18:42:38 mneumann Exp $
+ * $Id: SQLite.c,v 1.8 2003/09/14 09:35:05 mneumann Exp $
  */
 
 
@@ -805,7 +805,7 @@ Statement_quote(VALUE self,VALUE obj)
     VALUE time;
     time = rb_funcall(obj, id_to_time, 0);
     time = rb_funcall(time, id_utc, 0);
-    return rb_funcall(time , id_strftime, 1, rb_str_new2("'%Y/%m/%d %H:%M:%S'"));
+    return rb_funcall(time , id_strftime, 1, rb_str_new2("'%Y/%m/%d %H:%M:%S UTC'"));
   } else {
     return rb_call_super(1, &obj);
   }
