@@ -1,5 +1,12 @@
 =begin
 
+: 0.0.15 (2002-05-21)
+
+* added example trace_test.rb
+* moved constant VERSION from dbi.rb to new file version.rb
+* explicitly initialize @trace_mode and @trace_output in Handle#initialize (ommits disturbing warning messages)
+* dbd_mysql: added driver specific function insert_id applicable to DatabaseHandle objects
+
 : 0.0.14 (2002-05-14)
 
 * dbd_mysql: fixed bug: method #do and #execute both set query_with_result of 
