@@ -83,9 +83,11 @@ end
 
 puts
 
-
+$output     = nil
+$input      = nil
 PROMPT      = "dbi => "
 PROMPT_CONT = "dbi =| "
+INPUT       = " >> "
 
 SQL_KEYWORDS = %w(
   INSERT DELETE UPDATE SELECT FROM WHERE IN LIKE SET VALUES INTO
@@ -102,9 +104,20 @@ rd.set_prompt(PROMPT)
 
 
 loop {
-  line = rd.readline
+  if $input.nil?
+    line = rd.readline
+  else
+    line = $input.gets
+    if line.nil?
+      $input = nil
+      line = ""
+    end
+  end
   line.chomp!
   next if line.empty?
+
+  puts $file + INPUT + line unless $input.nil?
+
  
   begin
 
@@ -122,6 +135,10 @@ loop {
           ["\\r[ollback]", "Rolls back the current transaction"],
           ["\\a[utocommit]", "Show current autocommit mode"],
           ["\\a[utocommit] on|off", "Switch autocommit mode on/off"],
+
+          ["\\i[nput] filename", "Read and execute lines from file filename"],
+          ["\\o[utput]", "Disable output"],
+          ["\\o[utput] filename", "Store SQL-statments the user input into file filename"],
 
           ["\\q[uit]",     "Quit this program"]
         ]
@@ -142,18 +159,21 @@ loop {
         next 
 
       elsif line =~ /^\\c(ommit)?/i then
+        $output.puts line unless $output.nil?
         Conn.commit
         puts
         puts "COMMIT"
         puts
         next
       elsif line =~ /^\\r(ollback)?/i then
+        $output.puts line unless $output.nil?
         Conn.rollback
         puts
         puts "ROLLBACK"
         puts
         next
       elsif line =~ /^\\a(utocommit)?(\s+(on|off)?)?/i then
+        $output.puts line unless $output.nil?
         mode = $3
         if mode =~ /on/i
           Conn['AutoCommit'] = true
@@ -178,6 +198,43 @@ loop {
           
         end 
         next
+
+      elsif line =~ /^\\i(nput)?/i then
+        puts
+        $file = $'.strip
+
+        begin
+        $input = File.open($file)
+        rescue
+          puts "Couldn't read from file #{$file}"
+          puts
+          next
+        end
+        puts "EXECUTE file #{$file}" 
+        puts
+        next
+
+      elsif line =~ /^\\o(utput)?/i then
+        puts
+        file = $'.strip
+
+        if file.empty?
+          $output = nil
+          puts "Disabled OUTPUT"
+          puts
+          next
+        end
+
+        begin
+        $output = File.new(file, "w+")
+        rescue
+          puts "Couldn't set OUTPUT to file #{file}"
+          puts
+          next
+        end
+        puts "Set OUTPUT to file #{file}" 
+        puts
+        next
       else
         puts
         puts "Unknown command!"
@@ -187,17 +244,30 @@ loop {
     end
     
     # else  
+    $output.puts line unless $output.nil?
 
-  
     # multi-line
     if line[-1].chr == "\\" then
       line.chop!
       rd.set_prompt(PROMPT_CONT)
       loop {
-        ln = rd.readline
-        line.chomp!
-        next if line.empty?
+	if $input.nil?
+	  ln = rd.readline
+	else
+	  ln = $input.gets
+	  if ln.nil?
+	    $input = nil
+	    ln = ""
+	  end
+	end
+
+        ln.chomp!
+        next if ln.empty?
+
+        puts $file + INPUT + ln unless $input.nil?
          
+        $output.puts line unless $output.nil?
+
         if ln[-1].chr == "\\" then
           line += ln.chop
         else
