@@ -1,8 +1,8 @@
 =begin
-= DBI Interface Specification Version 0.5 (Draft)
+= DBI Interface Specification Version 0.0.5 (Draft)
 by Michael Neumann (neumann@s-direknet.de)
 
- $Id: DBI_SPEC,v 1.1 2001/05/30 12:47:05 michael Exp $
+ $Id: DBI_SPEC,v 1.2 2001/06/08 20:27:30 michael Exp $
  
 == Module DBD
 
@@ -101,8 +101,46 @@ Exception classes were "borrowed" from Python API 2.0.
     Disconnects all active connections of ((*driver*)) or
     all drivers if ((*driver*)) is (({nil})).
 
+--- DBI.trace(mode=nil, output=nil)
+    Set the trace mode for all following created Handles to these values.
+
+    If a parameter is (({nil})) the value is not changed.
+    ((|mode|)) defaults to 2 if it is (({nil})), and ((|output|)) to (({STDERR})) if a value was not
+    set before.
+    For ((|mode|)) the values 0, 1, 2 or 3 are allowed.
+
+    Note: Tracing is only activated, if you load the module "dbi/trace", because tracing currently
+    depends on AspectR > 0.3.3.
+
+== Class DBI::Handle
+
+Abstract base class for all "Handles" (DriverHandle, DatabaseHandle, StatementHandle).
+
+=== Instance Methods
+
+--- func( function, *values )
+    Calls the driver specific extension function named by
+    ((|function|)) with ((|values|)) as parameters.
+
+--- trace(mode=nil, output=nil)
+    Set the trace mode for this handle as well as for all sub-handles (in the case of DriverHandle and 
+    DatabaseHandle).
+
+    If a parameter is (({nil})) the value is not changed.
+    ((|mode|)) defaults to 2 if it is (({nil})), and ((|output|)) to (({STDERR})) if a value was not
+    set before.
+    For ((|mode|)) the values 0, 1, 2 or 3 are allowed.
+
+    Note: Tracing is only activated, if you load the module "dbi/trace", because tracing currently
+    depends on AspectR > 0.3.3.
+
 
 == Class DBI::DatabaseHandle
+
+=== Superclass
+
+--- DBI::Handle
+
 
 === Instance Methods
 
@@ -174,11 +212,11 @@ Exception classes were "borrowed" from Python API 2.0.
     An attribute can for example be "AutoCommit", which can be set to 
     (({true})) or (({false})). Attributes are database dependant.
 
---- func( function, *values )
-    Calls the driver specific extension function named by
-    ((|function|)) with ((|values|)) as parameters.
-
 == Class DBI::StatementHandle
+
+=== Superclass
+
+--- DBI::Handle
 
 === Mixins
 
@@ -284,10 +322,6 @@ Exception classes were "borrowed" from Python API 2.0.
     Note that the returned (({DBI::Row})) object is only a reference and
     should be copied (dup) if it is stored elsewhere.
 
-
---- func( function, *values )
-    Calls the driver specific extension function named by
-    ((|function|)) with ((|values|)) as parameters.
 
 
 =end
