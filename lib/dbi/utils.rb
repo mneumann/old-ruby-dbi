@@ -1,5 +1,5 @@
 #
-# $Id: utils.rb,v 1.6 2001/06/29 17:18:33 michael Exp $
+# $Id: utils.rb,v 1.7 2001/07/06 18:14:10 michael Exp $
 #
 
 module DBI
@@ -27,15 +27,23 @@ module Utils
     ::Time.now - start
   end
   
+  ##
   # parse a string of the form "database=xxx;key=val;..."
-  # and return hash of these key/value pairs
+  # or database:host and return hash of key/value pairs
+  #
+  # improved by John Gorman <jgorman@webbysoft.com>
   def Utils.parse_params(str)
     params = str.split(";")
     hash = {}
     params.each do |param| 
       key, val = param.split("=") 
-      hash[key] = val
+      hash[key] = val if key and val
     end 
+    if hash.empty?
+      database, host = str.split(":")
+      hash['database'] = database if database
+      hash['host']     = host if host   
+    end
     hash 
   end
 
