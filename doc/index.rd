@@ -1,6 +1,6 @@
 =begin
 = Ruby/DBI - a database independent interface for accessing databases - similar to Perl's DBI
-$Id: index.rd,v 1.2 2001/06/07 13:52:12 michael Exp $
+$Id: index.rd,v 1.3 2001/06/07 19:10:25 michael Exp $
 
 Copyright (c) 2001 by Michael Neumann (neumann@s-direktnet.de)
 
@@ -46,6 +46,11 @@ lot and wrote the database driver for PostgreSQL.
 
   depend on the "MySQL Ruby Module" by TOMITA Masahiro <tommy@tmtm.org> ((<URL:http://www.tmtm.org/mysql/>)) or
   available from the RAA.
+
+* ODBC ((*(dbd_odbc)*))
+
+  depend on the Ruby/ODBC binding by Christian Werner <chw@ch-werner.de> ((<URL:http://www.ch-werner.de/rubyodbc>)) or
+  available from the RAA. Works also together with unixODBC.
 
 * Oracle ((*(dbd_oracle)*))
 
