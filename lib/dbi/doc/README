@@ -1,0 +1,91 @@
+
+What is it?
+===========
+
+This is a DBI-for-Ruby. It is designed to behave like the DBI you know from
+Perl.
+
+The following works:
+
+DBI.connect
+dbh.do
+dbh.prepare
+sth.execute
+sth.fetchrow_array
+sth.fetchrow_arrayref
+sth.fetchrow_hashref
+dbh.quote
+sth.name (as in $sth->{NAME})
+sth.num_of_fields ($sth->{NUM_OF_FIELDS})
+
+And, as an extension to Perl's DBI:
+dbh.lastDoDur (= duration of last dbh.do)
+sth.lastExecDur (= duration of last sth.execute)
+...but don't expect this to be useful, I only implemented it to do some
+rough performance-tests.
+
+Ugly example-code:
+
+--snip--
+require 'dbi'
+
+dbh = DBI.connect('DBI:mysql:test', 'testuser', 'testpwd')
+
+puts "inserting..."
+execTime=0
+1.upto(13) do |i|
+ dbh.do("insert into simple01 (SongName, SongLength_s) VALUES ('Song #
+{i}', #{i*10});")
+ execTime+=dbh.lastDoDur
+end 
+puts "Loop Execution-time was #{execTime} seconds."
+
+puts "selecting..."
+sth=dbh.prepare('select * from simple01')
+sth.execute
+puts "Execution-time was #{sth.lastExecDur} seconds."
+
+while dat=sth.fetchrow_hashref do
+ puts dat.inspect
+end
+
+puts "deleting..."
+dbh.do('delete from simple01 where internal_id > 10')
+puts "Execution-time was #{dbh.lastDoDur} seconds."
+
+dbh.disconnect
+--snip--
+
+If you want to write drivers for this DBI, please see the homepage for details.
+
+Misc
+=====
+
+Author  : Rainer Perl <rainer.perl@sprytech.com>
+Homepage: http://www.sprytech.com/~rainer.perl/ruby/
+
+There is also a mailing-list for DBI-specific discussions, see
+http://groups.yahoo.com/group/ruby-dbi-talk/
+
+I'd be happy to hear about the improvements you make or any comments you
+might have.
+
+
+Legal stuff
+===========
+
+Copyright (c) 2001 Rainer Perl
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.

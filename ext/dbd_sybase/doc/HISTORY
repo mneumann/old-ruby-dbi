@@ -1,0 +1,5 @@
+0.0.2 (2001/05/05):
+ * changed namespace & added the 'DBI.register'-call to work with the
+   current DBI-relase
+
+0.0.1: initial release

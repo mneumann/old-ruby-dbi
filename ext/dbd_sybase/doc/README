@@ -1,0 +1,28 @@
+
+This is a sample Sybase driver for Rainer Perl's DBI-for-Ruby.
+
+It is based on (and requires) "FreeTDS" http://www.freetds.org/
+
+
+Supported column-types
+======================
+
+SYBCHAR, SYBVARCHAR, SYBBIT, SYBINTN, SYBINT1, SYBINT2, SYBINT4, SYBFLTN,
+SYBDATETIMN, SYBDATETIME, SYBFLT8
+
+Please note that I only did very basic tests! If you feel like writing
+a test-suite - great, I'd love that :o)
+
+Note to SYBDATETIME/SYBDATETIMN: This returns, for example '2.1000' which means
+2 days_since_1900-01-01, 1000 ms_since_00:00:00.000.
+
+
+ToDo
+====
+
+Although I wanted to release a driver that supports all 29 column-types
+on 2001/05/05, this didn't happen. It's a little tricky...
+
+However, you can expect that this driver is constantly improved. Since I use
+it in the office, I am usually adding things to it Mo-Fr and release a new
+version on the weekend.
