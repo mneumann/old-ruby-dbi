@@ -1,6 +1,6 @@
 # 
 # DBD::ADO
-# $Id: ADO.rb,v 1.1 2001/05/30 18:43:05 michael Exp $
+# $Id: ADO.rb,v 1.2 2001/05/31 10:21:46 michael Exp $
 # 
 # Version : 0.1
 # Author  : Michael Neumann (neumann@s-direktnet.de)
@@ -20,6 +20,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+
 
 require "win32ole"
 
@@ -51,32 +53,53 @@ end
 class Database < DBI::BaseDatabase
  
   def disconnect
-    rollback
+    @handle.RollbackTrans()
     @handle.Close()
+  rescue RuntimeError => err
+    raise DBI::Error, err.message
   end
 
   def prepare(statement)
     # TODO: create Command instead?
-    Statement.new(@handle, statement)
+    Statement.new(@handle, statement, self)
   end
 
   def commit
+    # TODO: raise error if AutoCommit on => better in DBI?
     @handle.CommitTrans()
+    @handle.BeginTrans()
+  rescue RuntimeError => err
+    raise DBI::Error, err.message
   end
 
   def rollback
+    # TODO: raise error if AutoCommit on => better in DBI?
     @handle.RollbackTrans()
+    @handle.BeginTrans()
+  rescue RuntimeError => err
+    raise DBI::Error, err.message
   end
+
+  def []=(attr, value)
+    if attr == 'AutoCommit' then
+      # TODO: commit current transaction?
+      @attr[attr] = value
+    else
+      super
+    end
+  end
+
 
 end # class Database
 
 
 class Statement < DBI::BaseStatement
 
-  def initialize(handle, statement)
+  def initialize(handle, statement, db)
     @handle = handle
     @statement = statement
     @params = []
+    @db = db
   end
 
   def bind_param(param, value, attribs)
@@ -89,21 +112,60 @@ class Statement < DBI::BaseStatement
     # TODO: use Command and Parameter
     # TODO: substitute all ? by the parametes
     @res_handle = @handle.Execute(@statement) 
+
+    # TODO: SELECT and AutoCommit finishes the result-set
+    #       what to do?
+    if @db['AutoCommit'] == true and @statement !~ /^\s*SELECT/i then
+      @db.commit
+    end
+
+  rescue RuntimeError => err
+    raise DBI::Error, err.message
   end
 
   def finish
     @res_handle.Close()
+  rescue RuntimeError => err
+    raise DBI::Error, err.message
   end
 
-  def fetch
-    # TODO: don't create new Array each time
-    num_cols = @res_handle.Fields().Count()
-    retval = Array.new(num_cols)
-
-    for i in 0...num_cols do
-      retval[i] = @res_handle.Fields(i).Value()
-    end
+  def fetch        
+    retval = fetch_currentrow
+    @res_handle.MoveNext() unless retval.nil?
     retval
+  rescue RuntimeError => err
+    raise DBI::Error, err.message
+  end
+
+
+
+  def fetch_scroll(direction, offset)
+    case direction
+    when DBI::SQL_FETCH_NEXT
+      return fetch
+    when DBI::SQL_FETCH_PRIOR
+      # TODO: check if already the first?
+      #return nil if @res_handle.AbsolutePosition()
+      @res_handle.MovePrevious()
+      return fetch_currentrow
+    when DBI::SQL_FETCH_FIRST
+      @res_handle.MoveFirst()
+      return fetch_currentrow
+    when DBI::SQL_FETCH_LAST
+      @res_handle.MoveLast()
+      return fetch_currentrow
+    when DBI::SQL_FETCH_RELATIVE
+      @res_handle.Move(offset)
+      return fetch_currentrow
+    when DBI::SQL_FETCH_ABSOLUTE
+      ap = @res_handle.AbsolutePositon()      
+      @res_handle.Move(offset-ap)
+      return fetch_currentrow      
+    else
+      raise InterfaceError
+    end    
+  rescue RuntimeError => err
+    raise DBI::Error, err.message
   end
 
   def column_info
@@ -115,12 +177,32 @@ class Statement < DBI::BaseStatement
     end
 
     retval
+  rescue RuntimeError => err
+    raise DBI::Error, err.message
   end
 
   def rows
     # TODO: how to get the RPC in ADO? 
     nil
   end
+
+  
+  private
+
+  def fetch_currentrow    
+    return nil if @res_handle.EOF() or @res_handle.BOF()
+      
+    # TODO: don't create new Array each time
+    num_cols = @res_handle.Fields().Count()
+    retval = Array.new(num_cols)
+
+    for i in 0...num_cols do
+      retval[i] = @res_handle.Fields(i).Value()
+    end
+  
+    retval
+  end
+  
 
 end
 
