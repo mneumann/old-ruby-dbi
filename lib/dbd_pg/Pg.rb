@@ -1,10 +1,8 @@
 require 'postgres'
-require 'DBD/Postgresql/basicquote'
-require 'DBD/Postgresql/basicbind'
 
 module DBI
   module DBD
-    module Postgresql
+    module Pg
       
       VERSION          = "0.1"
       USED_DBD_VERSION = "0.1"
@@ -30,8 +28,6 @@ module DBI
       ################################################################
       class Database < DBI::BaseDatabase
 	
-	include SQL::BasicQuote
-
 	attr_accessor :host, :port
 	attr_reader :connection
 	attr_accessor :autocommit
@@ -188,7 +184,7 @@ module DBI
 
 	def execute
 	  boundsql = bind(self, @sql, @bindvars)
-	  if query?(boundsql) then
+	  if SQL.query?(boundsql) then
 	    pg_result = @db.send_sql(boundsql)
 	    @result = Tuples.new(@db, pg_result)
 	  elsif @db.autocommit then
@@ -228,11 +224,6 @@ module DBI
 	end
 
 	private # ----------------------------------------------------
-
-	# Is the SQL statement a query?
-	def query?(sql)
-	  sql =~ /^\s*select\b/i
-	end
 
       end # Statement
       
@@ -278,6 +269,6 @@ module DBI
 
       end # Tuples
       
-    end # module Postgresql
+    end # module Pg
   end # module DBD
 end # module DBI
