@@ -3,7 +3,7 @@
 # Based on (and requires) the "IBM DB2 Module for Ruby"
 # by myself (Michael Neumann) <neumann@s-direktnet.de> http://www.fantasy-coders.de/ruby
 # 
-# Version : $Id: DB2.rb,v 1.3 2001/06/07 19:12:11 michael Exp $
+# Version : $Id: DB2.rb,v 1.4 2001/08/30 14:10:51 michael Exp $
 # Author  : Michael Neumann (neumann@s-direktnet.de)
 # Homepage: http://www.s-direktnet.de/homepages/neumann/
 # DBD API : 0.1
@@ -194,12 +194,15 @@ USED_DBD_VERSION = "0.1"
       when DBI::SQL_FETCH_NEXT     then ::DB2CLI::SQL_FETCH_NEXT
       when DBI::SQL_FETCH_RELATIVE then ::DB2CLI::SQL_FETCH_RELATIVE
       when DBI::SQL_FETCH_ABSOLUTE then ::DB2CLI::SQL_FETCH_ABSOLUTE
+      else
+        raise
       end
       do_fetch(SQLFetchScroll(@handle, direction, offset))
     end
 
     def column_info
-      get_col_names.collect do |n| {'name' => n} end
+      @cols
+      #get_col_names.collect do |n| {'name' => n} end
     end
 
     def cancel
@@ -216,22 +219,68 @@ USED_DBD_VERSION = "0.1"
 
     private
 
+    # TODO: check typenames
+    DB2_to_DBI_type_mapping = {
+      DB2CLI::SQL_DOUBLE         => [DBI::SQL_DOUBLE,        'DOUBLE'],
+      DB2CLI::SQL_FLOAT          => [DBI::SQL_FLOAT,         'FLOAT'],
+      DB2CLI::SQL_REAL           => [DBI::SQL_REAL,          'REAL'],
+
+      DB2CLI::SQL_INTEGER        => [DBI::SQL_INTEGER,       'INTEGER'],
+      DB2CLI::SQL_BIGINT         => [DBI::SQL_BIGINT,        'BIGINT'],
+      DB2CLI::SQL_SMALLINT       => [DBI::SQL_SMALLINT,      'SMALLINT'],
+
+      DB2CLI::SQL_DECIMAL        => [DBI::SQL_DECIMAL,       'DECIMAL'],
+      DB2CLI::SQL_NUMERIC        => [DBI::SQL_NUMERIC,       'NUMERIC'],
+
+      DB2CLI::SQL_TYPE_DATE      => [DBI::SQL_DATE,          'DATE'],
+      DB2CLI::SQL_TYPE_TIME      => [DBI::SQL_TIME,          'TIME'],
+      DB2CLI::SQL_TYPE_TIMESTAMP => [DBI::SQL_TIMESTAMP,     'TIMESTAMP'],
+
+      DB2CLI::SQL_CHAR           => [DBI::SQL_CHAR,          'CHAR'],
+      DB2CLI::SQL_VARCHAR        => [DBI::SQL_VARCHAR,       'VARCHAR'],
+      DB2CLI::SQL_LONGVARCHAR    => [DBI::SQL_LONGVARCHAR,   'LONG VARCHAR'],
+      DB2CLI::SQL_CLOB           => [DBI::SQL_CLOB,          'CLOB'],        
+
+      DB2CLI::BINARY             => [DBI::SQL_BINARY,        'BINARY'],
+      DB2CLI::VARBINARY          => [DBI::SQL_VARBINARY,     'VARBINARY'],
+      DB2CLI::LONGVARBINARY      => [DBI::SQL_LONGVARBINARY, 'LONG VARBINARY'],
+      DB2CLI::SQL_BLOB           => [DBI::SQL_BLOB,          'BLOB'],        
+
+      DB2CLI::SQL_BLOB_LOCATOR   => [DBI::SQL_OTHER,         'BLOB LOCATOR'],        
+      DB2CLI::SQL_CLOB_LOCATOR   => [DBI::SQL_OTHER,         'CLOB LOCATOR'],        
+      DB2CLI::SQL_DBCLOB_LOCATOR => [DBI::SQL_OTHER,         'DBCLOB LOCATOR'],        
+
+      DB2CLI::SQL_DBCLOB         => [DBI::SQL_OTHER,         'DBCLOB'],        
+      DB2CLI::SQL_GRAPHIC        => [DBI::SQL_OTHER,         'GRAPHIC'],        
+      DB2CLI::SQL_VARGRAPHIC     => [DBI::SQL_OTHER,         'VARGRAPHIC'],        
+      DB2CLI::SQL_LONGVARGRAPHIC => [DBI::SQL_OTHER,         'LONG VARGRAPHIC']
+    }
+
+    MAX_COL_SIZE = 256
+
     #
-    # returns array of [name, type, column_size]
+    # returns array of hashs
     #
     def get_col_info
       rc, nr_cols = SQLNumResultCols(@handle)
       error(rc, "Could not get number of result columns")
     
       (1..nr_cols).collect do |c| 
-        rc, name, bl, type, col_sz = SQLDescribeCol(@handle, c, 200)
+        rc, column_name, buflen, data_type, column_size, decimal_digits, nullable = SQLDescribeCol(@handle, c, MAX_COL_SIZE)
         error(rc, "Could not describe column")
-        [name, type, col_sz]
-      end 
-    end
+    
+        sql_type, type_name = DB2_to_DBI_type_mapping[data_type]
 
-    def get_col_names
-      get_col_info.collect {|i| i[0] }
+        { 
+          'name'       => column_name,
+          'sql_type'   => sql_type,
+          'type_name'  => type_name,
+          'precision'  => column_size,
+          'scale'      => decimal_digits,
+          'nullable'   => nullable,
+          'db2_type'   => data_type
+        }
+      end 
     end
 
     def do_fetch(rc)
@@ -239,7 +288,7 @@ USED_DBD_VERSION = "0.1"
       error(rc, "Could not fetch row")
 
       @cols.each_with_index do |c, i|
-        rc, content = SQLGetData(@handle, i+1, c[1], c[2]) 
+        rc, content = SQLGetData(@handle, i+1, c['db2_type'], c['precision']) 
         error(rc, "Could not get data")
 
         @arr[i] = 
