@@ -1,5 +1,5 @@
 # Ruby/DBI 
-# $Id: dbi.rb,v 1.9 2001/06/08 20:21:48 michael Exp $
+# $Id: dbi.rb,v 1.10 2001/06/11 10:44:14 michael Exp $
 # 
 # Version : 0.0.5
 # Author  : Michael Neumann (neumann@s-direktnet.de)
@@ -23,25 +23,6 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 
-
-
-
-# TODO:
-#  * get_cols -> columns ?
-#  * Error-handling, PrintError, RaiseError?
-#  * tracing
-#  * bind_col implementaion
-#    perhaps like:
-#      a, b, c = DBI.values(3)
-#      sth.bind_col(1, a)
-#      sth.bind_col(2, b)
-#
-#  * let the DBD driver call cancel or
-#    should this be done by DBI?
-#  * make Row (or Row) faster, do not call
-#    everytime column_names
-#
-
 require "dbi/row"
 require "dbi/utils"
 require "dbi/sql"
@@ -59,7 +40,7 @@ end
 #  Constants
 #----------------------------------------------------
 
-VERSION = "0.0.5"
+VERSION = "0.0.6"
 
 ##
 # Constants for fetch_scroll
