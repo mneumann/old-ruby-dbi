@@ -1,10 +1,11 @@
 =begin
 = Ruby/DBI - a database independent interface for accessing databases - similar to Perl's DBI
-$Id: index.rd,v 1.32 2003/09/11 16:10:15 mneumann Exp $
+$Id: index.rd,v 1.33 2004/04/22 18:46:59 mneumann Exp $
 
 == License
 
-Copyright (c) 2001, 2002, 2003 Michael Neumann <mneumann@ntecs.de>
+Copyright (c) 2001, 2002, 2003, 2004 Michael Neumann <mneumann@ntecs.de> and others (see the beginning
+of each file for copyright holder information). 
 
 All rights reserved.
 
@@ -88,7 +89,10 @@ License).
   Patches to support Postgres arrays for DBD::Pg
 : Stephen R. Veit
   ruby-db2 and DBD::DB2 enhancements.
-
+: Dennis Vshivkov
+  Postgres DBD patches
+: Cail Borrell from frontbase.com
+  For the Frontbase DBD and C interface.
 
 == Database Drivers (DBDs)
 
@@ -99,6 +103,10 @@ License).
 * DB2 ((*(dbd_db2)*))
 
   depend on Michael Neumann's Ruby/DB2 Module, available from RAA.
+
+* Frontbase ((*(dbd_frontbase)*))
+
+  depend on Cail Borrell's ruby-frontbase, available from RAA.
 
 * InterBase ((*(dbd_interbase)*))
 
@@ -160,7 +168,9 @@ See ((<URL:http://ruby-dbi.sourceforge.net/ToDo.html>)).
 
 == Download
 
-Ruby/DBI is available for from the ((<SourceForge project page|URL:http://sourceforge.net/project/showfiles.php?group_id=43737>)).
+Ruby/DBI is available for from the ((<RubyForge project page|URL:http://rubyforge.org/frs/?group_id=234>)).
+
+Older file releases can be downloaded for a limited time from ((<SourceForge project page|URL:http://sourceforge.net/project/showfiles.php?group_id=43737>)). But note that this will (hopefully) soon become obsolete.
 
 If you're running FreeBSD or NetBSD, have a look at their package collections. FreeBSD has for DBI and each DBD an easy to
 install package, NetBSD currently only for PostgreSQL but more is to come.
@@ -188,7 +198,8 @@ Choose the packages to install by specifing them after the option (({--with})).
 
 
 == Mailing List
-A mailinglist for DBI-specific discussions is available from the ((<SourceForge project page|URL:http://sourceforge.net/projects/ruby-dbi>)).
+A mailinglist for DBI-specific discussions is available at the 
+((<RubyForge project page|URL:http://rubyforge.org/projects/ruby-dbi>)).
 
 Our former mailing-list was at ((<URL:http://groups.yahoo.com/group/ruby-dbi-talk>)); 
 please, don't use it!
@@ -198,10 +209,10 @@ please, don't use it!
 See the directories lib/*/doc or ext/*/doc for DBI and DBD specific informations.
 
 The DBI specification is lib/dbi/doc/DBI_SPEC or lib/dbi/doc/html/DBI_SPEC.html or available
-from WWW at ((<URL:http://ruby-dbi.sourceforge.net/DBI_SPEC.html>)).
+from WWW at ((<URL:http://ruby-dbi.rubyforge.org/DBI_SPEC.html>)).
 
 The DBD specification (how to write a database driver) is lib/dbi/doc/DBD_SPEC or lib/dbi/doc/html/DBD_SPEC.html or available
-from WWW at ((<URL:http://ruby-dbi.sourceforge.net/DBD_SPEC.html>)).
+from WWW at ((<URL:http://ruby-dbi.rubyforge.org/DBD_SPEC.html>)).
 
 == Articles
 
@@ -266,5 +277,4 @@ to access databases remote over a TCP/IP network.
 
   end
 
-<<< sf_logo
 =end 
