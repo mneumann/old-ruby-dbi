@@ -1,26 +1,37 @@
 =begin
 = Ruby/DBI - a database independent interface for accessing databases - similar to Perl's DBI
-$Id: index.rd,v 1.20 2002/04/17 13:43:37 mneumann Exp $
-
-Copyright (c) 2001, 2002 by Michael Neumann (neumann@s-direktnet.de)
+$Id: index.rd,v 1.21 2002/07/03 16:48:35 mneumann Exp $
 
 == License
 
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+Copyright (c) 2001, 2002 Michael Neumann <neumann@s-direktnet.de>
 
-Optionally this program is released under the same terms of license as Ruby itself.
+All rights reserved.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+Redistribution and use in source and binary forms, with or without 
+modification, are permitted provided that the following conditions 
+are met:
+(1) Redistributions of source code must retain the above copyright 
+    notice, this list of conditions and the following disclaimer.
+(2) Redistributions in binary form must reproduce the above copyright 
+    notice, this list of conditions and the following disclaimer in the 
+    documentation and/or other materials provided with the distribution.
+(3) The name of the author may not be used to endorse or promote products
+    derived from this software without specific prior written permission.
 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES,
+ INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+ AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL
+ THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+ OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+ OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+This is the BSD license which is less restrictive than GNU's GPL (General Public
+License).
 
 == Contributors
 

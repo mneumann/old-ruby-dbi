@@ -1,17 +1,34 @@
-# DBD DB2 driver for Ruby's DBI
 #
-# Based on (and requires) the "IBM DB2 Module for Ruby"
-# by myself (Michael Neumann) <neumann@s-direktnet.de> http://www.fantasy-coders.de/ruby
+# DB2 driver for Ruby's DBI
 # 
-# Version : $Id: DB2.rb,v 1.5 2001/11/09 01:32:52 michael Exp $
-# Author  : Michael Neumann (neumann@s-direktnet.de)
-# Homepage: http://www.s-direktnet.de/homepages/neumann/
-# DBD API : 0.1
+# Copyright (c) 2001, 2002 Michael Neumann <neumann@s-direktnet.de>
+# 
+# All rights reserved.
 #
-# Copyright (c) 2001 Michael Neumann
+# Redistribution and use in source and binary forms, with or without 
+# modification, are permitted provided that the following conditions 
+# are met:
+# 1. Redistributions of source code must retain the above copyright 
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright 
+#    notice, this list of conditions and the following disclaimer in the 
+#    documentation and/or other materials provided with the distribution.
+# 3. The name of the author may not be used to endorse or promote products
+#    derived from this software without specific prior written permission.
 #
-# This program is released under the same terms as Ruby.
-
+# THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES,
+# INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+# AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL
+# THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# $Id: DB2.rb,v 1.6 2002/07/03 16:48:35 mneumann Exp $
+#
 
 require 'db2/db2cli.rb'
 
