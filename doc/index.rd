@@ -1,6 +1,6 @@
 =begin
 = Ruby/DBI - a database independent interface for accessing databases - similar to Perl's DBI
-$Id: index.rd,v 1.30 2003/05/16 09:50:43 mneumann Exp $
+$Id: index.rd,v 1.31 2003/06/06 10:48:22 mneumann Exp $
 
 == License
 
@@ -72,7 +72,8 @@ License).
   Submitted several patches and helped with lots of comments; Co-owner of the project.
 : MoonWolf
   quote/escape_bytea patch for DBD Pg.
-  DBD::SQLite patch
+  DBD::SQLite patch and Database#columns implementation.
+  Further patches.
 : Paul DuBois
   Fixed typos and formatting. 
   Maintains DBD Mysql.
@@ -83,6 +84,8 @@ License).
 : Florian G. Pflug
   Discussion and helpful comments/benchmarks about DBD::Pg 
   async_exec vs. exec.
+: Oliver M. Bolzer
+  Patches to support Postgres arrays for DBD::Pg
 
 
 == Database Drivers (DBDs)
