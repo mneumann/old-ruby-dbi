@@ -1,5 +1,5 @@
 #
-# $Id: utils.rb,v 1.8 2001/08/21 21:01:32 michael Exp $
+# $Id: utils.rb,v 1.9 2001/11/08 22:39:02 michael Exp $
 #
 
 module DBI
@@ -116,8 +116,13 @@ module TableFormatter
     indent=2, cellspace=1, pagebreak_after=nil,
     output=STDOUT)
 
+    header_orient ||= :left
+    rows_orient   ||= :left
+    indent        ||= 2
+    cellspace     ||= 1
+
     # pagebreak_after n-rows (without counting header or split-lines)
-    # yield block with output as param after each pagebreak
+    # yield block with output as param after each pagebreak (not at the end)
 
     col_lengths = (0...(header.size)).collect do |colnr|
       [
@@ -165,11 +170,12 @@ module TableFormatter
 
       rows[rownr,pagebreak_after].each {|ar| output_row.call(ar, rows_orient)}
       output << split_line + "\n"
-      yield output if block_given?
 
       rownr += pagebreak_after
 
       break if rownr >= rows.size
+      
+      yield output if block_given?
     end
     
   end
