@@ -1,5 +1,5 @@
 #
-# $Id: sql.rb,v 1.14 2003/04/27 17:37:02 mneumann Exp $
+# $Id: sql.rb,v 1.15 2003/05/16 09:43:05 mneumann Exp $
 #
 # parts extracted from Jim Weirichs DBD::Pg
 #
@@ -149,6 +149,7 @@ module SQL
       sql.scan(%r{
         (
             -- .*                               (?# matches "--" style comments to the end of line or string )
+        |   -                                   (?# matches single "-" )
         |
             /[*] .*? [*]/                       (?# matches C-style comments )
         |
