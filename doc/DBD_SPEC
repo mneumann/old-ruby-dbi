@@ -1,8 +1,8 @@
 =begin
 = DBD Specification Version 0.2.2 (Draft)
-by Michael Neumann (neumann@s-direknet.de)
+by Michael Neumann (mneumann@fantasy-coders.de)
 
- $Id: DBD_SPEC,v 1.2 2003/01/22 10:45:31 mneumann Exp $
+ $Id: DBD_SPEC,v 1.3 2003/01/22 10:52:03 mneumann Exp $
 
 == DBD Directory Layout
 The directory layout is the following:
