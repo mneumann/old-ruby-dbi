@@ -10,4 +10,4 @@ doc:
 	./create_html
 
 clean:
-	rm ../ChangeLog ../doc/html/ChangeLog.html ../doc/html/ToDo.html ../doc/html/DBD_SPEC.html ../doc/html/DBI_SPEC.html ../doc/html/index.html
+	rm -f ../ChangeLog ../doc/html/ChangeLog.html ../doc/html/ToDo.html ../doc/html/DBD_SPEC.html ../doc/html/DBI_SPEC.html ../doc/html/index.html
