@@ -4,7 +4,7 @@
 require 'runit/testcase'
 require 'runit/cui/testrunner'
 
-require "dbi/sql"
+require "../sql"
 
 class MockSql
   include DBI::SQL::BasicQuote

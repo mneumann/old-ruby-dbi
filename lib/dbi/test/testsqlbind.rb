@@ -4,7 +4,7 @@
 require 'runit/testcase'
 require 'runit/cui/testrunner'
 
-require "dbi/sql"
+require "../sql"
 
 $last_suite = RUNIT::TestSuite.new
 
@@ -41,6 +41,15 @@ class TestSqlBind < RUNIT::TestCase
     assert_equal "10 ? 11", bind(self, "? ?? ?", [10, 11])
     assert_equal "????", bind(self, "????????", [])
   end
+
+  def test_questions_in_param
+    assert_equal "WHERE c='connected?'",
+      bind(self, "WHERE c=?", ["connected?"])
+
+    assert_equal "WHERE c='connected?' AND d='???'",
+      bind(self, "WHERE c=? AND d=?", ["connected?", "???"])
+  end
+
 end
 
 $last_suite.add_test (TestSqlBind.suite)
