@@ -1,5 +1,8 @@
 =begin
 
+: 0.0.7 (2001-07-11)
+ * fixed bug in dbi.rb, which was newly introduced in 0.0.6
+
 : 0.0.6 (2001-07-06)
  * added supports for dbi:DBD:database:host instead of dbi:DBD:database=aaa;host=bbb (John Gorman)
  * added case-insensitive driver URLs (e.g. dbi:Pg:... and dbi:pg:... works) (John Gorman)
