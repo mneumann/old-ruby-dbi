@@ -26,7 +26,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: sqlsh.rb,v 1.3 2002/07/03 16:48:35 mneumann Exp $
+# $Id: sqlsh.rb,v 1.4 2004/05/31 16:28:21 mneumann Exp $
 #
 
 require "dbi"
@@ -465,6 +465,7 @@ act = Actions.new
 
 # --file option
 if $input_file_name
+  $input_file_name = $input_file_name.dup   # because object is frozen!
   def $input_file_name.post_match
     $input_file_name
   end
