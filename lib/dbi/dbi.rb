@@ -27,7 +27,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: dbi.rb,v 1.38 2003/05/09 19:54:29 mneumann Exp $
+# $Id: dbi.rb,v 1.39 2003/05/11 15:27:09 mneumann Exp $
 #
 
 require "dbi/row"
@@ -298,21 +298,24 @@ end
 class Timestamp
   attr_accessor :year, :month, :day
   attr_accessor :hour, :minute, :second, :fraction
-  def initialize(year=0, month=0, day=0, hour=0, minute=0, second=0, fraction=0)
+  
+  def initialize(year=0, month=0, day=0, hour=0, minute=0, second=0, fraction=nil)
     case year
     when ::Time
       @year, @month, @day = year.year, year.month, year.day 
-      @hour, @minute, @second, @fraction = year.hour, year.min, year.sec, 0
+      @hour, @minute, @second, @fraction = year.hour, year.min, year.sec, nil 
       @original_time = year
     when ::Date
       @year, @month, @day = year.year, year.month, year.day 
-      @hour, @minute, @second, @fraction = 0, 0, 0, 0
+      @hour, @minute, @second, @fraction = 0, 0, 0, nil 
       @original_date = year
     else
       @year, @month, @day = year, month, day
       @hour, @minute, @second, @fraction = hour, minute, second, fraction
     end
   end
+
+  def fraction() @fraction || 0 end
 
   def mon() @month end
   def mon=(val) @month=val end
@@ -324,7 +327,12 @@ class Timestamp
   def sec=(val) @second=val end
 
   def to_s
-    sprintf("%04d-%02d-%02d %02d:%02d:%02d.%06d", @year, @month, @day, @hour, @minute, @second, @fraction)
+    s = sprintf("%04d-%02d-%02d %02d:%02d:%02d", @year, @month, @day, @hour, @minute, @second) 
+    if @fraction.nil?
+      s
+    else
+      s + '.' + @fraction.to_s.split('.').last
+    end
   end
 
   def to_time
