@@ -27,7 +27,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: dbi.rb,v 1.40 2003/09/11 20:57:35 mneumann Exp $
+# $Id: dbi.rb,v 1.41 2003/11/05 20:46:16 mneumann Exp $
 #
 
 require "dbi/row"
@@ -773,6 +773,7 @@ class StatementHandle < Handle
     #if @row.nil?
       @row = DBI::Row.new(column_names,nil)
     #end
+    return nil
   end
 
   def finish
