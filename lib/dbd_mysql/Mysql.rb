@@ -1,8 +1,8 @@
 # 
 # DBD::Mysql
-# $Id: Mysql.rb,v 1.7 2001/08/30 14:37:30 michael Exp $
+# $Id: Mysql.rb,v 1.8 2001/10/10 13:33:44 michael Exp $
 # 
-# Version : 0.2
+# Version : 0.3
 # Author  : Michael Neumann (neumann@s-direktnet.de)
 #
 # Copyright (c) 2001 Michael Neumann
@@ -27,7 +27,7 @@ module DBI
 module DBD
 module Mysql
 
-VERSION          = "0.2"
+VERSION          = "0.3"
 USED_DBD_VERSION = "0.2"
 
 MyError = ::MysqlError
@@ -48,8 +48,9 @@ class Driver < DBI::BaseDriver
 
     hash['host'] ||= 'localhost'
 
-    handle = ::Mysql.connect(hash['host'], user, auth)
-    handle.select_db(hash['database'])
+    handle = ::Mysql.connect(hash['host'], user, auth, hash['database'], hash['port'], hash['socket'], hash['flag'])
+    #handle.select_db(hash['database'])
+
     return Database.new(handle, attr)
   rescue MyError => err
     raise DBI::DatabaseError.new(err.message)
@@ -62,6 +63,46 @@ class Driver < DBI::BaseDriver
     return res
   rescue MyError => err
     raise DBI::DatabaseError.new(err.message)
+  end
+
+  # Driver-specific functions ------------------------------------------------
+
+  public
+
+  def __createdb(db, host, user, password, port=nil, sock=nil, flag=nil)
+    handle = ::Mysql.connect(host, user, password, nil, port, sock, flag)
+    begin
+      handle.create_db(db)
+    ensure
+      handle.close if handle
+    end
+  end
+
+  def __dropdb(db, host, user, password, port=nil, sock=nil, flag=nil)
+    handle = ::Mysql.connect(host, user, password, nil, port, sock, flag)
+    begin
+      handle.drop_db(db)
+    ensure
+      handle.close if handle
+    end
+  end
+
+  def __shutdown(host, user, password, port=nil, sock=nil, flag=nil)
+    handle = ::Mysql.connect(host, user, password, nil, port, sock, flag)
+    begin
+      handle.shutdown
+    ensure
+      handle.close if handle
+    end
+  end
+
+  def __reload(host, user, password, port=nil, sock=nil, flag=nil)
+    handle = ::Mysql.connect(host, user, password, nil, port, sock, flag)
+    begin
+      handle.reload
+    ensure
+      handle.close if handle
+    end
   end
 
 end # class Driver
@@ -214,6 +255,27 @@ class Database < DBI::BaseDatabase
     return sqltype, type, size, decimal
   end
 
+  
+  # Driver-specific functions ------------------------------------------------
+
+  public
+
+  def __createdb(db)
+    @handle.create_db(db)
+  end
+
+  def __dropdb(db)
+    @handle.drop_db(db)
+  end
+
+  def __shutdown
+    @handle.shutdown
+  end
+
+  def __reload
+    @handle.reload
+  end
+
 end # class Database
 
 
@@ -222,6 +284,10 @@ class Statement < DBI::BaseStatement
   include SQL::BasicQuote
 
   def initialize(handle, statement)
+    super(nil)
+    #@attr['mysql_use_result'] = false
+    #@attr['mysql_store_result'] = true
+
     @handle = handle
     @statement = statement
     @params = []
@@ -233,9 +299,16 @@ class Statement < DBI::BaseStatement
   end
 
   def execute
-    @handle.query_with_result = true
+    @handle.query_with_result = true # automatically switches store_result on 
+    #if @attr['mysql_use_result']
+    #  @handle.use_result
+    #else
+    #  @handle.store_result
+    #end
+
     sql = bind(self, @statement, @params)
     @res_handle = @handle.query(sql)
+    @current_row = 0
     @rows = @handle.affected_rows
   rescue MyError => err
     raise DBI::DatabaseError.new(err.message)
@@ -248,9 +321,43 @@ class Statement < DBI::BaseStatement
   end
 
   def fetch
+    @current_row += 1
     @res_handle.fetch_row
   rescue MyError => err
     raise DBI::DatabaseError.new(err.message)
+  end
+
+  def fetch_scroll(direction, offset)
+    #if @attr['mysql_use_result'] then
+    #  super
+    #else
+      case direction
+      when SQL_FETCH_NEXT
+        @current_row += 1
+        @res_handle.fetch_row
+      when SQL_FETCH_PRIOR
+        @res_handle.data_seek(@current_row - 1)
+        @res_handle.fetch_row
+      when SQL_FETCH_FIRST
+        @current_row = 1
+        @res_handle.data_seek(@current_row - 1)
+        @res_handle.fetch_row
+      when SQL_FETCH_LAST
+        @current_row = @res_handle.num_rows
+        @res_handle.data_seek(@current_row - 1)
+        @res_handle.fetch_row
+      when SQL_FETCH_ABSOLUTE
+        @current_row = offset + 1
+        @res_handle.data_seek(@current_row - 1)
+        @res_handle.fetch_row
+      when SQL_FETCH_RELATIVE
+        @current_row += offset + 1
+        @res_handle.data_seek(@current_row - 1)
+        @res_handle.fetch_row
+      else
+        raise NotSupportedError
+      end
+    #end
   end
 
   def column_info
@@ -259,7 +366,8 @@ class Statement < DBI::BaseStatement
     return [] if @res_handle.nil?
 
     @res_handle.fetch_fields.each {|col| 
-      retval << {'name' => col.name }
+      retval << {'name' => col.name, '_type' => col.type, '_length' => col.length, 
+        '_max_length' => col.max_length, '_flags' => col.flags, '_decimals' => col.decimals }
     }
     retval
   rescue MyError => err
@@ -269,6 +377,21 @@ class Statement < DBI::BaseStatement
   def rows
     @rows
   end
+
+=begin
+  def []=(attr, value)
+    case attr
+    when 'mysql_use_result'
+      @attr['mysql_store_result'] = ! value
+      @attr['mysql_use_result']   = value
+    when 'mysql_store_result'
+      @attr['mysql_use_result']   = ! value
+      @attr['mysql_store_result'] = value
+    else
+      raise NotSupportedError
+    end
+  end
+=end
 
 end # class Statement
 
