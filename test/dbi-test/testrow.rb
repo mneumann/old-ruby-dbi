@@ -4,7 +4,8 @@
 require 'runit/testcase'
 require 'runit/cui/testrunner'
 
-require '../row'
+require 'require_dispatch'
+require 'row'
 
 $last_suite = RUNIT::TestSuite.new
 

@@ -1,4 +1,4 @@
-$LOAD_PATH.unshift Dir.pwd + "/.."
+$LOAD_PATH.unshift Dir.pwd + "/../../lib/dbi"
 alias old_require require
 def require(file)
   if file =~ /^dbi\/(.*)/

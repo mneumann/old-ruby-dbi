@@ -1,7 +1,7 @@
 RUBY = ARGV[0] || "ruby"
 
 # test syntax for all .rb files
-`find .. -name "*.rb" -print`.each do |script|
+Dir['../**/*.rb'].each do |script|
   script.chomp!
   print script.ljust(50)
   print `#{ RUBY } -c #{ script }`
@@ -13,7 +13,7 @@ end
 
 # execute tests in lib/dbi/test
 puts "="*60
-Dir.chdir("../lib/dbi/test")
+Dir.chdir("../test/dbi-test")
 Dir["test*.rb"].each do |test|
   puts test
   str = `#{ RUBY } #{ test }`
