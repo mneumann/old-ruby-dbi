@@ -1,4 +1,5 @@
 =begin
+* get a Driver object, call methods on it
 * Tainting
 * table_info
 * bind_param_inout
