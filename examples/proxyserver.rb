@@ -1,5 +1,5 @@
 #
-# $Id: proxyserver.rb,v 1.1 2001/06/04 14:24:56 michael Exp $
+# $Id: proxyserver.rb,v 1.2 2001/06/05 12:17:13 michael Exp $
 # Copyright (c) 2001 by Michael Neumann (neumann@s-direktnet.de)
 # 
 
@@ -83,9 +83,13 @@ class DatabaseProxy
   end
 
   def disconnect
-    catch_exception do
+    begin
+      catch_exception do
+        @handle.disconnect
+        @handle = nil
+      end
+    ensure
       @parent.databases.delete(self) 
-      nil
     end
   end
 
@@ -113,11 +117,16 @@ class StatementProxy
   end
 
   def finish
-    catch_exception do
+    begin
+      catch_exception do
+        @handle.finish
+        @handle = nil
+      end
+    ensure
       @parent.statements.delete(self) 
-      nil
     end
   end
+
 
 end # class StatementProxy
 
