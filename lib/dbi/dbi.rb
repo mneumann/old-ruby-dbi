@@ -27,7 +27,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: dbi.rb,v 1.31 2002/07/03 19:24:25 mneumann Exp $
+# $Id: dbi.rb,v 1.32 2002/07/26 17:51:31 mneumann Exp $
 #
 
 require "dbi/row"
@@ -263,7 +263,6 @@ class Time
   def sec() @second end
   def sec=(val) @second=val end
 
-
   def to_s
     "#{@hour}:#{@minute}:#{@second}"
   end
@@ -277,9 +276,11 @@ class Timestamp
     if year.is_a? ::Time
       @year, @month, @day = year.year, year.month, year.day 
       @hour, @minute, @second, @fraction = year.hour, year.min, year.sec, 0
+      @original_time = year
     elsif year.is_a? ::Date
       @year, @month, @day = year.year, year.month, year.day 
       @hour, @minute, @second, @fraction = 0, 0, 0, 0
+      @original_date = year
     else
       @year, @month, @day = year, month, day
       @hour, @minute, @second, @fraction = hour, minute, second, fraction
@@ -297,8 +298,21 @@ class Timestamp
     "#{@year}-#{@month}-#{@day} #{@hour}:#{@minute}:#{@second}.#{@fraction}"
   end
 
-  # TODO: conversion functions to_date and to_time, perhaps to_date2
-  # (date2/3.rb)
+  def to_time
+    if @original_time
+      @original_time
+    else
+      Time.local(@year, @month, @day, @hour, @minute, @second)
+    end
+  end
+
+  def to_date
+    if @original_date
+      @original_date
+    else
+      Date.new(@year, @month, @day)
+    end
+  end
 end
 
 
