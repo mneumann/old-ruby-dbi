@@ -66,7 +66,7 @@ dialog --msgbox "Now log into SourceForge Admin page and make a release. Release
 links http://www.sourceforge.net/account/login.php
 
 dialog --msgbox "Finally, update the page at the RAA." 8 40
-w3m "http://www.ruby-lang.org/en/raa-update.rhtml?name=Ruby%2FDBI"
+w3m "http://raa.ruby-lang.org/update.rhtml?name=ruby-dbi"
 
 # remove work
 cd ..
