@@ -1,10 +1,12 @@
 =begin
 
-: 0.0.6 (2001-??-06)
-* improved examples/sqlsh.rb (added scripting features \i \o)
-* fixed bug in dbi/sql.rb method bind.
+: 0.0.6 (2001-07-06)
+ * added supports for dbi:DBD:database:host instead of dbi:DBD:database=aaa;host=bbb (John Gorman)
+ * added case-insensitive driver URLs (e.g. dbi:Pg:... and dbi:pg:... works) (John Gorman)
+ * improved examples/sqlsh.rb (added scripting features \i \o)
+ * fixed bug in dbi/sql.rb method bind.
 
-: 0.0.5 (2001-09-06)
+: 0.0.5 (2001-06-09)
  * almost complete rewrite of DBI by Michael Neumann.
   
 : 0.0.4 (2001-05-05)
