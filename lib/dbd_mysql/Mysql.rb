@@ -27,7 +27,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: Mysql.rb,v 1.17 2003/02/08 00:37:20 pdubois Exp $
+# $Id: Mysql.rb,v 1.18 2003/02/08 01:37:51 pdubois Exp $
 #
 
 require "mysql"
@@ -57,6 +57,10 @@ class Driver < DBI::BaseDriver
     #end
 
     hash['host'] ||= 'localhost'
+
+    # these two connection parameters should be passed as numbers
+    hash['port'] = hash['port'].to_i unless hash['port'].nil?
+    hash['flag'] = hash['flag'].to_i unless hash['flag'].nil?
 
     handle = ::Mysql.connect(hash['host'], user, auth, hash['database'], hash['port'], hash['socket'], hash['flag'])
     #handle.select_db(hash['database'])
