@@ -27,18 +27,15 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: SQLite.c,v 1.10 2004/05/18 13:30:06 andreas Exp $
+ * $Id: SQLite.c,v 1.11 2004/05/23 23:17:36 andreas Exp $
  */
 
 
 /* TODO:
- *
- * - use more C-functions (C++ strings) to improve speed)
+ * - wait and retry when sqlite_step returns SQLITE_BUSY
  * - use IDs instead of each time rb_iv_get etc.. 
  * - check correct use of exception classes 
- * - warnings: should use rb_warn ? 
- * - get column_info using "pragma table_info(table_name)" and
- *   use it to return the appropriate Ruby type.
+ * - check return code of sqlite_finalize()
  */
 
 #include <sqlite.h>
@@ -51,16 +48,9 @@ static VALUE cDriver, cDatabase, cStatement;
 static VALUE cBaseDriver, cBaseDatabase, cBaseStatement;
 static VALUE cTimestamp;
 static VALUE eOperationalError, eDatabaseError, eInterfaceError;
-static VALUE eNotSupportedError;
+static VALUE eNotSupportedError, eNotImplementedError;
 static VALUE TYPE_CONV_MAP, CONVERTER, CONVERTER_PROC;
 static ID id_to_time, id_utc, id_strftime;
-
-#define SQL_FETCH_NEXT     1
-#define SQL_FETCH_PRIOR    2
-#define SQL_FETCH_FIRST    3
-#define SQL_FETCH_LAST     4
-#define SQL_FETCH_ABSOLUTE 5 
-#define SQL_FETCH_RELATIVE 6 
 
 struct sDatabase {
   struct sqlite *conn;
@@ -69,9 +59,10 @@ struct sDatabase {
 };
 
 struct sStatement {
-  VALUE conn, statement;
+  VALUE conn, statement, buffered_row;
   char **result;
   int nrow, ncolumn, row_index, nrpc;
+  sqlite_vm *vm;
 };
 
 struct sTable {
@@ -139,7 +130,7 @@ Driver_connect(VALUE self, VALUE dbname, VALUE user, VALUE auth, VALUE attr)
   db->conn = sqlite_open(STR2CSTR(dbname), 0, &errmsg);
   if (!db->conn) {
     errstr = rb_str_new2(errmsg); 
-    free(errmsg);
+    sqlite_freemem(errmsg);
     rb_raise(eOperationalError, STR2CSTR(errstr));
   }
 
@@ -147,7 +138,7 @@ Driver_connect(VALUE self, VALUE dbname, VALUE user, VALUE auth, VALUE attr)
   if (db->autocommit == 0) {
     state = sqlite_exec(db->conn, "BEGIN TRANSACTION", NULL, NULL, &errmsg);
     if (state != SQLITE_OK) {
-      errstr = rb_str_new2(errmsg); free(errmsg);
+      errstr = rb_str_new2(errmsg); sqlite_freemem(errmsg);
       rb_str_cat(errstr, "(", 1); rb_str_concat(errstr, rb_str_new2(sqliteErrStr(state))); rb_str_cat(errstr, ")", 1);
       rb_raise(eDatabaseError, STR2CSTR(errstr));
     }
@@ -156,7 +147,7 @@ Driver_connect(VALUE self, VALUE dbname, VALUE user, VALUE auth, VALUE attr)
   /* Put Full Column Names on (always) */
   state = sqlite_exec(db->conn, "PRAGMA full_column_names = ON", NULL, NULL, &errmsg);
   if (state != SQLITE_OK) {
-    errstr = rb_str_new2(errmsg); free(errmsg);
+    errstr = rb_str_new2(errmsg); sqlite_freemem(errmsg);
     rb_str_cat(errstr, "(", 1); rb_str_concat(errstr, rb_str_new2(sqliteErrStr(state))); rb_str_cat(errstr, ")", 1);
     rb_raise(eDatabaseError, STR2CSTR(errstr));
   }
@@ -204,7 +195,7 @@ Database_aset(VALUE self, VALUE key, VALUE value)
 
         state = sqlite_exec(db->conn, "END TRANSACTION", NULL, NULL, &errmsg);
         if (state != SQLITE_OK) {
-          errstr = rb_str_new2(errmsg); free(errmsg);
+          errstr = rb_str_new2(errmsg); sqlite_freemem(errmsg);
           rb_str_cat(errstr, "(", 1); rb_str_concat(errstr, rb_str_new2(sqliteErrStr(state))); rb_str_cat(errstr, ")", 1);
           rb_raise(eDatabaseError, STR2CSTR(errstr));
         }
@@ -216,7 +207,7 @@ Database_aset(VALUE self, VALUE key, VALUE value)
 
         state = sqlite_exec(db->conn, "BEGIN TRANSACTION", NULL, NULL, &errmsg);
         if (state != SQLITE_OK) {
-          errstr = rb_str_new2(errmsg); free(errmsg);
+          errstr = rb_str_new2(errmsg); sqlite_freemem(errmsg);
           rb_str_cat(errstr, "(", 1); rb_str_concat(errstr, rb_str_new2(sqliteErrStr(state))); rb_str_cat(errstr, ")", 1);
           rb_raise(eDatabaseError, STR2CSTR(errstr));
         }
@@ -278,7 +269,7 @@ Database_commit(VALUE self)
 
     state = sqlite_exec(db->conn, "END TRANSACTION; BEGIN TRANSACTION", NULL, NULL, &errmsg);
     if (state != SQLITE_OK) {
-      errstr = rb_str_new2(errmsg); free(errmsg);
+      errstr = rb_str_new2(errmsg); sqlite_freemem(errmsg);
       rb_str_cat(errstr, "(", 1); rb_str_concat(errstr, rb_str_new2(sqliteErrStr(state))); rb_str_cat(errstr, ")", 1);
       rb_raise(eDatabaseError, STR2CSTR(errstr));
     }
@@ -304,7 +295,7 @@ Database_rollback(VALUE self)
 
     state = sqlite_exec(db->conn, "ROLLBACK TRANSACTION; BEGIN TRANSACTION", NULL, NULL, &errmsg);
     if (state != SQLITE_OK) {
-      errstr = rb_str_new2(errmsg); free(errmsg);
+      errstr = rb_str_new2(errmsg); sqlite_freemem(errmsg);
       rb_str_cat(errstr, "(", 1); rb_str_concat(errstr, rb_str_new2(sqliteErrStr(state))); rb_str_cat(errstr, ")", 1);
       rb_raise(eDatabaseError, STR2CSTR(errstr));
     }
@@ -339,7 +330,7 @@ Database_do(int argc, VALUE *argv, VALUE self)
   
   state = sqlite_exec(db->conn, STR2CSTR(sql), NULL, NULL, &errmsg);
   if (state != SQLITE_OK) {
-    errstr = rb_str_new2(errmsg); free(errmsg);
+    errstr = rb_str_new2(errmsg); sqlite_freemem(errmsg);
     rb_str_cat(errstr, "(", 1); rb_str_concat(errstr, rb_str_new2(sqliteErrStr(state))); rb_str_cat(errstr, ")", 1);
     rb_raise(eDatabaseError, STR2CSTR(errstr));
   }
@@ -371,7 +362,7 @@ Database_tables(VALUE self)
       &tables_callback, &arr, &errmsg); 
 
   if (state != SQLITE_OK) {
-    errstr = rb_str_new2(errmsg); free(errmsg);
+    errstr = rb_str_new2(errmsg); sqlite_freemem(errmsg);
     rb_str_cat(errstr, "(", 1); rb_str_concat(errstr, rb_str_new2(sqliteErrStr(state))); rb_str_cat(errstr, ")", 1);
     rb_raise(eDatabaseError, STR2CSTR(errstr));
   }
@@ -381,9 +372,9 @@ Database_tables(VALUE self)
 
 static void statement_mark(void *p) {
   struct sStatement *sm = (struct sStatement*) p;
-  
   rb_gc_mark(sm->conn);
   rb_gc_mark(sm->statement);
+  rb_gc_mark(sm->buffered_row);
 }
 
 static void statement_free(void *p) {
@@ -392,6 +383,11 @@ static void statement_free(void *p) {
   if (sm->result) {
     sqlite_free_table(sm->result);
     sm->result = NULL;
+  }
+
+  if (sm->vm) {
+    sqlite_finalize(sm->vm, NULL);
+    sm->vm = NULL;
   }
 
   free(p);
@@ -453,7 +449,7 @@ Database_columns(VALUE self, VALUE tablename)
   VALUE sql_type, table, columns, hash;
   VALUE str;
   VALUE col_name, type_name;
-  int state, i, j, pos, row_index;
+  int state, pos, row_index;
   char *errmsg;
   
   Data_Get_Struct(self, struct sDatabase, db);
@@ -469,7 +465,7 @@ Database_columns(VALUE self, VALUE tablename)
   state = sqlite_get_table(db->conn, STR2CSTR(sql_type), &tb->result, &tb->nrow, &tb->ncolumn, &errmsg);
   if (state != SQLITE_OK) {
     VALUE errstr;
-    errstr = rb_str_new2(errmsg); free(errmsg);
+    errstr = rb_str_new2(errmsg); sqlite_freemem(errmsg);
     rb_str_cat(errstr, "(", 1); rb_str_concat(errstr, rb_str_new2(sqliteErrStr(state))); 
     rb_str_cat(errstr, ")", 1);
     rb_raise(eDatabaseError, STR2CSTR(errstr));
@@ -506,21 +502,14 @@ Database_columns(VALUE self, VALUE tablename)
 }
 
 static VALUE
-Statement_execute(VALUE self) 
+Statement_execute(VALUE self)
 {
-  int state, i;
+  int state;
   char *errmsg;
-  VALUE prs[3], sql, errstr, hash;
+  VALUE prs[3], sql, errstr;
   struct sStatement *sm;
   struct sDatabase *db;
-
-
-  VALUE str, sql_type, tables, table;
-  VALUE col_name, tn_cn;
-
-  int j;
-  struct sTable *tb;
-
+  const char *tail;
 
   Data_Get_Struct(self, struct sStatement, sm);
   Data_Get_Struct(sm->conn, struct sDatabase, db);
@@ -535,116 +524,39 @@ Statement_execute(VALUE self)
   rb_iv_set(sm->statement, "@params", rb_ary_new()); /* @params = [] */
   sm->row_index = 0;
 
+  /* clear row buffer */
+  sm->buffered_row = Qnil;
+
   /* execute sql */
-  state = sqlite_get_table(db->conn, STR2CSTR(sql), &sm->result, &sm->nrow, &sm->ncolumn, &errmsg); 
+  state = sqlite_compile(
+    db->conn,
+    STR2CSTR(sql),
+    &tail,
+    &sm->vm,
+    &errmsg
+  );
+
+  
+  /* if the string contained more than one SQL statement */
+  if (strlen(tail) > 0) {
+    if (sm->vm) {
+      sqlite_finalize(sm->vm, NULL);
+      sm->vm = NULL;
+    }
+
+    rb_raise(eDatabaseError, "only one SQL statement per call allowed");
+  }
+  
+  /* in case of errors */
   if (state != SQLITE_OK) {
-    errstr = rb_str_new2(errmsg); free(errmsg);
+    errstr = rb_str_new2(errmsg); sqlite_freemem(errmsg);
     rb_str_cat(errstr, "(", 1); rb_str_concat(errstr, rb_str_new2(sqliteErrStr(state))); rb_str_cat(errstr, ")", 1);
     rb_raise(eDatabaseError, STR2CSTR(errstr));
   }
-  sm->nrpc = sqlite_changes(db->conn);
 
-  /* col_info */
-  tables = rb_hash_new();  /* cache the table informations here */
-  if (rb_iv_get(self, "@col_info") == Qnil || RARRAY(rb_iv_get(self, "@col_info"))->len == 0) {
-    rb_iv_set(self, "@col_info", rb_ary_new2(sm->ncolumn));
-
-    for (i=0; i<sm->ncolumn;i++) { /* only first column */
-
-      /* get informations about one column */
-      hash = rb_hash_new();
-      rb_ary_store(rb_iv_get(self, "@col_info"), i, hash);
-
-      if (sm->result[i] != NULL) {
-        col_name = rb_str_new2(sm->result[i]);
-
-        /* check if column_name is a real column name or not (e.g. expression) */
-        str = rb_eval_string("/^[a-zA-Z_]\\w*([.][a-zA-Z_]\\w*)?$/");
-
-        if (rb_funcall2(col_name, rb_intern("=~"), 1, &str) == Qnil) {
-
-          rb_hash_aset(hash, rb_str_new2("name"), col_name);
-
-        } else {
-
-          str   = rb_str_new2(".");
-          tn_cn = rb_funcall2(col_name, rb_intern("split"), 1, &str);
-
-          rb_hash_aset(hash, rb_str_new2("full_name"), col_name);
-          rb_hash_aset(hash, rb_str_new2("table_name"), rb_ary_entry(tn_cn,0));
-
-          if (db->full_column_names == 1) { 
-            rb_hash_aset(hash, rb_str_new2("name"), col_name);
-          } else {
-            rb_hash_aset(hash, rb_str_new2("name"), rb_ary_entry(tn_cn,1));
-          }
-
-          /* now get type informations */
-
-          /* only if no information about that tables has been received yet */
-          if (rb_hash_aref(tables, rb_ary_entry(tn_cn, 0)) == Qnil) {
-
-            /* build SQL statement */
-            sql_type = rb_str_new2("PRAGMA table_info("); 
-            rb_str_concat(sql_type, rb_ary_entry(tn_cn, 0));
-            rb_str_cat(sql_type, ")", 1);
-
-            table = Data_Make_Struct(rb_cObject, struct sTable, 0, table_free, tb);
-
-            /* execute SQL */
-            state = sqlite_get_table(db->conn, STR2CSTR(sql_type), &tb->result, &tb->nrow, &tb->ncolumn, &errmsg); 
-            if (state != SQLITE_OK) {
-              errstr = rb_str_new2(errmsg); free(errmsg);
-              rb_str_cat(errstr, "(", 1); rb_str_concat(errstr, rb_str_new2(sqliteErrStr(state))); 
-              rb_str_cat(errstr, ")", 1);
-              rb_raise(eDatabaseError, STR2CSTR(errstr));
-            }
-
-            rb_hash_aset(tables, rb_ary_entry(tn_cn, 0), table); 
-          }
-
-          /* find the matching column */
-          table = rb_hash_aref(tables, rb_ary_entry(tn_cn, 0));
-          Data_Get_Struct(table, struct sTable, tb);
-
-#define COLUMN_NAME 1
-#define COLUMN_TYPE 2  
-
-          for (j=0; j < tb->nrow; j++) {
-            if (strcmp(tb->result[(j+1)*tb->ncolumn+COLUMN_NAME], STR2CSTR(rb_ary_entry(tn_cn, 1))) == 0) {
-              rb_hash_aset(hash, rb_str_new2("type"), 
-                  tb->result[(j+1)*tb->ncolumn+COLUMN_TYPE] ? rb_str_new2(tb->result[(j+1)*tb->ncolumn+COLUMN_TYPE]) : Qnil);
-              break;
-            }
-          } /* for */
-
-        }
-
-      } /* if (sm->result[i] != NULL) */
-
-
-    }
-  }
-
-
-  if (db->full_column_names == 0) { 
-    str = rb_str_new2(
-        "col_name_occurences = Hash.new(0)                              \n"
-        "                                                               \n"
-        "@col_info.each do |n|                                          \n"
-        "  col_name_occurences[n['name']] += 1                          \n"
-        "end                                                            \n"
-        "                                                               \n"
-        "col_name_occurences.each do |name, anz|                        \n"
-        "  if anz > 1 then                                              \n"
-        "    @col_info.each do |c|                                      \n"
-        "      c['name'] = c['full_name'] if c['name'] == name          \n"
-        "    end                                                        \n"
-        "  end                                                          \n"
-        "end                                                            \n"
-        );
-    rb_funcall2(self, rb_intern("eval"), 1, &str); 
-  }
+  /* fetch & buffer the first row because otherwise
+     we don't know the column names & the number of changed rows */
+  sm->buffered_row = rb_funcall(self, rb_intern("fetch"), 0);
 
   return Qnil; 
 }
@@ -653,11 +565,17 @@ static VALUE
 Statement_cancel(VALUE self)
 {
   struct sStatement *sm;
+
   Data_Get_Struct(self, struct sStatement, sm);
 
   if (sm->result) {
     sqlite_free_table(sm->result);
     sm->result = NULL;
+  }
+
+  if (sm->vm) {
+    sqlite_finalize(sm->vm, NULL);
+    sm->vm = NULL;
   }
 
   sm->nrow = -1;
@@ -673,12 +591,18 @@ static VALUE
 Statement_finish(VALUE self) 
 {
   struct sStatement *sm;
+
   Data_Get_Struct(self, struct sStatement, sm);
 
   if (sm->result) {
     sqlite_free_table(sm->result);
     sm->result = NULL;
   }
+  if (sm->vm) {
+    sqlite_finalize(sm->vm, NULL);
+    sm->vm = NULL;
+  }
+
 
   rb_iv_set(self, "@rows", Qnil); 
   rb_iv_set(self, "@params", Qnil); 
@@ -687,98 +611,138 @@ Statement_finish(VALUE self)
 } 
 
 static VALUE
-Statement_fetch(VALUE self) 
+convert_column_data(const char *data, const char *typestring)
 {
-  struct sStatement *sm;
-  int i, pos;
-  VALUE rows, col_info;
   VALUE params[4];
-  Data_Get_Struct(self, struct sStatement, sm);
 
-  rows = rb_iv_get(self, "@rows"); 
-  col_info = rb_iv_get(self, "@col_info");
-
-  if (sm->row_index < sm->nrow) {
-    pos = (sm->row_index+1)*sm->ncolumn;
-    for (i=0; i<sm->ncolumn;i++) {
-
-      if (sm->result[pos+i]) {
-        /* Convert type */
-        params[0] = TYPE_CONV_MAP;
-        params[1] = CONVERTER; 
-        params[2] = rb_str_new2(sm->result[pos+i]);
-        params[3] = rb_hash_aref(rb_ary_entry(col_info, i), rb_str_new2("type")); 
-        rb_ary_store(rows, i, rb_funcall2(CONVERTER_PROC, rb_intern("call"), 4, params));  
-      } else {
-        rb_ary_store(rows, i, Qnil); 
-      } 
-
-    }
-    sm->row_index += 1;
-    return rows;
+  if (data == NULL) {
+    return Qnil;
   } else {
-    return Qnil; 
+    /* Convert type */
+    params[0] = TYPE_CONV_MAP;
+    params[1] = CONVERTER;
+    params[2] = rb_str_new2(data);
+    params[3] = rb_str_new2(typestring);
+    return rb_funcall2(CONVERTER_PROC, rb_intern("call"), 4, params);
   }
 }
 
 static VALUE
-Statement_fetch_scroll(VALUE self, VALUE direction, VALUE offset) 
+build_column_info_array(const char **column_info, int column_count)
+{
+  VALUE array, hash;
+  int i;
+
+  array = rb_ary_new();
+
+  for(i = 0; i < column_count; i++)
+  {
+    hash = rb_hash_new();
+    rb_hash_aset(
+      hash,
+      rb_str_new2("name"),
+      rb_str_new2(column_info[i])
+    );
+    
+    rb_ary_push(array, hash);
+  }
+  return array;
+}
+
+static VALUE
+Statement_fetch(VALUE self) 
 {
   struct sStatement *sm;
-  int i, pos, get_row, dir;
-  VALUE rows, params[4], col_info;
+  struct sDatabase *db;
+  int i, state;
+  VALUE column_data_obj;
+  VALUE col_info;
+  int column_count;
+  const char **column_data;
+  const char **column_info;
+  char *errmsg = NULL;
 
   Data_Get_Struct(self, struct sStatement, sm);
 
-  dir = NUM2INT(direction);
-
-  switch (dir) {
-    case SQL_FETCH_NEXT:        get_row = sm->row_index; break;
-    case SQL_FETCH_PRIOR:       get_row = sm->row_index-1; break;
-    case SQL_FETCH_FIRST:       get_row = 0; break;
-    case SQL_FETCH_LAST:        get_row = sm->nrow-1; break;
-    case SQL_FETCH_ABSOLUTE:    get_row = NUM2INT(offset); break;
-    case SQL_FETCH_RELATIVE:    get_row = sm->row_index+NUM2INT(offset)-1; break;
-    default:
-      rb_raise(eNotSupportedError, "wrong direction");
-  }
-
-  if (get_row >= 0 && get_row < sm->nrow) {
-    rows = rb_iv_get(self, "@rows"); 
-    col_info = rb_iv_get(self, "@col_info");
-
-    pos = (get_row+1)*sm->ncolumn;
-    for (i=0; i<sm->ncolumn;i++) {
-
-      if (sm->result[pos+i]) {
-        /* Convert type */
-        params[0] = TYPE_CONV_MAP;
-        params[1] = CONVERTER; 
-        params[2] = rb_str_new2(sm->result[pos+i]);
-        params[3] = rb_hash_aref(rb_ary_entry(col_info, i), rb_str_new2("type")); 
-        rb_ary_store(rows, i, rb_funcall2(CONVERTER_PROC, rb_intern("call"), 4, params));  
-      } else {
-        rb_ary_store(rows, i, Qnil); 
-      } 
-    }
-
-    /* position pointer */
-    if (dir == SQL_FETCH_PRIOR) {
-      sm->row_index = get_row;
-    } else {
-      sm->row_index = get_row + 1;
-    }
- 
-    return rows;
-  } else {
-    if (get_row < 0) sm->row_index = 0; /* at the beginning => prev return nil */
-    else if (get_row >= sm->nrow) sm->row_index = sm->nrow; /* at the end => next returns nil */
+  /* if no VM is available we don't have any rows left, return nil */
+  if (sm->vm == NULL) {
     return Qnil;
   }
+
+  /* if a buffered row exists, return it, nil the buffer and we're done */
+  if (sm->buffered_row != Qnil) {
+    column_data_obj = sm->buffered_row;
+    sm->buffered_row = Qnil;
+    return column_data_obj;
+  }
+
+  /* otherwise get next row of the result */
+  state = sqlite_step(
+    sm->vm,
+    &column_count,
+    &column_data,
+    &column_info
+  );
+
+  switch (state) {
+  case SQLITE_ROW:
+     
+    col_info = rb_iv_get(self, "@col_info");
+    
+    if (col_info == Qnil) {
+      col_info = build_column_info_array(column_info, column_count);
+    }
+    
+    rb_iv_set(self, "@col_info", col_info);
+    
+    /* get column data */
+    /* TODO: do not create new object every time fetch is called (why?) */
+    column_data_obj = rb_ary_new();
+    
+    for (i = 0; i < column_count; i++) {
+      rb_ary_push(
+        column_data_obj,
+        convert_column_data(column_data[i], column_info[column_count + i])
+      );
+    }
+
+    break;
+    
+  case SQLITE_DONE:
+    /* no more rows */
+    if (sm->vm) {
+      sqlite_finalize(sm->vm, &errmsg);
+      sm->vm = NULL;
+      /* TODO: do something with errmsg */
+      if (errmsg) {
+        sqlite_freemem(errmsg);
+        errmsg = NULL;
+      }
+    }
+
+    /* store the rpc in the db connection handle */
+    Data_Get_Struct(sm->conn, struct sDatabase, db);
+    sm->nrpc = sqlite_changes(db->conn);
+
+    column_data_obj = Qnil;
+    break;
+
+  /* TODO: catch SQLITE_BUSY */
+
+  default:
+    rb_raise(eDatabaseError, sqliteErrStr(state));
+    break;
+  }
+
+  return column_data_obj;
 }
 
-
-
+static VALUE
+Statement_fetch_scroll(VALUE self) 
+{
+  rb_raise(eNotImplementedError, "not implemented");
+  return Qnil;
+}
 
 static VALUE
 Statement_column_info(VALUE self) 
@@ -833,6 +797,7 @@ void Init_SQLite() {
   eDatabaseError    = rb_eval_string("DBI::DatabaseError"); 
   eInterfaceError   = rb_eval_string("DBI::InterfaceError"); 
   eNotSupportedError= rb_eval_string("DBI::NotSupportedError"); 
+  eNotImplementedError= rb_eval_string("DBI::NotImplementedError"); 
   cTimestamp        = rb_eval_string("DBI::Timestamp");
   id_to_time        = rb_intern("to_time");
   id_utc            = rb_intern("utc");
@@ -876,7 +841,6 @@ void Init_SQLite() {
 
   rb_include_module(cStatement, rb_eval_string("DBI::SQL::BasicBind"));
   rb_include_module(cStatement, rb_eval_string("DBI::SQL::BasicQuote"));
-  
 
   TYPE_CONV_MAP = rb_eval_string(
       "  [                                                                          \n"
@@ -898,15 +862,15 @@ void Init_SQLite() {
   rb_define_const(cStatement, "CONVERTER", CONVERTER);
 
   CONVERTER_PROC = rb_eval_string(
-      "proc {|tm, cv, val, typ|                                         \n"
-      "  ret = val.dup                                                  \n"
-      "  tm.each do |reg, pr|                                           \n"
-      "    if typ =~ reg                                                \n"
-      "      ret = pr.call(val, cv)                                     \n"
+      "proc {|typemap, converter, value, type|                          \n"
+      "  result = value.dup                                             \n"
+      "  typemap.each do |exp, pr|                                      \n"
+      "    if type =~ exp                                               \n"
+      "      result = pr.call(value, converter)                         \n"
       "      break                                                      \n"
       "    end                                                          \n"
       "  end                                                            \n"
-      "  ret                                                            \n"
+      "  return result                                                  \n"
       "}                                                                \n"
       );
   rb_define_const(cStatement, "CONVERTER_PROC", CONVERTER_PROC);
