@@ -27,7 +27,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: dbi.rb,v 1.39 2003/05/11 15:27:09 mneumann Exp $
+# $Id: dbi.rb,v 1.40 2003/09/11 20:57:35 mneumann Exp $
 #
 
 require "dbi/row"
@@ -297,7 +297,8 @@ end
 
 class Timestamp
   attr_accessor :year, :month, :day
-  attr_accessor :hour, :minute, :second, :fraction
+  attr_accessor :hour, :minute, :second
+  attr_writer   :fraction
   
   def initialize(year=0, month=0, day=0, hour=0, minute=0, second=0, fraction=nil)
     case year
