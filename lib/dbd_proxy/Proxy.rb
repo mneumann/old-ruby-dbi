@@ -1,6 +1,6 @@
 # 
 # DBD::Proxy
-# $Id: Proxy.rb,v 1.3 2001/07/06 18:14:59 michael Exp $
+# $Id: Proxy.rb,v 1.4 2001/08/23 22:05:29 michael Exp $
 # 
 # Version : 0.1
 # Author  : Michael Neumann (neumann@s-direktnet.de)
@@ -80,8 +80,8 @@ class Driver < DBI::BaseDriver
 
     handle = DRbObject.new(nil, "druby://#{host}:#{port}")
 
-    if handle.get_used_DBD_version != USED_DBD_VERSION
-      raise InterfaceError, "Proxy uses different DBD version"
+    unless DBI::COMPATIBLE_API_VERSIONS.include?( handle.get_used_DBD_version )
+      raise InterfaceError, "Proxy uses not compatible DBD version"
     end
 
     db_handle = handle.DBD_connect(dsn, user, auth, attr)
