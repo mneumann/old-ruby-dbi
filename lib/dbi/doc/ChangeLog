@@ -1,6 +1,14 @@
 =begin
 
 : 0.0.9
+ * DatabaseHandle#columns currently only supported by DBD::Pg and DBD::MySQL.
+   Thanks to Eli Green for his implementation.
+    
+ * StatementHandle#column_info no more returns an array of hashs, instead it
+   returns an array of DBI::ColumnInfo objects
+ * new class DBI::ColumnInfo
+ * new method DatabaseHandle#columns(table)
+ * extended DBD and DBI specs (added constants for introspection, Database#columns)
  * fixed bug in utils.rb XMLFormatter.table (thanks to Jim Menard)
 
 : 0.0.8 (2001-07-28)

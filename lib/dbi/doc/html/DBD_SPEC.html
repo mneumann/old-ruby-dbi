@@ -8,9 +8,9 @@
 <link href="http://www.ruby-projects.org/dbi/rubyStyle.css" type="text/css" rel="stylesheet"/>
 </head>
 <body>
-<h1><a name="label:0" id="label:0">DBD Specification Version 0.1 (Draft)</a></h1><!-- RDLabel: "DBD Specification Version 0.1 (Draft)" -->
+<h1><a name="label:0" id="label:0">DBD Specification Version 0.2 (Draft)</a></h1><!-- RDLabel: "DBD Specification Version 0.2 (Draft)" -->
 <p>by Michael Neumann (neumann@s-direknet.de)</p>
-<pre>$Id: DBD_SPEC.html,v 1.8 2001/07/28 12:07:46 michael Exp $</pre>
+<pre>$Id: DBD_SPEC.html,v 1.9 2001/08/23 22:06:32 michael Exp $</pre>
 <h2><a name="label:1" id="label:1">DBD Directory Layout</a></h2><!-- RDLabel: "DBD Directory Layout" -->
 <p>The directory layout is the following:</p>
 <pre>DBD/
@@ -111,14 +111,19 @@ transactions (mSQL, mySQL, CSV) do not overwrite this method.</p></dd>
 <dd>
 <p>Return an Array of all tables and views. </p>
 <p>Defaults to return the empty Array [].</p></dd>
-<dt><a name="label:21" id="label:21"><code>execute( <var>statement</var>, *<var>bindvars</var> )</code></a></dt><!-- RDLabel: "execute" -->
+<dt><a name="label:21" id="label:21"><code>columns( <var>table</var> )</code></a></dt><!-- RDLabel: "columns" -->
+<dd>
+<p>Return more information about the columns of table <em>table</em>. 
+Return an Array of Hashes, like Statement#column_info do.</p>
+<p>Defaults to return an empty Array [].</p></dd>
+<dt><a name="label:22" id="label:22"><code>execute( <var>statement</var>, *<var>bindvars</var> )</code></a></dt><!-- RDLabel: "execute" -->
 <dd>
 <p>Immediate execution (without preparation) of SQL <em>statement</em>
 with binding of placeholders to values given in <em>bindvars</em> before.</p>
 <p>Return a <code>Statement</code> object.</p>
 <p>Defaults to the call sequence of Database#prepare(), Statement#bind_params() and 
 Statement#execute().</p></dd>
-<dt><a name="label:22" id="label:22"><code>do( <var>statement</var>, *<var>bindvars</var> )</code></a></dt><!-- RDLabel: "do" -->
+<dt><a name="label:23" id="label:23"><code>do( <var>statement</var>, *<var>bindvars</var> )</code></a></dt><!-- RDLabel: "do" -->
 <dd>
 <p>Execution of SQL <em>statement</em> with binding of placeholders to values given
 in <em>bindvars</em> before, but without returning a <code>Statement</code> object.
@@ -126,26 +131,26 @@ So this is used for 'INSERT', 'UPDATE', 'DELETE' as well as for DCL, which
 do not return a result-set.</p>
 <p>Return the RPC (Row Processed Count) or <code>nil</code> if no RPC is available.</p>
 <p>Defaults to Database#execute() and Statement#rows() followed by Statement#finish(). </p></dd>
-<dt><a name="label:23" id="label:23"><code>quote( <var>value</var> )</code></a></dt><!-- RDLabel: "quote" -->
+<dt><a name="label:24" id="label:24"><code>quote( <var>value</var> )</code></a></dt><!-- RDLabel: "quote" -->
 <dd>
 <p>Quote the given value <em>value</em> database specific and return the result.</p>
 <p>NOTE: This method is not really useful, because of Statement#bind_param. </p></dd>
-<dt><a name="label:24" id="label:24"><code>[ <var>attr</var> ]</code></a></dt><!-- RDLabel: "[]" -->
+<dt><a name="label:25" id="label:25"><code>[ <var>attr</var> ]</code></a></dt><!-- RDLabel: "[]" -->
 <dd>
 <p>Return value of attribute <em>attr</em>.</p>
 <p>Defauls to return the value of <code>@attr[attr]</code>.</p></dd>
-<dt><a name="label:25" id="label:25"><code>[<var>attr</var>] = <var>value</var></code></a></dt><!-- RDLabel: "[]=" -->
+<dt><a name="label:26" id="label:26"><code>[<var>attr</var>] = <var>value</var></code></a></dt><!-- RDLabel: "[]=" -->
 <dd>
 <p>Set value of attribute <em>attr</em> to <em>value</em>.
 An attribute is e.g. "AutoCommit".
 Raise an NotSupportedError, if the database do not support an attribute.</p>
 <p>The default implementation is to raise a NotSupportedError.</p></dd>
 </dl>
-<h2><a name="label:26" id="label:26">Class Statement</a></h2><!-- RDLabel: "Class Statement" -->
+<h2><a name="label:27" id="label:27">Class Statement</a></h2><!-- RDLabel: "Class Statement" -->
 <p>This class must inherit from <code>DBI::BaseStatement</code>.</p>
-<h3><a name="label:27" id="label:27">Methods which must be provided by <code>Statement</code></a></h3><!-- RDLabel: "Methods which must be provided by Statement" -->
+<h3><a name="label:28" id="label:28">Methods which must be provided by <code>Statement</code></a></h3><!-- RDLabel: "Methods which must be provided by Statement" -->
 <dl>
-<dt><a name="label:28" id="label:28"><code>bind_param( <var>param</var>, <var>value</var>, <var>attribs</var> )</code></a></dt><!-- RDLabel: "bind_param" -->
+<dt><a name="label:29" id="label:29"><code>bind_param( <var>param</var>, <var>value</var>, <var>attribs</var> )</code></a></dt><!-- RDLabel: "bind_param" -->
 <dd>
 <p>Bind <var>param</var> which is either a <code>String</code> which is then the name of the 
 placeholder used in the SQL statement (e.g. Oracle: "SELECT * FROM EMP WHERE ENAME = :ename") 
@@ -156,15 +161,15 @@ If <var>value</var> is a <code>Fixnum</code> or <code>Bignum</code>, the default
 If <var>value</var> is a <code>Float</code>, the default SQL type is <code>FLOAT</code>.</p>
 <p><em>attribs</em> is not yet used in this version but could be a hash containing more information
 like parameter type etc.</p></dd>
-<dt><a name="label:29" id="label:29"><code>execute</code></a></dt><!-- RDLabel: "execute" -->
+<dt><a name="label:30" id="label:30"><code>execute</code></a></dt><!-- RDLabel: "execute" -->
 <dd>
 <p>Execute the statement.</p></dd>
-<dt><a name="label:30" id="label:30"><code>finish</code></a></dt><!-- RDLabel: "finish" -->
+<dt><a name="label:31" id="label:31"><code>finish</code></a></dt><!-- RDLabel: "finish" -->
 <dd>
 <p>Free all the resources for the statement.
 After calling <code>finish</code> no other operation on this
 statement is valid.</p></dd>
-<dt><a name="label:31" id="label:31"><code>fetch</code></a></dt><!-- RDLabel: "fetch" -->
+<dt><a name="label:32" id="label:32"><code>fetch</code></a></dt><!-- RDLabel: "fetch" -->
 <dd>
 <p>Fetch the current row.
 Return a <code>Array</code> containing all column-data or <code>nil</code> if
@@ -172,29 +177,31 @@ the last column has been read.</p>
 <p>Note: This method should return not a newly created object on each call, 
 instead you should return one and the same Array object but with 
 changed data. </p></dd>
-<dt><a name="label:32" id="label:32"><code>column_info</code></a></dt><!-- RDLabel: "column_info" -->
+<dt><a name="label:33" id="label:33"><code>column_info</code></a></dt><!-- RDLabel: "column_info" -->
 <dd>
 <p>Return an <code>Array</code> of <code>Hash</code>'s, one for each column.
 Each <code>Hash</code> object must have at least one key 'name' which 
-value is the name of that column.</p></dd>
-<dt><a name="label:33" id="label:33"><code>rows</code></a></dt><!-- RDLabel: "rows" -->
+value is the name of that column.
+Further possible values are 'type', 'type_name', 'size', 'decimal_digits',
+'default', 'nullable', 'indexed', 'primary' and 'unique'.</p></dd>
+<dt><a name="label:34" id="label:34"><code>rows</code></a></dt><!-- RDLabel: "rows" -->
 <dd>
 <p>Return the RPC (Row Processed Count) of the last executed statement, or
 <code>nil</code> if no such exist.</p></dd>
 </dl>
-<h3><a name="label:34" id="label:34">Optional methods which can be specified by <code>Statement</code></a></h3><!-- RDLabel: "Optional methods which can be specified by Statement" -->
+<h3><a name="label:35" id="label:35">Optional methods which can be specified by <code>Statement</code></a></h3><!-- RDLabel: "Optional methods which can be specified by Statement" -->
 <dl>
-<dt><a name="label:35" id="label:35"><code>bind_params( *<var>bindvars</var> )</code></a></dt><!-- RDLabel: "bind_params" -->
+<dt><a name="label:36" id="label:36"><code>bind_params( *<var>bindvars</var> )</code></a></dt><!-- RDLabel: "bind_params" -->
 <dd>
 <p>Binds the placeholders in the statement to the values of <var>bindvars</var>.</p>
-<p>Defaults to calling <a href="#label:28">bind_param</a> for each value, with <em>param</em> starting
+<p>Defaults to calling <a href="#label:29">bind_param</a> for each value, with <em>param</em> starting
 from 1 increasingly.</p></dd>
-<dt><a name="label:36" id="label:36"><code>cancel</code></a></dt><!-- RDLabel: "cancel" -->
+<dt><a name="label:37" id="label:37"><code>cancel</code></a></dt><!-- RDLabel: "cancel" -->
 <dd>
 <p>Free any result set resources which were made after a call to <code>execute</code>.
 After calling this method, a call to one of the <em>fetch</em> methods is no more valid.</p>
 <p>Defaults to do nothing.</p></dd>
-<dt><a name="label:37" id="label:37"><code>fetch_scroll( <var>direction</var>, <var>offset</var> )</code></a></dt><!-- RDLabel: "fetch_scroll" -->
+<dt><a name="label:38" id="label:38"><code>fetch_scroll( <var>direction</var>, <var>offset</var> )</code></a></dt><!-- RDLabel: "fetch_scroll" -->
 <dd>
 <p><em>direction</em> is one of the following constants:</p>
 <ul>
@@ -211,14 +218,14 @@ implemented, otherwise it raises NotSupportedError.</p>
 <p>Note: This method should return not a newly created object on each call, 
 instead you should return one and the same Array object but with 
 changed data. </p></dd>
-<dt><a name="label:38" id="label:38"><code>fetch_many( <var>cnt</var> )</code></a></dt><!-- RDLabel: "fetch_many" -->
+<dt><a name="label:39" id="label:39"><code>fetch_many( <var>cnt</var> )</code></a></dt><!-- RDLabel: "fetch_many" -->
 <dd>
 <p>Return an <code>Array</code> of the next <em>cnt</em> rows, where a row is itself an <code>Array</code>.</p>
 <p>Note: Unlike <code>fetch</code>, this method should return a new Array object.</p>
 <p>If there are no more <em>cnt</em> rows available return the rest.
 Return <code>nil</code> if no rows are available.</p>
 <p>Defaults to multiple calls to <code>fetch</code>.</p></dd>
-<dt><a name="label:39" id="label:39"><code>fetch_all</code></a></dt><!-- RDLabel: "fetch_all" -->
+<dt><a name="label:40" id="label:40"><code>fetch_all</code></a></dt><!-- RDLabel: "fetch_all" -->
 <dd>
 <p>Return an <code>Array</code> of all rows which have not yet been fetched, where a row is 
 itself an <code>Array</code> (see Statement#fetch_many).</p>
