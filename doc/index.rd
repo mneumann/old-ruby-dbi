@@ -1,6 +1,6 @@
 =begin
 = Ruby/DBI - a database independent interface for accessing databases - similar to Perl's DBI
-$Id: index.rd,v 1.12 2001/10/30 12:51:20 michael Exp $
+$Id: index.rd,v 1.13 2001/11/13 11:29:22 michael Exp $
 
 Copyright (c) 2001 by Michael Neumann (neumann@s-direktnet.de)
 
@@ -36,10 +36,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
   For his version of module BasicQuote in sql.rb
 : John Gorman 
   For his case insensitive load_driver patch and parameter parser.
+: David Muse
+  For testing the SQLRelay DBD and for his initial DBD. 
 
 == Database Drivers (DBDs)
 
 * ADO (ActiveX Data Objects) ((*(dbd_ado)*))
+
+  depend on WinOLE from RAA.
+
 * DB2 ((*(dbd_db2)*))
 
   depend on Michael Neumann's Ruby/DB2 Module, available from RAA.
@@ -76,6 +81,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
   depend on distributed Ruby (DRb) available from RAA.
 
+* SQLRelay ((*(dbd_sqlrelay)*))
+
+  depend on the Ruby library of SQLRelay: ((<URL:http://www.firstworks.com/sqlrelay/>)).
+
 * Sybase ((*(dbd_sybase)*))
   
   this DBD is currently outdated and will ((*not*)) work with DBI versions > 0.0.4 !!! 
@@ -95,7 +104,13 @@ See ((<URL:http://www.ruby-projects.org/dbi/dbi/ToDo.html>)).
 If you're running FreeBSD or NetBSD, have a look at their package collections. FreeBSD has for DBI and each DBD an easy to
 install package, NetBSD currently only for PostgreSQL but more is to come.
 
+A NetBSD package for MySQL is available from at ((<URL:http://www.fantasy-coders.de/ruby/ruby-mysql-2.4.tar.gz>)).
+
 Latest development snapshot available at ((<URL:http://www.ruby-projects.org/downloads/dbi/ruby-dbi-all-current.tar.gz>)).
+
+: Ruby/DBI 0.0.11
+
+  ((<URL:http://www.ruby-projects.org/downloads/dbi/ruby-dbi-all-0.0.11.tar.gz>))
 
 : Ruby/DBI 0.0.10
 

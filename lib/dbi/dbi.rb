@@ -1,7 +1,7 @@
 # Ruby/DBI 
-# $Id: dbi.rb,v 1.22 2001/10/22 16:05:04 michael Exp $
+# $Id: dbi.rb,v 1.23 2001/11/13 11:32:10 michael Exp $
 # 
-# Version : 0.0.9
+# Version : 0.0.11
 # Author  : Michael Neumann (neumann@s-direktnet.de)
 #
 # adapted from Rainer Perl's Ruby/DBI version 0.0.4
@@ -41,7 +41,7 @@ end
 #  Constants
 #----------------------------------------------------
 
-VERSION = "0.0.9"
+VERSION = "0.0.11"
 
 ##
 # Constants for fetch_scroll
