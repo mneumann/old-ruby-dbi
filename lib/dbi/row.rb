@@ -112,6 +112,9 @@ class Row < DelegateClass(Array)
     end 
   end
 
+  def clone
+    clone_with(@arr.dup)
+  end
 
   private # ----------------------------------------------------------
 

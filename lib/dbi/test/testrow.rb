@@ -24,34 +24,34 @@ class TestDbRow < RUNIT::TestCase
 
   def test_by_index
     row = make_row
-    assert_equal "Jim", row.by_index(0)
-    assert_equal "Weirich", row.by_index(1)
-    assert_equal 45, row.by_index(2)
+    assert_equal sample_data[0], row.by_index(0)
+    assert_equal sample_data[1], row.by_index(1)
+    assert_equal sample_data[2], row.by_index(2)
     assert_nil row.by_index(3)
   end
 
   def test_by_field
     row = make_row
-    assert_equal "Jim", row.by_field('first')
-    assert_equal "Weirich", row.by_field('last')
-    assert_equal 45, row.by_field('age')
+    assert_equal sample_data[0], row.by_field('first')
+    assert_equal sample_data[1], row.by_field('last')
+    assert_equal sample_data[2], row.by_field('age')
     assert_equal nil, row.by_field('unknown')
   end
 
   def test_indexing
     row = make_row
-    assert_equal "Jim", row[0]
-    assert_equal "Jim", row['first']
-    assert_equal "Weirich", row[1]
-    assert_equal "Weirich", row['last']
-    assert_equal 45, row[2]
-    assert_equal 45, row['age']
+    assert_equal sample_data[0], row[0]
+    assert_equal sample_data[0], row['first']
+    assert_equal sample_data[1], row[1]
+    assert_equal sample_data[1], row['last']
+    assert_equal sample_data[2], row[2]
+    assert_equal sample_data[2], row['age']
     assert_equal nil, row['unknown']
   end
 
   def test_iteration
     row = make_row
-    expect = ["Jim", "Weirich", 45]
+    expect = sample_data.clone
     row.each { |value|
       assert_equal expect.shift, value
     }
@@ -77,15 +77,27 @@ class TestDbRow < RUNIT::TestCase
   end
 
   def test_to_array
-    assert_equal ['Jim', 'Weirich', 45], make_row.to_a
+    assert_equal sample_data, make_row.to_a
+  end
+
+  def test_dup_clone
+    row = make_row
+    dupped = row.dup
+    cloned = row.clone
+    row.set_values(["Bill", "Jones", 16])
+    assert_equal sample_data, dupped.to_a
+    assert_equal sample_data, cloned.to_a
   end
 
   private
 
   def make_row
     names  = %w(first last age)
-    values = ['Jim', 'Weirich', 45]
-    DBI::Row.new(names, values)
+    DBI::Row.new(names, sample_data.clone)
+  end
+
+  def sample_data
+    ['Jim', 'Weirich', 45]
   end
 
 end
