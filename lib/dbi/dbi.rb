@@ -1,7 +1,7 @@
 # Ruby/DBI 
-# $Id: dbi.rb,v 1.16 2001/07/19 09:37:45 michael Exp $
+# $Id: dbi.rb,v 1.17 2001/08/23 20:59:41 michael Exp $
 # 
-# Version : 0.0.5
+# Version : 0.0.9
 # Author  : Michael Neumann (neumann@s-direktnet.de)
 #
 # adapted from Rainer Perl's Ruby/DBI version 0.0.4
@@ -32,7 +32,7 @@ module DBI
 
 module DBD
   DIR = "DBD"
-  API_VERSION = "0.1"
+  API_VERSION = "0.2"
 end
 
 
@@ -40,7 +40,7 @@ end
 #  Constants
 #----------------------------------------------------
 
-VERSION = "0.0.6"
+VERSION = "0.0.9"
 
 ##
 # Constants for fetch_scroll
@@ -48,15 +48,101 @@ VERSION = "0.0.6"
 SQL_FETCH_NEXT, SQL_FETCH_PRIOR, SQL_FETCH_FIRST, SQL_FETCH_LAST, 
 SQL_FETCH_ABSOLUTE, SQL_FETCH_RELATIVE = (1..6).to_a
 
+
+##
+# SQL type constants
+# 
+SQL_BIT = -7
+SQL_TINYINT = -6
+SQL_SMALLINT = 5
+SQL_INTEGER = 4
+SQL_BIGINT = -5
+
+SQL_FLOAT = 6
+SQL_REAL = 7
+SQL_DOUBLE = 8
+
+SQL_NUMERIC = 2
+SQL_DECIMAL = 3
+
+SQL_CHAR = 1
+SQL_VARCHAR = 12
+SQL_LONGVARCHAR = -1
+
+SQL_DATE = 91
+SQL_TIME = 92
+SQL_TIMESTAMP = 93
+
+SQL_BINARY = -2
+SQL_VARBINARY = -3
+SQL_LONGVARBINARY = -4
+
+# TODO
+# Find types for these (XOPEN?)
+#SQL_ARRAY = 
+#SQL_BLOB = 
+#SQL_CLOB = 
+#SQL_DISTINCT = 
+#SQL_OBJECT = 
+#SQL_NULL = 
+SQL_OTHER = 100
+#SQL_REF = 
+#SQL_STRUCT = 
+
+class ColumnInfo
+
+  # define attribute accessors for the following attributes:
+  attrs = %w(name type type_name size decimal_digits default nullable indexed primary unique)
+  attrs.each do | attr |
+    eval %{
+      def #{ attr }()         @hash['#{ attr }']         end
+      def #{ attr }=( value ) @hash['#{ attr }'] = value end
+    }
+  end
+
+  alias nullable? nullable
+  alias is_nullable? nullable
+
+  alias indexed? indexed
+  alias is_indexed? indexed
+
+  alias primary? primary
+  alias is_primary? primary
+
+  alias unique? unique
+  alias is_unique unique
+
+  # Constructor methods ------------------------------------------------------------------------
+
+  def initialize( hash=nil )
+    @hash = hash || Hash.new
+  end
+
+  # Attribute getter/setter --------------------------------------------------------------------
+  
+  def []( attr ) 
+    @hash[attr]
+  end
+
+  def []=( attr, value ) 
+    @hash[attr] = value
+  end
+
+end
+
+
+
+
+
 ##
 # Constants for bind_param (not yet in use)
 #
-SQL_BIGINT, SQL_BLOB, SQL_BLOB_LOCATOR, SQL_CHAR, SQL_BINARY,
-SQL_CLOB, SQL_CLOB_LOCATOR, SQL_TYPE_DATE, SQL_DBCLOB, SQL_DBCLOB_LOCATOR,
-SQL_DECIMAL, SQL_DOUBLE, SQL_FLOAT, SQL_GRAPHIC, SQL_INTEGER,
-SQL_LONGVARCHAR, SQL_LONGVARBINARY, SQL_LONGVARGRAPHIC, SQL_NUMERIC, SQL_REAL,
-SQL_SMALLINT, SQL_TYPE_TIME, SQL_TYPE_TIMESTAMP, SQL_VARCHAR, SQL_VARBINARY,
-SQL_VARGRAPHIC = (7..33).to_a
+#SQL_BIGINT, SQL_BLOB, SQL_BLOB_LOCATOR, SQL_CHAR, SQL_BINARY,
+#SQL_CLOB, SQL_CLOB_LOCATOR, SQL_TYPE_DATE, SQL_DBCLOB, SQL_DBCLOB_LOCATOR,
+#SQL_DECIMAL, SQL_DOUBLE, SQL_FLOAT, SQL_GRAPHIC, SQL_INTEGER,
+#SQL_LONGVARCHAR, SQL_LONGVARBINARY, SQL_LONGVARGRAPHIC, SQL_NUMERIC, SQL_REAL,
+#SQL_SMALLINT, SQL_TYPE_TIME, SQL_TYPE_TIMESTAMP, SQL_VARCHAR, SQL_VARBINARY,
+#SQL_VARGRAPHIC = (7..33).to_a
 
 
 #----------------------------------------------------
@@ -534,6 +620,11 @@ class DatabaseHandle < Handle
     @handle.tables
   end
 
+  def columns( table )
+    raise InterfaceError, "Database connection was already closed!" if @handle.nil?
+    @handle.columns( table ).collect {|col| ColumnInfo.new(col) }
+  end
+
   def ping
     raise InterfaceError, "Database connection was already closed!" if @handle.nil?
     @handle.ping
@@ -649,7 +740,7 @@ class StatementHandle < Handle
 
   def column_info
     raise InterfaceError, "Statement was already closed!" if @handle.nil?
-    @handle.column_info
+    @handle.column_info.collect {|col| ColumnInfo.new(col) }
   end
 
   def rows
@@ -872,6 +963,11 @@ class BaseDatabase < Base
   def tables
     []
   end
+
+  def columns(table)
+    []
+  end
+
 
   def execute(statement, *bindvars)
     stmt = prepare(statement)
