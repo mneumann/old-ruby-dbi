@@ -7,21 +7,64 @@ require 'runit/cui/testrunner'
 require 'dbi'
 
 ######################################################################
+# Configuration Control
+#
+class DbiTestConfig
+  attr_accessor :driver, :dbname, :user, :password
+  attr_accessor :tables
+  attr_accessor :setup, :teardown
+  
+  def id
+    "DBI:#{driver}:#{dbname}"
+  end
+
+  def load(fn)
+    @tables = []
+    open(fn) { |file|
+      file.each { |line|
+	next if line =~ /^\s*#/	
+	if line =~ /^\s*(\S+)\s+(.*)$/
+	  key, value = $1, $2
+	  case key.downcase
+	  when 'driver'
+	    @driver = value
+	  when 'dbname'
+	    @dbname = value
+	  when 'user'
+	    @user = value
+	  when 'password'
+	    @password = value
+	  when 'table'
+	    @tables << value
+	  when 'setup'
+	    @setup = value
+	  when 'teardown'
+	    @teardown = value
+	  else
+	    raise "Unidentified Config Item '#{line}'"
+	  end
+	end
+      }
+    }
+  end
+
+  def DbiTestConfig.load(fn)
+    cfg = DbiTestConfig.new
+    cfg.load(fn)
+    cfg
+  end
+  
+end
+
+
+######################################################################
 # Configuration Options
 #
 # Set the following values as appropriate to test the driver.
 #
-module DbiTestConfig
-  DRIVER          = "Postgresql"
-  TEST_TABLE      = "names"
-  DB_NAME         = "rubytest"
-
-  DBI_ID          = "DBI:#{DRIVER}:#{DB_NAME}"
-  DBI_USER        = "jim"
-  DBI_PASSWORD    = ""
-
+module DbiTestUtils
   def get_db
-    db = DBI.connect(DBI_ID, DBI_USER, DBI_PASSWORD)
+    db = DBI.connect($cfg.id, $cfg.user, $cfg.password)
     assert db.connected?
     db
   end
@@ -42,10 +85,8 @@ end
 
 module DbiInsertUtils
 
-  include DbiTestConfig
-
   def check_insert
-    st = @db.prepare("SELECT name, age FROM #{TEST_TABLE} WHERE age = 12")
+    st = @db.prepare("SELECT name, age FROM #{$cfg.tables[0]} WHERE age = 12")
     st.execute
     row = st.fetch
     assert_equal 'Zeb', row[0]
@@ -56,7 +97,7 @@ module DbiInsertUtils
   end
 
   def check_no_insert
-    st = @db.prepare("SELECT name, age FROM #{TEST_TABLE} WHERE age = 12")
+    st = @db.prepare("SELECT name, age FROM #{$cfg.tables[0]} WHERE age = 12")
     st.execute
     assert_nil st.fetch
   ensure
@@ -64,7 +105,7 @@ module DbiInsertUtils
   end
 
   def clear_insert
-    @db.do("DELETE FROM #{TEST_TABLE} WHERE age < 20 OR name = 'Zeb'")
+    @db.do("DELETE FROM #{$cfg.tables[0]} WHERE age < 20 OR name = 'Zeb'")
   end
 
 end
@@ -75,7 +116,7 @@ $last_suite = RUNIT::TestSuite.new
 ######################################################################
 class TestDbiAttributes < RUNIT::TestCase
 
-  include DbiTestConfig
+  include DbiTestUtils
   include DbiInsertUtils
 
   def test_auto_commit
@@ -96,7 +137,7 @@ $last_suite.add_test (TestDbiAttributes.suite)
 ######################################################################
 class TestDbiDb < RUNIT::TestCase
 
-  include DbiTestConfig
+  include DbiTestUtils
   include DbiInsertUtils
 
   def setup
@@ -119,7 +160,7 @@ class TestDbiDb < RUNIT::TestCase
 
   ## Make sure that we can prepare a SELECT statement and fetch data.
   def test_prepare
-    st = @db.prepare("SELECT age, name FROM #{TEST_TABLE} ORDER BY age")
+    st = @db.prepare("SELECT age, name FROM #{$cfg.tables[0]} ORDER BY age")
     assert st
     st.execute    
 
@@ -133,7 +174,7 @@ class TestDbiDb < RUNIT::TestCase
 
   ## Make sure do works
   def test_do
-    @db.do("INSERT INTO #{TEST_TABLE} (name, age) VALUES ('Zeb', 12)")
+    @db.do("INSERT INTO #{$cfg.tables[0]} (name, age) VALUES ('Zeb', 12)")
     check_insert
   ensure
     clear_insert
@@ -141,7 +182,7 @@ class TestDbiDb < RUNIT::TestCase
 
   ## Make sure do with parameters works
   def test_do_with_parameters
-    @db.do("INSERT INTO #{TEST_TABLE} (name, age) VALUES (?,?)", 'Zeb', 12)
+    @db.do("INSERT INTO #{$cfg.tables[0]} (name, age) VALUES (?,?)", 'Zeb', 12)
     check_insert
   ensure
     clear_insert
@@ -149,7 +190,7 @@ class TestDbiDb < RUNIT::TestCase
 
   ## Make sure execute works
   def test_execute
-    st = @db.prepare("INSERT INTO #{TEST_TABLE} (name, age) VALUES ('Zeb', 12)")
+    st = @db.prepare("INSERT INTO #{$cfg.tables[0]} (name, age) VALUES ('Zeb', 12)")
     st.execute
     check_insert
   ensure
@@ -159,7 +200,7 @@ class TestDbiDb < RUNIT::TestCase
 
   ## Make sure execute works
   def test_execute_with_parameters
-    st = @db.prepare("INSERT INTO #{TEST_TABLE} (name, age) VALUES (?,?)")
+    st = @db.prepare("INSERT INTO #{$cfg.tables[0]} (name, age) VALUES (?,?)")
     st.execute('Zeb', 12)
     check_insert
   ensure
@@ -169,8 +210,8 @@ class TestDbiDb < RUNIT::TestCase
 
   ## Make sure we can insert/read null data
   def test_insert_null
-    @db.do ("INSERT INTO #{TEST_TABLE} (name) VALUES ('Zeb')")
-    st = @db.prepare("SELECT name, age FROM #{TEST_TABLE} WHERE name='Zeb'")
+    @db.do ("INSERT INTO #{$cfg.tables[0]} (name) VALUES ('Zeb')")
+    st = @db.prepare("SELECT name, age FROM #{$cfg.tables[0]} WHERE name='Zeb'")
     st.execute
     row = st.fetch
     assert_equal "Zeb", row[0]
@@ -192,11 +233,11 @@ $last_suite.add_test (TestDbiDb.suite)
 ######################################################################
 class TestDbiStatement < RUNIT::TestCase
 
-  include DbiTestConfig
+  include DbiTestUtils
 
   def test_column_names
     db = get_db_auto
-    st = db.prepare "SELECT name, age from #{TEST_TABLE}"
+    st = db.prepare "SELECT name, age from #{$cfg.tables[0]}"
     st.execute
     info = st.column_info
     assert_equal 'name', info[0]['name']
@@ -214,7 +255,7 @@ class TestDbiStatement < RUNIT::TestCase
     db = get_db_auto
     expected_ages = [20,21,22]
     expected_names = ["Adam", "Bob", "Charlie"]
-    st = db.prepare("SELECT age, name FROM #{TEST_TABLE} ORDER BY age")
+    st = db.prepare("SELECT age, name FROM #{$cfg.tables[0]} ORDER BY age")
     st.execute
     while row = st.fetch
       assert_equal expected_ages.shift,  row[0]
@@ -227,7 +268,7 @@ class TestDbiStatement < RUNIT::TestCase
   
   def test_block_fetch_with_parameters
     db = get_db_auto
-    st = db.prepare("SELECT age, name FROM #{TEST_TABLE} " +
+    st = db.prepare("SELECT age, name FROM #{$cfg.tables[0]} " +
 		    "WHERE age=? " +
 		    "ORDER BY age")
     st.execute(21)
@@ -247,7 +288,7 @@ class TestDbiStatement < RUNIT::TestCase
     db = get_db_auto
     expected_ages = [20,21,22]
     expected_names = ["Adam", "Bob", "Charlie"]
-    st = db.prepare("SELECT age, name FROM #{TEST_TABLE} ORDER BY age")
+    st = db.prepare("SELECT age, name FROM #{$cfg.tables[0]} ORDER BY age")
     st.execute
     st.fetch { |row|
       assert_equal expected_ages.shift,  row[0]
@@ -267,12 +308,12 @@ $last_suite.add_test (TestDbiStatement.suite)
 ######################################################################
 class TestDbiPostgresErrors < RUNIT::TestCase
 
-  include DbiTestConfig
+  include DbiTestUtils
   
   def test_bad_db_name
     db = nil
     assert_exception (DBI::OperationalError) {
-      db = DBI.connect "DBI:#{DRIVER}:bad_database_name", DBI_USER
+      db = DBI.connect "DBI:#{$cfg.driver}:bad_database_name", $cfg.user
     }
   ensure
     db.disconnect if db
@@ -281,7 +322,7 @@ class TestDbiPostgresErrors < RUNIT::TestCase
   def test_missing_user
     db = nil
     assert_exception (DBI::OperationalError) {
-      db = DBI.connect "DBI:#{DRIVER}:bad_database_name"
+      db = DBI.connect "DBI:#{$cfg.driver}:bad_database_name"
     }
   ensure
     db.disconnect if db
@@ -303,7 +344,7 @@ class TestDbiPostgresErrors < RUNIT::TestCase
     db = get_db_auto
     st = nil
     assert_exception (DBI::ProgrammingError) {
-      st = db.prepare ("SELECT name, age FROM #{TEST_TABLE} WHERE age=?")
+      st = db.prepare ("SELECT name, age FROM #{$cfg.tables[0]} WHERE age=?")
       st.execute(10, 11)
     }
   ensure
@@ -315,7 +356,7 @@ class TestDbiPostgresErrors < RUNIT::TestCase
     db = get_db_auto
     st = nil
     assert_exception (DBI::ProgrammingError) {
-      st = db.prepare ("SELECT name, age FROM #{TEST_TABLE} WHERE age=? AND name=?")
+      st = db.prepare ("SELECT name, age FROM #{$cfg.tables[0]} WHERE age=? AND name=?")
       st.execute(10)
     }
   ensure
@@ -332,7 +373,7 @@ $last_suite.add_test (TestDbiPostgresErrors.suite)
 ######################################################################
 class TestDbiTransactions < RUNIT::TestCase
 
-  include DbiTestConfig
+  include DbiTestUtils
   include DbiInsertUtils
 
   def setup
@@ -345,7 +386,7 @@ class TestDbiTransactions < RUNIT::TestCase
 
   ## Make sure we can commit
   def test_commit
-    @db.do("INSERT INTO #{TEST_TABLE} (name, age) VALUES ('Zeb', 12)")
+    @db.do("INSERT INTO #{$cfg.tables[0]} (name, age) VALUES ('Zeb', 12)")
     @db.commit
     check_insert
   ensure
@@ -354,7 +395,7 @@ class TestDbiTransactions < RUNIT::TestCase
 
   ## Make sure we can rollback
   def test_rollback
-    @db.do("INSERT INTO #{TEST_TABLE} (name, age) VALUES ('Zeb', 12)")
+    @db.do("INSERT INTO #{$cfg.tables[0]} (name, age) VALUES ('Zeb', 12)")
     @db.rollback
     check_no_insert
   ensure
@@ -368,7 +409,7 @@ $last_suite.add_test (TestDbiTransactions.suite)
 ######################################################################
 class TestDbiQuoting < RUNIT::TestCase
 
-  include DbiTestConfig
+  include DbiTestUtils
 
   ## Make sure we can properly quote both strings and other types.
   def test_quoting
@@ -393,20 +434,23 @@ $last_suite.add_test (TestDbiQuoting.suite)
 
 
 ######################################################################
+# Wrap the previous tests in a test that initializes the database by
+# running the configured setup and teardown scripts.
+#
 class DbiWrapper < RUNIT::TestCase
 
-  include DbiTestConfig
+  include DbiTestUtils
 
   def initialize(suite)
     @test_suite = suite
   end
 
   def setup
-    system "testsetup.sh rubytest #{DBI_USER} '' #{TEST_TABLE} >sql.log 2>&1"
+    system "#{$cfg.setup} >test.log 2>&1"
   end
 
   def teardown
-    system "testteardown.sh rubytest #{DBI_USER} '' #{TEST_TABLE} >>sql.log 2>&1"
+    system "#{$cfg.teardown} >>test.log 2>&1"
   end
 
   def run(test_result)
@@ -418,6 +462,29 @@ end
 
 $last_suite = DbiWrapper.new($last_suite)
 
+
+######################################################################
+# Wrap the previous tests in a test that will run the given tests
+# through a series of different configurations.
+#
+class DbiConfigBuilder < RUNIT::TestCase
+
+  include DbiTestUtils
+
+  def initialize(suite)
+    @test_suite = suite
+  end
+
+  def run(test_result)
+    Dir['*.cfg'].each { |fn|
+      puts "\nRunning with Config File #{fn}"
+      $cfg = DbiTestConfig.load("skaro.cfg")
+      @test_suite.run(test_result)
+    }
+  end
+end
+
+$last_suite = DbiConfigBuilder.new($last_suite)
 
 # --------------------------------------------------------------------
 
