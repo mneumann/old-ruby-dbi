@@ -40,8 +40,8 @@ module DBI
 	  load_type_map
 	  @in_transaction = false
 	  initialize_autocommit
-	rescue PGError
-	  raise DBI::OperationalError.new($!.dup, $!.message, 0)
+	rescue PGError => err
+	  raise DBI::OperationalError.new(err.type.to_s, err.message, 0)
 	end
 	
 	# DBD Protocol -----------------------------------------------
@@ -205,8 +205,8 @@ module DBI
 	    pg_result = @db.send_sql(boundsql)
 	    @result = Tuples.new(@db, pg_result)
 	  end
-	rescue PGError, RuntimeError
-	  raise DBI::ProgrammingError.new($!, $!.message, 0)
+	rescue PGError, RuntimeError => err
+	  raise DBI::ProgrammingError.new(err.type.to_s, err.message, 0)
 	end
 	
 	def fetch
