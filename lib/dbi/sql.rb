@@ -1,5 +1,5 @@
 #
-# $Id: sql.rb,v 1.9 2001/11/22 14:23:34 michael Exp $
+# $Id: sql.rb,v 1.10 2001/11/25 23:25:41 michael Exp $
 #
 # parts extracted from Jim Weirichs DBD::Pg
 #
@@ -149,13 +149,15 @@ module SQL
   class PreparedStatement
     include BasicBind # for method tokens(sql)
 
+    attr_accessor :unbound
+
     def initialize(quoter, sql)
       @quoter, @sql = quoter, sql
       prepare
     end
 
     def bind(args)
-      if @arg_index< args.size
+      if @arg_index < args.size
         raise "Too many SQL parameters"
       elsif @arg_index > args.size
         raise "Not enough SQL parameters"
