@@ -27,7 +27,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: SQLite.c,v 1.8 2003/09/14 09:35:05 mneumann Exp $
+ * $Id: SQLite.c,v 1.9 2004/04/26 08:40:11 mneumann Exp $
  */
 
 
@@ -78,6 +78,14 @@ struct sTable {
   char **result;
   int nrow, ncolumn;
 };
+
+static void
+rubydbi_sqlite_check_sql(VALUE sql)
+{
+  if (RTEST(rb_funcall(sql, rb_intern("include?"), 1, INT2FIX(0)))) {
+    rb_raise(eDatabaseError, "Bad SQL, it contains NULL(\\0) character.");
+  }
+}
 
 static VALUE
 Driver_initialize(VALUE self)
@@ -327,7 +335,8 @@ Database_do(int argc, VALUE *argv, VALUE self)
   prs[1] = argv[0];
   prs[2] = rb_ary_new4(argc-1, &argv[1]); 
   sql = rb_funcall2(self, rb_intern("bind"), 3, prs);
-
+  rubydbi_sqlite_check_sql(sql);
+  
   state = sqlite_exec(db->conn, STR2CSTR(sql), NULL, NULL, &errmsg);
   if (state != SQLITE_OK) {
     errstr = rb_str_new2(errmsg); free(errmsg);
@@ -520,6 +529,7 @@ Statement_execute(VALUE self)
   prs[1] = sm->statement;
   prs[2] = rb_iv_get(self, "@params"); 
   sql = rb_funcall2(self, rb_intern("bind"), 3, prs);
+  rubydbi_sqlite_check_sql(sql);
 
   rb_iv_set(sm->statement, "@params", rb_ary_new()); /* @params = [] */
   sm->row_index = 0;
