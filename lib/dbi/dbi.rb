@@ -27,7 +27,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: dbi.rb,v 1.35 2002/10/22 15:06:04 mneumann Exp $
+# $Id: dbi.rb,v 1.36 2003/02/08 02:26:15 pdubois Exp $
 #
 
 require "dbi/row"
@@ -460,8 +460,25 @@ end
       end
 
       found ||= driver_name
+
+      # On a filesystem that is not case-sensitive (e.g., HFS+ on Mac OS X),
+      # the initial require attempt that loads the driver may succeed even
+      # though the lettercase of driver_name doesn't match the actual
+      # filename. If that happens, const_get will fail and it become
+      # necessary to look though the list of constants and look for a
+      # caseless match.  The result of this match provides the constant
+      # with the proper lettercase -- which can be used to generate the
+      # driver handle.
  
-      dr = DBI::DBD.const_get(found.intern)
+      dr = nil
+      begin
+        dr = DBI::DBD.const_get(found.intern)
+      rescue NameError
+        # caseless look for constants to find actual constant
+        found = found.downcase
+        found = DBI::DBD.constants.find { |e| e.downcase == found }
+        dr = DBI::DBD.const_get(found.intern) unless found.nil?
+      end
       dbd_dr = dr::Driver.new
       drh = DBI::DriverHandle.new(dbd_dr)
       drh.trace(@@trace_mode, @@trace_output)
