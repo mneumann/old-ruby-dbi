@@ -5,6 +5,7 @@ require 'runit/testcase'
 require 'runit/cui/testrunner'
 
 require "../dbi"
+require "../sql"
 
 $last_suite = RUNIT::TestSuite.new
 
@@ -59,6 +60,59 @@ end
 
 $last_suite.add_test (TestSqlBind.suite)
 
+
+# ====================================================================
+class TestSqlPreparedStmt < RUNIT::TestCase
+  include DBI::SQL::BasicQuote
+
+  def get_stmt(sql)
+    DBI::SQL::PreparedStatement.new(self, sql)
+  end
+
+  def test_one
+    assert_equal "10", get_stmt("?").bind([10])
+    assert_equal "'hi'", get_stmt("?").bind(["hi"])
+    assert_equal "I 'don''t' know", get_stmt("I ? know").bind(["don't"])
+  end
+
+  def test_many
+    assert_equal "WHERE age=12 AND name='Jim'",
+      get_stmt("WHERE age=? AND name=?").bind([12, 'Jim'])
+  end
+
+  def test_too_many
+    assert_exception (RuntimeError) {
+      get_stmt("age=?").bind([10, 11])
+    }
+  end
+
+  def test_too_few
+    assert_exception (RuntimeError) {
+      get_stmt("age in (?, ?, ?)").bind([10, 11])
+    }
+  end
+
+  def test_embedded_questions
+    assert_equal "10 ? 11", get_stmt("? ?? ?").bind([10, 11])
+    assert_equal "????", get_stmt("????????").bind([])
+  end
+
+  def test_questions_in_param
+    assert_equal "WHERE c='connected?'",
+      get_stmt("WHERE c=?").bind(["connected?"])
+
+    assert_equal "WHERE c='connected?' AND d='???'",
+      get_stmt("WHERE c=? AND d=?").bind(["connected?", "???"])
+  end
+
+  def test_questions_in_quotes
+    assert_equal "WHERE c='connected?' AND d=10",
+      get_stmt("WHERE c='connected?' AND d=?").bind([10])
+  end
+
+end
+
+$last_suite.add_test (TestSqlPreparedStmt.suite)
 
 
 
