@@ -27,7 +27,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: ODBC.rb,v 1.8 2002/07/03 16:48:35 mneumann Exp $
+# $Id: ODBC.rb,v 1.9 2004/05/20 10:27:21 mneumann Exp $
 #
 
 $:.delete(".")
@@ -38,7 +38,7 @@ module DBI
 module DBD
 module ODBC
 
-VERSION          = "0.2.1"
+VERSION          = "0.2.2"
 USED_DBD_VERSION = "0.2"
 
 ODBCErr = ::ODBC::Error
@@ -72,7 +72,24 @@ class Driver < DBI::BaseDriver
   end
 
   def connect(dbname, user, auth, attr)
-    handle = ::ODBC.connect(dbname, user, auth)
+    driver_attrs = dbname.split(';')
+
+    if driver_attrs.size > 1
+      # DNS-less connection
+      drv = ::ODBC::Driver.new
+      drv.name = 'Driver1'
+      driver_attrs.each do |param|
+        pv = param.split('=')
+        next if pv.size < 2
+        drv.attrs[pv[0]] = pv[1]
+      end
+      db = ::ODBC::Database.new
+      handle = db.drvconnect(drv)
+    else
+      # DNS given
+      handle = ::ODBC.connect(dbname, user, auth)
+    end
+
     return Database.new(handle, attr)
   rescue ODBCErr => err
     raise DBI::DatabaseError.new(err.message)
