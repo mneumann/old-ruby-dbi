@@ -478,7 +478,7 @@ class DbiConfigBuilder < RUNIT::TestCase
   def run(test_result)
     Dir['*.cfg'].each { |fn|
       puts "\nRunning with Config File #{fn}"
-      $cfg = DbiTestConfig.load("skaro.cfg")
+      $cfg = DbiTestConfig.load(fn)
       @test_suite.run(test_result)
     }
   end
