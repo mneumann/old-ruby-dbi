@@ -9,6 +9,8 @@ module DBI
 
 class Row < DelegateClass(Array)
 
+  include Enumerable
+
   def initialize(col_names, size_or_arr=nil)
     size_or_arr ||= col_names.size 
 
