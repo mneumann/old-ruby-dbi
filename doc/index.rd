@@ -1,10 +1,10 @@
 =begin
 = Ruby/DBI - a database independent interface for accessing databases - similar to Perl's DBI
-$Id: index.rd,v 1.29 2003/04/27 17:40:36 mneumann Exp $
+$Id: index.rd,v 1.30 2003/05/16 09:50:43 mneumann Exp $
 
 == License
 
-Copyright (c) 2001, 2002 Michael Neumann <neumann@s-direktnet.de>
+Copyright (c) 2001, 2002, 2003 Michael Neumann <mneumann@ntecs.de>
 
 All rights reserved.
 
@@ -72,11 +72,17 @@ License).
   Submitted several patches and helped with lots of comments; Co-owner of the project.
 : MoonWolf
   quote/escape_bytea patch for DBD Pg.
+  DBD::SQLite patch
 : Paul DuBois
   Fixed typos and formatting. 
   Maintains DBD Mysql.
 : Tim Bates
   Bug fixes for Mysql and DBI
+: Brian Candler
+  Zero-padding date/time/timestamps fix.
+: Florian G. Pflug
+  Discussion and helpful comments/benchmarks about DBD::Pg 
+  async_exec vs. exec.
 
 
 == Database Drivers (DBDs)
@@ -111,6 +117,10 @@ License).
 * Oracle ((*(dbd_oracle)*))
 
   depend on the "Oracle 7 Module for Ruby" version 0.2.11 by Yoshida Masato, available from RAA. Works fine with Oracle 8/8i.
+
+* Oracle OCI8 ((*(dbd_oci8)*))
+
+  ((<URL:http://www.jiubao.org/ruby-oci8/index.en.html>))
 
 * PostgreSQL ((*(dbd_pg)*))
 
