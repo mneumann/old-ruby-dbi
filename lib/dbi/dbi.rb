@@ -1,5 +1,5 @@
 # Ruby/DBI 
-# $Id: dbi.rb,v 1.15 2001/07/10 15:07:21 michael Exp $
+# $Id: dbi.rb,v 1.16 2001/07/19 09:37:45 michael Exp $
 # 
 # Version : 0.0.5
 # Author  : Michael Neumann (neumann@s-direktnet.de)
@@ -312,7 +312,6 @@ end
           next unless FileTest.directory?(path)
           found = Dir.entries(path).find {|e| e.downcase == dc}
           next unless found
-          next unless FileTest.file?("#{path}/#{found}") 
 
           require "#{DBD::DIR}/#{found}/#{found}"
           break
@@ -362,7 +361,7 @@ end
 
   def DBI.data_sources(driver)
     db_driver, = parse_url(driver)
-    load_driver(db_driver)
+    db_driver = load_driver(db_driver)
     dh = @@driver_map[db_driver][0]
     dh.data_sources
   end
