@@ -1,5 +1,5 @@
 # Ruby/DBI 
-# $Id: dbi.rb,v 1.20 2001/08/30 14:30:51 michael Exp $
+# $Id: dbi.rb,v 1.21 2001/10/10 10:47:57 michael Exp $
 # 
 # Version : 0.0.9
 # Author  : Michael Neumann (neumann@s-direktnet.de)
@@ -289,26 +289,34 @@ end
 
 
 
+  class << self
+
   ##
   # establish a database connection
   # 
-  def DBI.connect(driver_url, user=nil, auth=nil, params=nil, &p)
-    db_driver, db_args = parse_url(driver_url)
-    db_driver = load_driver(db_driver)
-    dh = @@driver_map[db_driver][0]
+  def connect(driver_url, user=nil, auth=nil, params=nil, &p)
+    dr, db_args = _get_full_driver(driver_url)
+    dh = dr[0] # driver-handle
 
     dh.connect(db_args, user, auth, params, &p)
   end
 
-  class << self
   ##
-  # load a DBD and get the Driver object
+  # load a DBD and returns the DriverHandle object
   # 
   def get_driver(driver_url)
+    _get_full_driver(driver_url)[0][0]  # return DriverHandle
+  end
+
+
+  ##
+  # extracts the db_args from driver_url and returns the correspondeing
+  # entry of the @@driver_map.
+  #
+  def _get_full_driver(driver_url)
     db_driver, db_args = parse_url(driver_url)
     db_driver = load_driver(db_driver)
     dr = @@driver_map[db_driver]
-
     [dr, db_args]
   end
 
@@ -317,7 +325,37 @@ end
     @@trace_output = output || @@trace_output || DBI::DEFAULT_TRACE_OUTPUT
   end
 
+  def available_drivers
+    found_drivers = []
+    $:.each do |path|
+      Dir["#{path}/#{DBD::DIR}/*"].each do |dr| 
+        if FileTest.directory? dr then
+          dir = File.basename(dr)
+          Dir["#{path}/#{DBD::DIR}/#{dir}/*"].each do |fl|
+            next unless FileTest.file? fl 
+            found_drivers << dir if File.basename(fl) =~ /^#{dir}\./
+          end
+        end
+      end
+    end
+    found_drivers.uniq.collect {|dr| "dbi:#{dr}:" }
+  end
 
+  def data_sources(driver)
+    db_driver, = parse_url(driver)
+    db_driver = load_driver(db_driver)
+    dh = @@driver_map[db_driver][0]
+    dh.data_sources
+  end
+
+  def disconnect_all( driver = nil )
+    if driver.nil?
+      @@driver_map.each {|k,v| v[0].disconnect_all}
+    else
+      db_driver, = parse_url(driver)
+      @@driver_map[db_driver][0].disconnect_all
+    end
+  end
 
 
   private
@@ -375,38 +413,6 @@ end
 
   end # self
 
-  def DBI.available_drivers
-    found_drivers = []
-    $:.each do |path|
-      Dir["#{path}/#{DBD::DIR}/*"].each do |dr| 
-        if FileTest.directory? dr then
-          dir = File.basename(dr)
-          Dir["#{path}/#{DBD::DIR}/#{dir}/*"].each do |fl|
-            next unless FileTest.file? fl 
-            found_drivers << dir if File.basename(fl) =~ /^#{dir}\./
-          end
-        end
-      end
-    end
-    found_drivers.uniq.collect {|dr| "dbi:#{dr}:" }
-  end
-
-  def DBI.data_sources(driver)
-    db_driver, = parse_url(driver)
-    db_driver = load_driver(db_driver)
-    dh = @@driver_map[db_driver][0]
-    dh.data_sources
-  end
-
-  def DBI.disconnect_all( driver = nil )
-    if driver.nil?
-      @@driver_map.each {|k,v| v[0].disconnect_all}
-    else
-      db_driver, = parse_url(driver)
-      @@driver_map[db_driver][0].disconnect_all
-    end
-  end
-
 
 
 #----------------------------------------------------
@@ -420,6 +426,7 @@ end
 
 class Handle
   attr_reader :trace_mode, :trace_output
+  attr_reader :handle 
 
   def initialize(handle)
     @handle = handle
