@@ -9,12 +9,14 @@ module DBI
 
 class Row < DelegateClass(Array)
 
-  def initialize(col_names, size_or_arr)
+  def initialize(col_names, size_or_arr=nil)
+    size_or_arr ||= col_names.size 
+
     if size_or_arr.is_a? Integer
       @arr = Array.new(size_or_arr)
     elsif size_or_arr.is_a? Array
       @arr = size_or_arr
-    else
+   else
       raise ArgumentError, "parameter must be either Integer or Array"   
     end
 
