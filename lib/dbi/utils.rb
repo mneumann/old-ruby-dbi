@@ -1,5 +1,5 @@
 #
-# $Id: utils.rb,v 1.11 2003/05/31 15:52:20 mneumann Exp $
+# $Id: utils.rb,v 1.12 2003/06/03 18:46:47 mneumann Exp $
 #
 
 module DBI
@@ -127,7 +127,8 @@ module TableFormatter
     col_lengths = (0...(header.size)).collect do |colnr|
       [
       (0...rows.size).collect { |rownr|
-        (rows[rownr][colnr] || "NULL").to_s.size
+        value = rows[rownr][colnr]
+        (value.nil? ? "NULL" : value).to_s.size
       }.max,
       header[colnr].size
       ].max
@@ -144,7 +145,7 @@ module TableFormatter
       output << indent + "|"
       row.each_with_index {|c,i|
         output << cellspace
-        str = (c || "NULL").to_s
+        str = (c.nil? ? "NULL" : c).to_s
         output << case orient
         when :left then   str.ljust(col_lengths[i])
         when :right then  str.rjust(col_lengths[i])
