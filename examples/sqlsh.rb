@@ -1,5 +1,5 @@
 #
-# $Id: sqlsh.rb,v 1.9 2001/11/08 21:51:04 michael Exp $
+# $Id: sqlsh.rb,v 1.10 2001/11/13 14:53:50 michael Exp $
 # by Michael Neumann
 #
 
@@ -45,7 +45,7 @@ end
 
 def output_table(header, rows)
   DBI::Utils::TableFormatter.ascii(header, rows, nil, nil, nil, nil, $page_len) do   
-    $stdin.readline
+    break if $stdin.readline.chomp == "a"
   end
 end
 
