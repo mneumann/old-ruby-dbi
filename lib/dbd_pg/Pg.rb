@@ -27,7 +27,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: Pg.rb,v 1.21 2002/07/03 19:22:47 mneumann Exp $
+# $Id: Pg.rb,v 1.22 2002/07/03 19:56:10 mneumann Exp $
 #
 
 require 'postgres'
@@ -455,7 +455,11 @@ module DBI
 	def fetch
 	  @result.fetchrow
 	end
-	
+
+	def fetch_scroll(direction, offset)
+	  @result.fetch_scroll(direction, offset)
+	end
+
 	def finish
 	  @result.finish if @result
 	  @result = nil
@@ -511,18 +515,43 @@ module DBI
 
 	def fetchrow
 	  @index += 1
-	  if @index < @result.size
+	  if @index < @result.size && @index >= 0
 	    fill_array(@result[@index])
+	    @row
 	  else
-	    @row = nil
+	    nil
 	  end
-	  @row
 	end
 
-	def row_count
-	  @pg_result.num_tuples
+	def fetch_scroll(direction, offset)
+	  # Exact semantics aren't too closely defined.  I attempted to follow the DBI:Mysql example.
+	  case direction
+	  when SQL_FETCH_NEXT
+	    # Nothing special to do, besides the fetchrow
+	  when SQL_FETCH_PRIOR
+	    @index -= 2
+	  when SQL_FETCH_FIRST
+	    @index = -1
+	  when SQL_FETCH_LAST
+	    @index = @result.size - 2
+	  when SQL_FETCH_ABSOLUTE
+	    # Note: if you go "out of range", all fetches will give nil until you get back
+	    # into range, this doesn't raise an error.
+	    @index = offset-1
+	  when SQL_FETCH_RELATIVE
+	    # Note: if you go "out of range", all fetches will give nil until you get back
+	    # into range, this doesn't raise an error.
+	    @index += offset - 1
+	  else
+	    raise NotSupportedError
+	  end
+	  self.fetchrow
 	end
- 
+
+        def row_count
+          @pg_result.num_tuples
+        end
+
         def rows_affected
           @pg_result.cmdtuples
         end
