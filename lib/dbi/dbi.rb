@@ -1,5 +1,5 @@
 # Ruby/DBI 
-# $Id: dbi.rb,v 1.17 2001/08/23 20:59:41 michael Exp $
+# $Id: dbi.rb,v 1.18 2001/08/23 22:11:06 michael Exp $
 # 
 # Version : 0.0.9
 # Author  : Michael Neumann (neumann@s-direktnet.de)
@@ -33,6 +33,7 @@ module DBI
 module DBD
   DIR = "DBD"
   API_VERSION = "0.2"
+  COMPATIBLE_API_VERSIONS = ["0.1", "0.2"]
 end
 
 
@@ -901,7 +902,7 @@ end
 class BaseDriver < Base
 
   def initialize(dbd_version)
-    unless DBD::API_VERSION == dbd_version
+    unless DBD::COMPATIBLE_API_VERSIONS.include?( dbd_version )
       raise InterfaceError, "Wrong DBD API version used"
     end
   end
