@@ -27,7 +27,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: Pg.rb,v 1.31 2003/05/11 15:29:08 mneumann Exp $
+# $Id: Pg.rb,v 1.32 2003/05/18 20:18:10 mneumann Exp $
 #
 
 require 'postgres'
@@ -299,11 +299,102 @@ module DBI
 
         # Other Public Methods ---------------------------------------
 
+
+        # parse a PostgreSQL-Array output and convert into ruby array
+        def convert_array( str, elemtype )
+
+          array_nesting = 0         # nesting level of the array
+          in_string = false         # currently inside a quoted string ?
+          escaped = false           # if the character is escaped
+          sbuffer = ''              # buffer for the current element
+          result_array = Array.new  # the resulting Array
+  
+          str.each_byte { |char|    # parse character by character
+            char = char.chr         # we need the Character, not it's Integer
+
+            if escaped then         # if this character is escaped, just add it to the buffer
+              sbuffer += char
+              escaped = false
+              next
+            end
+    
+            case char               # let's see what kind of character we have
+            #------------- {: beginning of an array ----#
+            when '{'
+              if in_string then     # ignore inside a string
+                sbuffer += char
+                next
+              end
+
+              if array_nesting >= 1 then  # if it's an nested array, defer for recursion
+                sbuffer += char
+              end
+              array_nesting += 1          # inside another array
+    
+            #------------- ": string deliminator --------#
+            when '"'
+              in_string = !in_string      
+
+            #------------- \: escape character, next is regular character #
+            when '\\'     # single \, must be extra escaped in Ruby
+              escaped = true
+
+            #------------- ,: element separator ---------#
+            when ','
+              if in_string or array_nesting > 1 then  # don't care if inside string or
+                sbuffer += char                       # nested array
+              else
+                if !sbuffer.is_a? Array then
+                  sbuffer = convert( sbuffer, elemtype )
+                end
+                result_array << sbuffer               # otherwise, here ends an element
+                sbuffer = ''
+              end
+
+            #------------- }: End of Array --------------#
+            when '}' 
+              if in_string then                # ignore if inside quoted string
+                sbuffer += char
+                next
+              end
+
+              array_nesting -=1                # decrease nesting level
+      
+              if array_nesting == 1            # must be the end of a nested array 
+                sbuffer += char
+                sbuffer = convert_array( sbuffer, elemtype )  # recurse, using the whole nested array
+              elsif array_nesting > 1          # inside nested array, keep it for later
+                sbuffer += char
+              else                             # array_nesting = 0, must be the last }
+                if !sbuffer.is_a? Array then
+                  sbuffer = convert( sbuffer, elemtype )
+                end
+
+                result_array << sbuffer unless sbuffer.nil? # upto here was the last element
+              end
+
+            #------------- all other characters ---------#
+            else
+              sbuffer += char                 # simply append
+
+            end
+
+          } 
+  
+          return result_array
+        end # convert_array()
+
         def convert(obj,typeid)
           return nil if obj.nil?
-          converter = @type_map[typeid] || :as_str
-          #raise DBI::InterfaceError, "Unsupported Type (typeid=#{typeid})" if converter.nil?
-          @coerce.coerce(converter, obj)
+          
+          if @elem_map.include?( typeid ) then
+            convert_array( obj, @elem_map[ typeid ] )
+          else
+            converter = @type_map[typeid] || :as_str
+            #raise DBI::InterfaceError, "Unsupported Type (typeid=#{typeid})" if converter.nil?
+            @coerce.coerce(converter, obj)
+          end
+
         end
 
         def in_transaction?
@@ -322,14 +413,18 @@ module DBI
      if PGconn.respond_to?(:quote)
 
         def quote(value)
-          PGconn.quote(value) {|value|
-            case value
-            when DBI::Date, DBI::Time, DBI::Timestamp, ::Date, ::Time
-              "'#{value.to_s}'"
-            else
-              value.to_s
-            end
-          }
+          if value.kind_of? Array then # work around broken PGconn.quote for Arrays
+            "'#{ quote_array_elements( value ).gsub(/\\/){ '\\\\' }.gsub(/'/){ '\\\'' } }'"
+          else
+            PGconn.quote(value) {|value|
+              case value
+              when DBI::Date, DBI::Time, DBI::Timestamp, ::Date, ::Time
+                "'#{value.to_s}'"
+              else
+                value.to_s
+              end
+            }
+          end
         end
 
       else
@@ -338,6 +433,8 @@ module DBI
           case value
           when String
             "'#{ value.gsub(/\\/){ '\\\\' }.gsub(/'/){ '\\\'' } }'"
+          when Array
+            "'#{ quote_array_elements( value ).gsub(/\\/){ '\\\\' }.gsub(/'/){ '\\\'' } }'"
           else
             super
           end
@@ -348,26 +445,45 @@ module DBI
         
         private # ----------------------------------------------------
 
+        # special quoting if value is element of an array 
+        def quote_array_elements( value )
+          case value
+          when Array
+            '{'+ value.collect{|v| quote_array_elements(v) }.join(',') + '}'
+          when String
+            '"' + value.gsub(/\\/){ '\\\\' }.gsub(/"/){ '\\"' } + '"'
+          else
+            quote( value ).sub(/^'/,'').sub(/'$/,'') 
+          end
+        end 
+        
         def load_type_map
           @type_map = Hash.new
+          @elem_map = Hash.new
           @coerce = PgCoerce.new
 
-          res = _exec("SELECT typname, typelem FROM pg_type")
+          res = _exec("SELECT oid, typname, typelem FROM pg_type WHERE typtype = 'b';")
 
-          res.result.each { |name, idstr|
-            @type_map[idstr.to_i] = 
+          res.result.each { |typid, name, elmtype|
+            @type_map[typid.to_i] = 
             case name
-            when '_bool'                      then :as_bool
-            when '_int8', '_int4', '_int2'    then :as_int
-            when '_varchar'                   then :as_str
-            when '_float4','_float8'          then :as_float
-            when '_timestamp', '_timestamptz' then :as_timestamp
-            when '_date'                      then :as_date
-            when '_bytea'                     then :as_bytea
-            else                                   :as_str
+            when 'bool'                      then :as_bool
+            when 'int8', 'int4', 'int2'    then :as_int
+            when 'varchar'                   then :as_str
+            when 'float4','float8'          then :as_float
+            when 'timestamp', 'timestamptz' then :as_timestamp
+            when 'date'                      then :as_date
+            when 'bytea'                     then :as_bytea
+            else
+              if name =~ /^_/ and elmtype.to_i > 0 then
+                @elem_map[typid.to_i] = elmtype.to_i
+                :as_str
+              else
+                :as_str
+              end
             end
+            
           }
-          
           # additional conversions
           @type_map[705]  ||= :as_str       # select 'hallo'
           @type_map[1114] ||= :as_timestamp # TIMESTAMP WITHOUT TIME ZONE
@@ -650,6 +766,7 @@ module DBI
           }
           a.join("\\")  # \\ => \
         end
+
       end
 
     end # module Pg
