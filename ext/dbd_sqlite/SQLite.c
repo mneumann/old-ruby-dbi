@@ -27,7 +27,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: SQLite.c,v 1.9 2004/04/26 08:40:11 mneumann Exp $
+ * $Id: SQLite.c,v 1.10 2004/05/18 13:30:06 andreas Exp $
  */
 
 
@@ -344,7 +344,8 @@ Database_do(int argc, VALUE *argv, VALUE self)
     rb_raise(eDatabaseError, STR2CSTR(errstr));
   }
 
-  return Qnil;
+  /* return number of changed rows */
+  return INT2NUM(sqlite_changes(db->conn));
 }
 
 static int tables_callback(void *pArg, int argc, char **argv, char **columnNames) {
