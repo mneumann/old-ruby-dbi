@@ -1,5 +1,5 @@
 #
-# $Id: sql.rb,v 1.11 2001/12/28 00:54:30 michael Exp $
+# $Id: sql.rb,v 1.12 2002/02/06 14:24:21 mneumann Exp $
 #
 # parts extracted from Jim Weirichs DBD::Pg
 #
@@ -54,7 +54,7 @@ module SQL
 
 
       def as_timestamp(str)
-        return nil if str.nil?
+        return nil if str.nil? or str.empty?
         ary = ParseDate.parsedate(str)
         time = ::Time.gm(*(ary[0,6]))
         if ary[6] =~ /^(\+|\-)\d+$/
