@@ -1,5 +1,22 @@
 =begin
 
+: 0.0.11 (2001-11-13)
+
+* dbd_sqlrelay: new DBD for SQLRelay
+
+* dbd_mysql: fixed quoting for DBI::Binary and Strings containing non-printable characters
+
+* dbd_pg: 
+  * improved Database#ping (return one instead of hundred rows)
+  * added Database attribute: pg_client_encoding
+  * added driver specific functions in Database: blob_import, blob_export, blob_create, blob_open, blob_unlink and blob_read
+  * convert automatically DBI::Binary objects to OID's and insert the content as BLOB
+  * method DatabaseHandle#columns now extract default value.
+
+* dbd_db2: provide DatabaseHandle#do and parameter markers.
+
+* sqlsh.rb: added commands \dt (describe table), \s (select * from table) and \pl (page length).
+
 : 0.0.10 (2001-10-22)
 
 * dbd_odbc: added odbc_ignorecase option (submitted by Sean O'Halpin), requires Ruby/ODBC 0.93
