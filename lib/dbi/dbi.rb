@@ -1,5 +1,5 @@
 # Ruby/DBI 
-# $Id: dbi.rb,v 1.3 2001/05/30 18:59:48 michael Exp $
+# $Id: dbi.rb,v 1.4 2001/05/31 10:20:54 michael Exp $
 # 
 # Version : 0.0.5
 # Author  : Michael Neumann (neumann@s-direktnet.de)
@@ -64,7 +64,7 @@ VERSION = "0.5"
 # Constants for fetch_scroll
 #
 SQL_FETCH_NEXT, SQL_FETCH_PRIOR, SQL_FETCH_FIRST, SQL_FETCH_LAST, 
-SQL_FETCH_ABSOLUTE, SQL_FETCH_RELATIVE = 1..6
+SQL_FETCH_ABSOLUTE, SQL_FETCH_RELATIVE = (1..6).to_a
 
 ##
 # Constants for bind_param (not yet in use)
@@ -74,7 +74,7 @@ SQL_CLOB, SQL_CLOB_LOCATOR, SQL_TYPE_DATE, SQL_DBCLOB, SQL_DBCLOB_LOCATOR,
 SQL_DECIMAL, SQL_DOUBLE, SQL_FLOAT, SQL_GRAPHIC, SQL_INTEGER,
 SQL_LONGVARCHAR, SQL_LONGVARBINARY, SQL_LONGVARGRAPHIC, SQL_NUMERIC, SQL_REAL,
 SQL_SMALLINT, SQL_TYPE_TIME, SQL_TYPE_TIMESTAMP, SQL_VARCHAR, SQL_VARBINARY,
-SQL_VARGRAPHIC = 7..33
+SQL_VARGRAPHIC = (7..33).to_a
 
 
 #----------------------------------------------------
@@ -116,7 +116,7 @@ end
 class DatabaseError < Error
   attr_reader :err, :errstr, :state
 
-  def initialize(err, errstr, state)
+  def initialize(err=nil, errstr=self.type.to_s, state=nil)
     super(errstr)
     @err, @errstr, @state = err, errstr, state
   end
@@ -649,7 +649,7 @@ class StatementHandle < Handle
     raise InterfaceError, "Statement must first be executed" unless @fetchable
 
     row = @handle.fetch_scroll(direction, offset)
-    if rows.nil?
+    if row.nil?
       #@handle.cancel
       #@fetchable = false
       return nil
