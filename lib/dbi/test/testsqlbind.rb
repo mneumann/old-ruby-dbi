@@ -56,6 +56,12 @@ class TestSqlBind < RUNIT::TestCase
       bind(self, "WHERE c='connected?' AND d=?", [10])
   end
 
+  def test_comment_dan
+    sql = %{--Dan's query\n--random comment\nselect column1, column2\nfrom table1\nwhere somevalue = ?}
+    res = %{--Dan's query\n--random comment\nselect column1, column2\nfrom table1\nwhere somevalue = 10}
+    assert_equal res, bind(self, sql, [10])
+  end
+
 end
 
 $last_suite.add_test (TestSqlBind.suite)
