@@ -1,6 +1,6 @@
 # 
 # DBD::Mysql
-# $Id: Mysql.rb,v 1.9 2001/11/09 16:08:02 michael Exp $
+# $Id: Mysql.rb,v 1.10 2001/11/13 14:25:53 michael Exp $
 # 
 # Version : 0.3
 # Author  : Michael Neumann (neumann@s-direktnet.de)
@@ -217,7 +217,7 @@ class Database < DBI::BaseDatabase
  
 
   def prepare(statement)
-    Statement.new(@handle, statement)
+    Statement.new(self, @handle, statement)
   end
 
   # TODO: Raise Error
@@ -226,6 +226,18 @@ class Database < DBI::BaseDatabase
 
   # TODO: Raise Error
   def rollback
+  end
+
+
+  def quote(value)
+    case value
+    when String
+      "'#{@handle.quote(value)}'"
+    when DBI::Binary
+      "'#{@handle.quote(value.to_s)}'"
+    else
+      super
+    end
   end
 
   private # -------------------------------------------------
@@ -281,15 +293,13 @@ end # class Database
 
 class Statement < DBI::BaseStatement
   include SQL::BasicBind
-  include SQL::BasicQuote
 
-  def initialize(handle, statement)
+  def initialize(parent, handle, statement)
     super(nil)
     #@attr['mysql_use_result'] = false
     #@attr['mysql_store_result'] = true
 
-    @handle = handle
-    @statement = statement
+    @parent, @handle, @statement = parent, handle, statement
     @params = []
   end
 
@@ -306,7 +316,7 @@ class Statement < DBI::BaseStatement
     #  @handle.store_result
     #end
 
-    sql = bind(self, @statement, @params)
+    sql = bind(@parent, @statement, @params)
     @res_handle = @handle.query(sql)
     @current_row = 0
     @rows = @handle.affected_rows
@@ -315,7 +325,7 @@ class Statement < DBI::BaseStatement
   end
 
   def finish
-    @res_handle.free
+    @res_handle.free if @res_handle
   rescue MyError => err
     raise DBI::DatabaseError.new(err.message)
   end
