@@ -27,7 +27,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: Pg.rb,v 1.22 2002/07/03 19:56:10 mneumann Exp $
+# $Id: Pg.rb,v 1.23 2002/07/26 17:56:43 mneumann Exp $
 #
 
 require 'postgres'
@@ -285,8 +285,8 @@ module DBI
 
 	def convert(obj,typeid)
 	  return nil if obj.nil?
-	  converter = @type_map[typeid]
-	  raise DBI::InterfaceError, "Unsupported Type (typeid=#{typeid})" if converter.nil?
+	  converter = @type_map[typeid] || :as_str
+          #raise DBI::InterfaceError, "Unsupported Type (typeid=#{typeid})" if converter.nil?
 	  @coerce.coerce(converter, obj)
 	end
 
@@ -320,16 +320,20 @@ module DBI
 	  res.result.each { |name, idstr|
 	    @type_map[idstr.to_i] = 
             case name
-            when '_bool'                     then :as_bool
-	    when '_int8', '_int4', '_int2'   then :as_int
-	    when '_varchar'                  then :as_str
-	    when '_float4','_float8'         then :as_float
-            when '_timestamp'                then :as_timestamp
-            when '_date'                     then :as_date
-            when '_bytea'                    then :as_bytea
-            else                                  :as_str
+            when '_bool'                      then :as_bool
+	    when '_int8', '_int4', '_int2'    then :as_int
+	    when '_varchar'                   then :as_str
+	    when '_float4','_float8'          then :as_float
+            when '_timestamp', '_timestamptz' then :as_timestamp
+            when '_date'                      then :as_date
+            when '_bytea'                     then :as_bytea
+            else                                   :as_str
 	    end
 	  }
+          
+          # additional conversions
+          @type_map[705]  ||= :as_str       # select 'hallo'
+          @type_map[1114] ||= :as_timestamp # TIMESTAMP WITHOUT TIME ZONE
 	end
 
 
