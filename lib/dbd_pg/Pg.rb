@@ -27,7 +27,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: Pg.rb,v 1.27 2002/09/26 13:40:32 mneumann Exp $
+# $Id: Pg.rb,v 1.28 2002/10/22 14:00:16 mneumann Exp $
 #
 
 require 'postgres'
@@ -282,16 +282,32 @@ module DBI
           @coerce.coerce(converter, obj)
         end
 
+     if PGconn.respond_to?(:quote)
+
         def quote(value)
-          # TODO: new quote function of Pg driver
+          PGconn.quote(value) {|value|
+            case value
+            when DBI::Date, DBI::Time, DBI::Timestamp, ::Date, ::Time
+              "'#{value.to_s}'"
+            else
+              value.to_s
+            end
+          }
+        end
+
+      else
+
+        def quote(value)
           case value
           when String
-                "'#{ value.gsub(/\\/){ '\\\\' }.gsub(/'/){ '\\\'' } }'"
+            "'#{ value.gsub(/\\/){ '\\\\' }.gsub(/'/){ '\\\'' } }'"
           else
-                super
+            super
           end
         end
-       
+
+      end
+
         
         private # ----------------------------------------------------
 
@@ -369,7 +385,15 @@ module DBI
           raise DBI::DatabaseError.new(err.message) 
         end
 
-        #
+     if PGconn.respond_to?(:escape_bytea)
+
+        def __encode_bytea(str)
+          PGconn.escape_bytea(str)
+        end
+
+      else
+
+        ##
         # encodes a string as bytea value.
         #
         # for encoding rules see:
@@ -384,6 +408,8 @@ module DBI
           }
           a.join("\\\\")                # \  => \\
         end
+
+      end
 
       end # Database
 
