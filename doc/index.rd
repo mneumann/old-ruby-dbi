@@ -1,6 +1,6 @@
 =begin
 = Ruby/DBI - a database independent interface for accessing databases - similar to Perl's DBI
-$Id: index.rd,v 1.15 2001/11/14 14:03:21 michael Exp $
+$Id: index.rd,v 1.16 2001/12/14 15:16:10 michael Exp $
 
 Copyright (c) 2001 by Michael Neumann (neumann@s-direktnet.de)
 
@@ -38,6 +38,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
   For his case insensitive load_driver patch and parameter parser.
 : David Muse
   For testing the SQLRelay DBD and for his initial DBD. 
+: Jim Menard
+  Extending Oracle DBD for method columns.
+: Joseph McDonald
+  Fixed bug in DBD for PostgreSQL (default values in method columns)
 
 == Database Drivers (DBDs)
 
@@ -112,6 +116,10 @@ A NetBSD package for MySQL is available from at ((<URL:http://www.fantasy-coders
 
 Latest development snapshot available at ((<URL:http://www.ruby-projects.org/downloads/dbi/ruby-dbi-all-current.tar.gz>)).
 
+: Ruby/DBI 0.0.12
+
+  ((<URL:http://www.ruby-projects.org/downloads/dbi/ruby-dbi-all-0.0.12.tar.gz>))
+
 : Ruby/DBI 0.0.11
 
   ((<URL:http://www.ruby-projects.org/downloads/dbi/ruby-dbi-all-0.0.11.tar.gz>))
@@ -176,11 +184,16 @@ The DBD specification (how to write a database driver) is lib/dbi/doc/DBD_SPEC o
 from WWW at ((<URL:http://www.ruby-projects.org/dbi/dbi/DBD_SPEC.html>)).
 
 
+== Applications
+
+=== sqlsh.rb
+The SQL command line interpreter sqlsh.rb is available in directory bin/commandline.
+It gets installed by default.
+
 == Examples
 
 Examples can be found in the examples/ subdirectory.
-There is e.g. sqlsh.rb, which is an interactive SQL shell similar to Perl's dbish.rb.
-Further there is in this directory the file proxyserver.rb which has to be run if you use the DBD::Proxy, 
+In this directory there is the file proxyserver.rb which has to be run if you use the DBD::Proxy, 
 to access databases remote over a TCP/IP network. 
 
 === A simple example
@@ -221,7 +234,7 @@ to access databases remote over a TCP/IP network.
     end 
 
     puts "selecting..."
-    dbh.select_all('select * from simple01') do
+    dbh.select_all('select * from simple01') do | row |
       p row
     end
 
