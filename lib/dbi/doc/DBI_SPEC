@@ -1,8 +1,8 @@
 =begin
-= DBI Interface Specification Version 0.2 (Draft)
+= DBI Interface Specification Version 0.2.1 (Draft)
 by Michael Neumann (neumann@s-direknet.de)
 
- $Id: DBI_SPEC,v 1.5 2001/08/30 13:36:30 michael Exp $
+ $Id: DBI_SPEC,v 1.6 2001/11/26 00:14:32 michael Exp $
  
 == Module DBD
 
@@ -324,7 +324,7 @@ Abstract base class for all "Handles" (DriverHandle, DatabaseHandle, StatementHa
     Returns an (({Array})) of the next ((*cnt*)) rows, which are
     stored as (({DBI::Row})) objects. 
 
-    Returns (({nil})) if there are no more rows.
+    Returns the empty array (({[]})) if there are no more rows.
 
 --- fetch_all
     Same as ((<fetch_many>)) only that all rows are returned.
