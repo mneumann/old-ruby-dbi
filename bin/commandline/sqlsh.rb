@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 #
-# $Id: sqlsh.rb,v 1.1 2001/11/17 14:54:43 michael Exp $
+# $Id: sqlsh.rb,v 1.2 2001/11/17 15:53:30 michael Exp $
 # by Michael Neumann
 #
 
@@ -16,6 +16,8 @@ require "irb"
 require "irb/completion"
 
 $irb_completion = Readline.completion_proc
+
+require "getoptlong"
 
 class ReadlineControl
   
@@ -73,8 +75,10 @@ class Command
       end
 
       next if l.strip.empty?
-      line << "\n" << l
+      l = l.chomp + "\n"
+      line << l 
 
+      puts $file + INPUT + l unless $input.nil?
       $rd.set_prompt(PROMPT_CONT)
     end until complete?(line)
 
@@ -90,23 +94,23 @@ end
 
 class Actions
   ACTIONS = [
-    [ /^\\q(uit)?/i,     :quit ],
-    [ /^\\h(elp)?/i,     :help ],
-    [ /^\\t(ables)?/i,   :tables ],
-    [ /^\\dt/i,          :describeTable ],
-    [ /^\\s(elect)?/i,  :select ],
+    [ /^\\q(uit)?\s*$/i,     :quit ],
+    [ /^\\h(elp)?\s*$/i,     :help ],
+    [ /^\\t(ables)?/i,       :tables ],
+    [ /^\\dt/i,              :describeTable ],
+    [ /^\\s(elect)?/i,       :select ],
 
-    [ /^\\rb/i,          :ruby ],
-    [ /^\\irb/i,         :irb ],
+    [ /^\\rb/i,              :ruby ],
+    [ /^\\irb/i,             :irb ],
 
-    [ /^\\c(ommit)?/i,   :commit ],
-    [ /^\\r(ollback)?/i, :rollback ],
-    [ /^\\a(utocommit)?(\s+(on|off)?)?/i, :autocommit ],
-    [ /^\\i(nput)?/i,    :input ],
-    [ /^\\o(utput)?/i,   :output ],
-    [ /^\\pl/i,          :pageLength ],
+    [ /^\\c(ommit)?\s*$/i,   :commit ],
+    [ /^\\r(ollback)?\s*$/i, :rollback ],
+    [ /^\\a(utocommit)?(\s+(on|off)?)?\s*$/i, :autocommit ],
+    [ /^\\i(nput)?/i,        :input ],
+    [ /^\\o(utput)?/i,       :output ],
+    [ /^\\pl/i,              :pageLength ],
 
-    [ //,                :unknownCommand ]
+    [ //,                    :unknownCommand ]
   ] 
 
   def dispatchCommand(line)
@@ -376,9 +380,19 @@ SQL_KEYWORDS = %w(
 
 # ---------------------------------------------------------------------------
 
+opts = GetoptLong.new(
+  ["--file", "-f", GetoptLong::REQUIRED_ARGUMENT ]
+)
+opts.each do |opt, arg|
+  case opt
+  when "--file"
+    $input_file_name = arg
+  end
+end
+
 if ARGV.size < 1 or ARGV.size > 3
   puts
-  puts "USAGE: #{$0} driver_url [user [password] ]"
+  puts "USAGE: #{$0} [--file file] driver_url [user [password] ]"
   puts
 
   puts "Available driver and datasources:"
@@ -424,13 +438,20 @@ $rd.keywords = SQL_KEYWORDS + Conn.tables
 cmd = Command.new
 act = Actions.new
 
+# --file option
+if $input_file_name
+  def $input_file_name.post_match
+    $input_file_name
+  end
+  act.input($input_file_name) 
+end
+
 # Main-Loop -----------------------------------
 
 loop do 
   line = cmd.readCommand
 
   $output.puts line unless $output.nil?
-  puts $file + INPUT + line unless $input.nil?
 
   begin
     if line =~ /^\\/ then
