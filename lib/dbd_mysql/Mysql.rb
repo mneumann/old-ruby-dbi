@@ -27,7 +27,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: Mysql.rb,v 1.15 2002/07/03 16:48:35 mneumann Exp $
+# $Id: Mysql.rb,v 1.16 2002/09/26 18:37:27 mneumann Exp $
 #
 
 require "mysql"
@@ -155,6 +155,25 @@ class Database < DBI::BaseDatabase
     "SET"        => [SQL_CHAR, 255, nil],
     nil          => [SQL_OTHER, nil, nil]
   }
+
+  TYPE_MAP = {}
+  MysqlField.constants.grep(/^TYPE_/).each do |const|
+    value = MysqlField.const_get(const)
+    case const
+    when 'TYPE_TINY', 'TYPE_INT24', 'TYPE_SHORT', 'TYPE_LONG', 'TYPE_LONGLONG'
+      TYPE_MAP[value] = :as_int
+    when 'TYPE_FLOAT'
+      TYPE_MAP[value] = :as_float
+    when 'TYPE_DATE'
+      TYPE_MAP[value] = :as_date
+    when 'TYPE_TIME'
+      TYPE_MAP[value] = :as_time
+    when 'TYPE_DATETIME'
+      TYPE_MAP[value] = :as_timestamp
+    else
+      TYPE_MAP[value] = :as_str
+    end
+  end
 
   def initialize(handle, attr)
     super
@@ -334,6 +353,8 @@ class Statement < DBI::BaseStatement
     @mutex.synchronize {
       @handle.query_with_result = true
       @res_handle = @handle.query(sql)
+      @column_info = self.column_info
+      @coerce = DBI::SQL::BasicQuote::Coerce.new
       @current_row = 0
       @rows = @handle.affected_rows
     }
@@ -347,9 +368,20 @@ class Statement < DBI::BaseStatement
     raise DBI::DatabaseError.new(err.message)
   end
 
+  def fill_array(rowdata)
+    return nil if rowdata.nil?
+    row = []
+    rowdata.each_with_index { |value, index|
+      type = @column_info[index]['_type']
+      type_symbol = Database::TYPE_MAP[type] || :as_str
+      row[index] = @coerce.coerce(type_symbol, value)
+    }
+    row
+  end
+
   def fetch
     @current_row += 1
-    @res_handle.fetch_row
+    fill_array(@res_handle.fetch_row)
   rescue MyError => err
     raise DBI::DatabaseError.new(err.message)
   end
@@ -358,26 +390,26 @@ class Statement < DBI::BaseStatement
       case direction
       when SQL_FETCH_NEXT
         @current_row += 1
-        @res_handle.fetch_row
+        fill_array(@res_handle.fetch_row)
       when SQL_FETCH_PRIOR
         @res_handle.data_seek(@current_row - 1)
-        @res_handle.fetch_row
+        fill_array(@res_handle.fetch_row)
       when SQL_FETCH_FIRST
         @current_row = 1
         @res_handle.data_seek(@current_row - 1)
-        @res_handle.fetch_row
+        fill_array(@res_handle.fetch_row)
       when SQL_FETCH_LAST
         @current_row = @res_handle.num_rows
         @res_handle.data_seek(@current_row - 1)
-        @res_handle.fetch_row
+        fill_array(@res_handle.fetch_row)
       when SQL_FETCH_ABSOLUTE
         @current_row = offset + 1
         @res_handle.data_seek(@current_row - 1)
-        @res_handle.fetch_row
+        fill_array(@res_handle.fetch_row)
       when SQL_FETCH_RELATIVE
         @current_row += offset + 1
         @res_handle.data_seek(@current_row - 1)
-        @res_handle.fetch_row
+        fill_array(@res_handle.fetch_row)
       else
         raise NotSupportedError
       end
