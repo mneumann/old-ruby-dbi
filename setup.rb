@@ -462,6 +462,7 @@ class Installer
     Dir.foreach('.') do |dir|
       next if dir[0] == ?.
       next unless dir? dir
+      next if dir == "CVS"
 
       path[dir] or raise "abs path for package '#{dir}' not exist"
       pack, targ, topfile = path[dir]
