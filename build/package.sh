@@ -45,9 +45,6 @@ cd ..
 # remove all CVS directories
 find . -name "CVS" -print | xargs rm -rf
 
-# remove all superfluous directories (that are empty but cannot removed from CVS)
-rm -rf lib/dbi/doc
-
 # upload HTML pages and CSS
 cd doc/html
 for i in *.html *.css ;
