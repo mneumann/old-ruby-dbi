@@ -27,7 +27,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: dbi.rb,v 1.33 2002/07/26 20:43:23 mneumann Exp $
+# $Id: dbi.rb,v 1.34 2002/08/01 19:00:20 mneumann Exp $
 #
 
 require "dbi/row"
@@ -230,10 +230,13 @@ end
 class Date
   attr_accessor :year, :month, :day
   def initialize(year=0, month=0, day=0)
-    if year.is_a? ::Date
+    case year
+    when ::Date
       @year, @month, @day = year.year, year.month, year.day 
-    elsif year.is_a? ::Time
+      @original_date = year
+    when ::Time
       @year, @month, @day = year.year, year.month, year.day 
+      @original_time = year
     else
       @year, @month, @day = year, month, day
     end
@@ -241,6 +244,17 @@ class Date
 
   def mon() @month end
   def mon=(val) @month=val end
+
+  def mday() @day end
+  def mday=(val) @day=val end
+
+  def to_time
+    @original_time || ::Time.local(@year, @month, @day, 0, 0, 0)
+  end
+
+  def to_date
+    @original_date || ::Date.new(@year, @month, @day)
+  end
 
   def to_s
     "#{@year}-#{@month}-#{@day}"
@@ -251,8 +265,10 @@ end
 class Time
   attr_accessor :hour, :minute, :second
   def initialize(hour=0, minute=0, second=0)
-    if hour.is_a? ::Time
+    case hour
+    when ::Time
       @hour, @minute, @second = hour.hour, hour.min, hour.sec
+      @original_time = hour
     else
       @hour, @minute, @second = hour, minute, second
     end
@@ -260,8 +276,18 @@ class Time
 
   def min() @minute end
   def min=(val) @minute=val end
+
   def sec() @second end
   def sec=(val) @second=val end
+
+  def to_time
+    if @original_time
+      @original_time
+    else
+      t = ::Time.now
+      ::Time.local(t.year, t.month, t.day, @hour, @min, @sec)
+    end
+  end
 
   def to_s
     "#{@hour}:#{@minute}:#{@second}"
@@ -273,11 +299,12 @@ class Timestamp
   attr_accessor :year, :month, :day
   attr_accessor :hour, :minute, :second, :fraction
   def initialize(year=0, month=0, day=0, hour=0, minute=0, second=0, fraction=0)
-    if year.is_a? ::Time
+    case year
+    when ::Time
       @year, @month, @day = year.year, year.month, year.day 
       @hour, @minute, @second, @fraction = year.hour, year.min, year.sec, 0
       @original_time = year
-    elsif year.is_a? ::Date
+    when ::Date
       @year, @month, @day = year.year, year.month, year.day 
       @hour, @minute, @second, @fraction = 0, 0, 0, 0
       @original_date = year
@@ -289,6 +316,8 @@ class Timestamp
 
   def mon() @month end
   def mon=(val) @month=val end
+  def mday() @day end
+  def mday=(val) @day=val end
   def min() @minute end
   def min=(val) @minute=val end
   def sec() @second end
@@ -299,19 +328,11 @@ class Timestamp
   end
 
   def to_time
-    if @original_time
-      @original_time
-    else
-      ::Time.local(@year, @month, @day, @hour, @minute, @second)
-    end
+    @original_time || ::Time.local(@year, @month, @day, @hour, @minute, @second)
   end
 
   def to_date
-    if @original_date
-      @original_date
-    else
-      ::Date.new(@year, @month, @day)
-    end
+    @original_date || ::Date.new(@year, @month, @day)
   end
 end
 
