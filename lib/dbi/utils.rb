@@ -1,5 +1,5 @@
 #
-# $Id: utils.rb,v 1.7 2001/07/06 18:14:10 michael Exp $
+# $Id: utils.rb,v 1.8 2001/08/21 21:01:32 michael Exp $
 #
 
 module DBI
@@ -86,11 +86,11 @@ module XMLFormatter
  
   def XMLFormatter.table(rows, roottag = "rows", rowtag = "row", output=STDOUT)
     output << '<?xml version="1.0" encoding="UTF-8" ?>'
-    output << "\n<#{rootname}>\n"
+    output << "\n<#{roottag}>\n"
     rows.each do |row|
       row(row, rowtag, output)
     end
-    output << "</#{rootname}>\n"
+    output << "</#{roottag}>\n"
   end
 
   class << self
