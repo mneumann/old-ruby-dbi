@@ -49,15 +49,15 @@ if ARGV.size < 1 or ARGV.size > 3
   puts "Available driver and datasources:"
   puts
   for driver in DBI.available_drivers do
+    puts driver 
     begin
       ds = DBI.data_sources(driver)
-      puts driver 
       for datasource in ds
         puts "  " + datasource
       end
-      puts
     rescue => err
     end
+    puts
   end
   puts 
 
