@@ -1,5 +1,5 @@
 #
-# $Id: sql.rb,v 1.13 2003/02/01 13:45:23 mneumann Exp $
+# $Id: sql.rb,v 1.14 2003/04/27 17:37:02 mneumann Exp $
 #
 # parts extracted from Jim Weirichs DBD::Pg
 #
@@ -47,9 +47,9 @@ module SQL
       end
 
       def as_time(str)
-        return nil if str.nil?
-        t = as_timestamp(str)
-        DBI::Time.new(t.hour, t.min, t.sec)
+        return nil if str.nil? or str.empty?
+        t = ParseDate.parsedate(str)
+        DBI::Time.new(*t[3,3])
       end
 
 
