@@ -27,7 +27,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: dbi.rb,v 1.32 2002/07/26 17:51:31 mneumann Exp $
+# $Id: dbi.rb,v 1.33 2002/07/26 20:43:23 mneumann Exp $
 #
 
 require "dbi/row"
@@ -302,7 +302,7 @@ class Timestamp
     if @original_time
       @original_time
     else
-      Time.local(@year, @month, @day, @hour, @minute, @second)
+      ::Time.local(@year, @month, @day, @hour, @minute, @second)
     end
   end
 
@@ -310,7 +310,7 @@ class Timestamp
     if @original_date
       @original_date
     else
-      Date.new(@year, @month, @day)
+      ::Date.new(@year, @month, @day)
     end
   end
 end
