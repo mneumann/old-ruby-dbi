@@ -1,6 +1,8 @@
 =begin
 
-: 0.0.11 (2001-11-13)
+: 0.0.11 (2001-11-14)
+
+* dbd_sqlite:   new DBD for SQLite
 
 * dbd_sqlrelay: new DBD for SQLRelay
 

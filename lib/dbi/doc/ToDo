@@ -1,6 +1,7 @@
 =begin
+= ToDo
+
 * columns / column_info with more DBDs (DB2, Oracle, Interbase, ODBC)
-- get a Driver object, call methods on it
 * Tainting
 * table_info
 * bind_param_inout
@@ -11,6 +12,13 @@
 * warn if commit/rollback and AutoCommit is on
 * bind_out_param/bind_inout_param
 * tracing/logging for DBDs by calling log(...)
-- blob_import etc for DBD::Pg
-- parameter markers in DB2
+* define exact behaviour of fetch_scroll
+* define exact behaviour of exception classes
+* do not pass *args paramters to DBD (it's harder for C-extensions to handle them)
+
+= Done
+
+* get a Driver object, call methods on it
+* blob_import etc for DBD::Pg
+* parameter markers in DB2
 =end

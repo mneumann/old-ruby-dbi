@@ -8,11 +8,9 @@
 <link href="http://www.ruby-projects.org/dbi/rubyStyle.css" type="text/css" rel="stylesheet"/>
 </head>
 <body>
+<h1><a name="label:0" id="label:0">ToDo</a></h1><!-- RDLabel: "ToDo" -->
 <ul>
 <li>columns / column_info with more DBDs (DB2, Oracle, Interbase, ODBC)</li>
-</ul>
-<p>- get a Driver object, call methods on it</p>
-<ul>
 <li>Tainting</li>
 <li>table_info</li>
 <li>bind_param_inout</li>
@@ -23,9 +21,16 @@
 <li>warn if commit/rollback and AutoCommit is on</li>
 <li>bind_out_param/bind_inout_param</li>
 <li>tracing/logging for DBDs by calling log(...)</li>
+<li>define exact behaviour of fetch_scroll</li>
+<li>define exact behaviour of exception classes</li>
+<li>do not pass *args paramters to DBD (it's harder for C-extensions to handle them)</li>
 </ul>
-<p>- blob_import etc for DBD::Pg
-- parameter markers in DB2</p>
+<h1><a name="label:1" id="label:1">Done</a></h1><!-- RDLabel: "Done" -->
+<ul>
+<li>get a Driver object, call methods on it</li>
+<li>blob_import etc for DBD::Pg</li>
+<li>parameter markers in DB2</li>
+</ul>
 
 </body>
 </html>

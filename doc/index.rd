@@ -1,6 +1,6 @@
 =begin
 = Ruby/DBI - a database independent interface for accessing databases - similar to Perl's DBI
-$Id: index.rd,v 1.14 2001/11/14 14:00:45 michael Exp $
+$Id: index.rd,v 1.15 2001/11/14 14:03:21 michael Exp $
 
 Copyright (c) 2001 by Michael Neumann (neumann@s-direktnet.de)
 
@@ -83,7 +83,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 * SQLite ((*(dbd_sqlite)*))
 
-  depend only on the SQLite C-library from: ((<URL:http://www.hwaci.com/sw/sqlite/>>)).
+  depend only on the SQLite C-library from: ((<URL:http://www.hwaci.com/sw/sqlite/>)).
 
 * SQLRelay ((*(dbd_sqlrelay)*))
 
