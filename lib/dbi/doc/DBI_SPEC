@@ -2,7 +2,7 @@
 = DBI Interface Specification Version 0.2 (Draft)
 by Michael Neumann (neumann@s-direknet.de)
 
- $Id: DBI_SPEC,v 1.4 2001/08/23 21:00:39 michael Exp $
+ $Id: DBI_SPEC,v 1.5 2001/08/30 13:36:30 michael Exp $
  
 == Module DBD
 
@@ -281,8 +281,7 @@ Abstract base class for all "Handles" (DriverHandle, DatabaseHandle, StatementHa
 
 
 --- column_info
-    Returns an (({Array})) containing (({Hash}))'s, one for
-    each column, which describes each column.
+    Returns an (({Array})) containing fore each column one (({DBI::ColumnInfo})) object.
 
 --- rows
     Returns the RPC (Row Processed Count) of the last executed statement, or
