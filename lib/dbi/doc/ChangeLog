@@ -1,5 +1,10 @@
 =begin
 
+: 0.0.14 
+
+* dbd_pg: cache calls to PGResult#result in class Tuples (patch by James
+  F.Hranicky); increase performance of a factor around 100
+ 
 : 0.0.13 (2002-04-16)
 
 * Moved project to SourceForge.
