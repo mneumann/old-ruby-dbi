@@ -28,15 +28,28 @@ module DBI
       ################################################################
       class Database < DBI::BaseDatabase
 	
-	attr_accessor :host, :port
 	attr_reader :connection
 	attr_accessor :autocommit
 
 	def initialize(dbname, user, auth, attr)
 	  @debug_level = 0
+
+
 	  @attr = attr
-	  set_attributes
-	  @connection = PGconn.new(@host, @port, '', '', dbname, user, auth)
+	  @attr.each { |k,v| self[k] = v} 
+
+          hash = Utils.parse_params(dbname)
+
+          if hash['dbname'].nil? 
+            raise DBI::InterfaceError, "must specify database"
+          end
+
+          hash['options'] ||= ''
+          hash['tty'] ||= ''
+          hash['port'] = hash['port'].to_i unless hash['port'].nil? 
+
+	  @connection = PGconn.new(hash['host'], hash['port'], hash['options'], hash['tty'], hash['dbname'], user, auth)
+
 	  load_type_map
 	  @in_transaction = false
 	  initialize_autocommit
@@ -81,14 +94,6 @@ module DBI
 	  case attr
 	  when 'AutoCommit'
 	    @autocommit = value
-	  when 'host'
-	    @host = value
-	  when 'user'
-	    @user = value
-	  when 'port'
-	    @port = value.to_i
-	  when 'password'
-	    @password = value
 	  else
 	    raise NotSupportedError
 	  end
@@ -135,18 +140,6 @@ module DBI
 	  @attr['AutoCommit'] = @autocommit
 	end
 
-	def initialize_attributes
-	  @user     = ''
-	  @password = ''
-	  @host     = 'localhost'
-	  @port     = 5432
-	end
-
-	def set_attributes
-	  initialize_attributes
-	  @attr.each { |k,v| self[k] = v} 
-	end
-	
 	def load_type_map
 	  @type_map = Hash.new
 	  res = send_sql("SELECT typname, typelem FROM pg_type")
