@@ -1,98 +1,135 @@
-#!/usr/bin/env ruby
-# -*- ruby -*-
+require "delegate"
 
-# $Id: row.rb,v 1.1 2001/05/29 11:16:53 michael Exp $
+
+# TODO: a method which returns the column-names,
+#       #columns or #names ? 
+
 
 module DBI
 
-  # ==================================================================
-  class Row
-    
-    # A row of values from a database.
-    
-    # Values can be accessed ...
-    #   - by index:           row[index]
-    #   - or by field name:   row.field('field_name')
-    
-    include Enumerable
-    
-    def initialize(names, values)
-      # Initialize a new row with values from 'values' and field names
-      # from 'names'.
-      @names = make_hash(names)
-      @orig_names = names
-      @values = values
-    end
-    
-    # Queries ----------------------------------------------------------
-    
-    def size
-      # Number of elements in the row.
-      @values.size
-    end
-    alias :length :size
-    
-    def by_index(index)
-      # Value at 'index'.
-      @values[index]
-    end
-    
-    def by_field(field_name)
-      # Value of the field named 'field_name'.
-      @values[@names[field_name]]
-    rescue TypeError
-      nil
-    end
-    
-    def [](key)
-      case key
-      when String
-	by_field(key)
-      else
-	by_index(key)
-      end
-    end
-    
-    def each(&block)
-      # Iterate over each value in a row.
-      @values.each &block
+class Row < DelegateClass(Array)
+
+  def initialize(col_names, size_or_arr)
+    if size_or_arr.is_a? Integer
+      @arr = Array.new(size_or_arr)
+    elsif size_or_arr.is_a? Array
+      @arr = size_or_arr
+    else
+      raise ArgumentError, "parameter must be either Integer or Array"   
     end
 
-    def each_with_name
-      @values.each_with_index {|v, i|
-        yield v, @orig_names[i] 
-      }
-    end
+    @col_map = {}
+    @col_names = col_names
+    col_names.each_with_index {|c,i| @col_map[c] = i}
+    super(@arr)
+  end
 
-    # Modifiers --------------------------------------------------------
-    
-    def set_values(new_values)
-      # Accept an array of new values
-      @values = new_values
-    end
-    
-    # Cloning and Conversion -------------------------------------------
-    
-    def clone_with(new_values)
-      # Create a new row with 'new_values', reusing the field name hash. 
-      Row.new(@names, new_values)
-    end
-    
-    def to_a
-      # Convert to an array
-      @values
-    end
-    
-    private # ----------------------------------------------------------
-    
-    def make_hash(names)
-      # Return a hash mapping field names to array indicies.
-      result = Hash.new
-      names.each_with_index do |name, index|
-	result[name] = index
-      end
-      result
+  # Modifiers --------------------------------------------------------
+
+  def set_values(new_values)
+    # Accept an array of new values
+    new_values.each_with_index do |v,i|
+      @arr[i] = v
     end
   end
+
+  def []=(*args)
+     #if args.size == 1
+     #  raise ArgumentError, "wrong # of arguments(#{args.size} for at least 2)"
+     if args.size == 2
+       @arr[conv_param(args[0])] = args[-1]
+     elsif args.size == 3
+       @arr[conv_param(args[0]), conv_param(args[1])] = args[-1]
+     else
+       raise ArgumentError, "wrong # of arguments(#{args.size} for 2)"
+     end
+  end
+
+  # Cloning and Conversion -------------------------------------------
     
-end
+  def clone_with(new_values)
+    # Create a new row with 'new_values', reusing the field name hash. 
+    Row.new(@col_names, new_values)
+  end
+ 
+  # Queries ----------------------------------------------------------
+
+  def column_names
+    @col_names
+  end
+
+  def by_index(index)
+    # Value at 'index'.
+    @arr[index]
+  end
+    
+  def by_field(field_name)
+    # Value of the field named 'field_name'.
+    @arr[@col_map[field_name.to_s]]
+  rescue TypeError
+    nil
+  end
+ 
+  def [](*args)
+     if args.size == 0
+       raise ArgumentError, "wrong # of arguments(#{args.size} for at least 1)"
+       # what todo if no param? => .to_a? .dup?
+     elsif args.size == 1
+       if args[0].is_a? Array
+         args[0].collect {|i| self[i]}
+       elsif args[0].is_a? Regexp
+         cols = @col_names.grep args[0] 
+         self[cols]
+       else
+         @arr[conv_param(args[0])]
+       end
+     elsif args.size == 2
+       @arr[conv_param(args[0]), conv_param(args[1])]
+     else
+       args.collect {|i| self[i]}
+       #raise ArgumentError, "wrong # of arguments(#{args.size} for 2)"
+     end
+  rescue TypeError
+    nil
+  end
+
+  def each_with_name
+    @arr.each_with_index do |v, i|
+      yield v, @col_names[i]
+    end 
+  end
+
+
+  private # ----------------------------------------------------------
+
+  def conv_param(p)
+    if p.is_a? String or p.is_a? Symbol then
+      @col_map[p.to_s]
+    elsif p.is_a? Range then
+
+      if p.first.is_a? String or p.first.is_a? Symbol then
+        first = @col_map[p.first.to_s]
+      else
+        first = p.first
+      end
+
+      if p.last.is_a? String or p.last_is_a? Symbol then
+        last = @col_map[p.last.to_s]
+      else
+        last = p.last
+      end
+
+      if p.exclude_end?
+        (first..last)
+      else
+        (first..last)
+      end
+
+    else
+      p
+    end
+  end
+
+end # class Row
+
+end # module DBI
