@@ -9,7 +9,19 @@
 </head>
 <body>
 <dl>
-<dt><a name="label:0" id="label:0">0.0.9 (2001-09-07)
+<dt><a name="label:0" id="label:0">0.0.10 (2001-10-22)
+</a></dt><!-- RDLabel: "0.0.10 (2001-10-22)
+" -->
+</dl>
+<ul>
+<li>dbd_odbc: added odbc_ignorecase option (submitted by Sean O'Halpin), requires Ruby/ODBC 0.93</li>
+<li>dbi: DBI.get_driver(driver_url) returns DriverHandle object</li>
+<li>dbd_mysql: added createdb, dropdb, reload, shutdown as driver-specific
+  functions (callable with method Handle#func) of Driver and Database</li>
+<li>dbd_mysql: added StatementHandle#fetch_scroll</li>
+</ul>
+<dl>
+<dt><a name="label:1" id="label:1">0.0.9 (2001-09-07)
 </a></dt><!-- RDLabel: "0.0.9 (2001-09-07)
 " -->
 </dl>
@@ -28,7 +40,7 @@
 <li>fixed bug in utils.rb XMLFormatter.table (thanks to Jim Menard)</li>
 </ul>
 <dl>
-<dt><a name="label:1" id="label:1">0.0.8 (2001-07-28)
+<dt><a name="label:2" id="label:2">0.0.8 (2001-07-28)
 </a></dt><!-- RDLabel: "0.0.8 (2001-07-28)
 " -->
 </dl>
@@ -38,7 +50,7 @@
 <li>corrected quoting for Date, Time and Timestamp</li>
 </ul>
 <dl>
-<dt><a name="label:2" id="label:2">0.0.7 (2001-07-11)
+<dt><a name="label:3" id="label:3">0.0.7 (2001-07-11)
 </a></dt><!-- RDLabel: "0.0.7 (2001-07-11)
 " -->
 </dl>
@@ -46,7 +58,7 @@
 <li>fixed bug in dbi.rb, which was newly introduced in 0.0.6</li>
 </ul>
 <dl>
-<dt><a name="label:3" id="label:3">0.0.6 (2001-07-06)
+<dt><a name="label:4" id="label:4">0.0.6 (2001-07-06)
 </a></dt><!-- RDLabel: "0.0.6 (2001-07-06)
 " -->
 </dl>
@@ -57,7 +69,7 @@
 <li>fixed bug in dbi/sql.rb method bind.</li>
 </ul>
 <dl>
-<dt><a name="label:4" id="label:4">0.0.5 (2001-06-09)
+<dt><a name="label:5" id="label:5">0.0.5 (2001-06-09)
 </a></dt><!-- RDLabel: "0.0.5 (2001-06-09)
 " -->
 </dl>
@@ -65,7 +77,7 @@
 <li>almost complete rewrite of DBI by Michael Neumann.</li>
 </ul>
 <dl>
-<dt><a name="label:5" id="label:5">0.0.4 (2001-05-05)
+<dt><a name="label:6" id="label:6">0.0.4 (2001-05-05)
 </a></dt><!-- RDLabel: "0.0.4 (2001-05-05)
 " -->
 </dl>
@@ -74,7 +86,7 @@
    into a new namespace: DBI::DBD::[driver]</li>
 </ul>
 <dl>
-<dt><a name="label:6" id="label:6">0.0.3 (2001-04-28)
+<dt><a name="label:7" id="label:7">0.0.3 (2001-04-28)
 </a></dt><!-- RDLabel: "0.0.3 (2001-04-28)
 " -->
 </dl>
@@ -82,7 +94,7 @@
 <li>changed 'driver not found' error-message to something more generic</li>
 </ul>
 <dl>
-<dt><a name="label:7" id="label:7">0.0.2 
+<dt><a name="label:8" id="label:8">0.0.2 
 </a></dt><!-- RDLabel: "0.0.2 
 " -->
 </dl>
