@@ -1,6 +1,6 @@
 =begin
 = Ruby/DBI - a database independent interface for accessing databases - similar to Perl's DBI
-$Id: index.rd,v 1.19 2002/04/16 20:38:20 mneumann Exp $
+$Id: index.rd,v 1.20 2002/04/17 13:43:37 mneumann Exp $
 
 Copyright (c) 2001, 2002 by Michael Neumann (neumann@s-direktnet.de)
 
@@ -46,8 +46,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
   Fixed bug in DBD for PostgreSQL (default values in method columns).
 : Norbert Gawor
   Fixed bug in DBD ODBC (method columns) and proxyserver.
+: James F. Hranicky
+  Patch for DBD Pg (cache PGResult#result in Tuples) which increases
+  performance by a factor around 100
   
- 
 
 == Database Drivers (DBDs)
 
