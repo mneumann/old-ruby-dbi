@@ -1,5 +1,5 @@
 #
-# $Id: sql.rb,v 1.15 2003/05/16 09:43:05 mneumann Exp $
+# $Id: sql.rb,v 1.16 2003/06/10 21:40:16 mneumann Exp $
 #
 # parts extracted from Jim Weirichs DBD::Pg
 #
@@ -152,6 +152,7 @@ module SQL
         |   -                                   (?# matches single "-" )
         |
             /[*] .*? [*]/                       (?# matches C-style comments )
+        |   /                                   (?# matches single slash )    
         |
             ' ( [^'\\]  |  ''  |  \\. )* '      (?# match strings surrounded by apostophes )
         |

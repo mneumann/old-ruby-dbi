@@ -73,6 +73,13 @@ class TestSqlBind < RUNIT::TestCase
     assert_equal sql, bind(self, sql, []) 
   end
 
+  def test_slash
+    sql = "SELECT 5 / 4"
+    res = "SELECT 5 / 4"
+    assert_equal res, bind(self, sql, []) 
+  end
+
+
 end
 
 $last_suite.add_test (TestSqlBind.suite)
