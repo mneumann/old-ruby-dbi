@@ -1,5 +1,5 @@
 #
-# $Id: proxyserver.rb,v 1.3 2001/08/23 22:09:25 michael Exp $
+# $Id: proxyserver.rb,v 1.4 2001/08/30 14:06:39 michael Exp $
 # Copyright (c) 2001 by Michael Neumann (neumann@s-direktnet.de)
 # 
 
@@ -136,7 +136,7 @@ end # module DBI
 
 
 if __FILE__ == $0
-  unless DBI::DBD::COMPATIBLE_API_VERSIONS.include?( DBI::DBD::DBI::ProxyServer::USED_DBD_API )
+  unless DBI::DBD::API_VERSION.split(".")[0].to_i != DBI::DBD::DBI::ProxyServer::USED_DBD_API.split(".")[0].to_i 
     raise "Wrong DBD Version"
   end
   
