@@ -1,5 +1,5 @@
 #
-# $Id: sql.rb,v 1.10 2001/11/25 23:25:41 michael Exp $
+# $Id: sql.rb,v 1.11 2001/12/28 00:54:30 michael Exp $
 #
 # parts extracted from Jim Weirichs DBD::Pg
 #
@@ -23,10 +23,12 @@ module SQL
     # by Masatoshi SEKI
     class Coerce
       def as_int(str)
+        return nil if str.nil?
         if str == "" then nil else str.to_i end 
       end 
 
       def as_float(str)
+        return nil if str.nil?
         str.to_f
       end
 
@@ -45,12 +47,14 @@ module SQL
       end
 
       def as_time(str)
+        return nil if str.nil?
         t = as_timestamp(str)
         DBI::Time.new(t.hour, t.min, t.sec)
       end
 
 
       def as_timestamp(str)
+        return nil if str.nil?
         ary = ParseDate.parsedate(str)
         time = ::Time.gm(*(ary[0,6]))
         if ary[6] =~ /^(\+|\-)\d+$/
@@ -63,6 +67,7 @@ module SQL
 
 
       def as_date(str)
+        return nil if str.nil?
         ary = ParseDate.parsedate(str)
         DBI::Date.new(*ary[0,3])
       rescue
