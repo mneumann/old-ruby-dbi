@@ -30,7 +30,7 @@ class Driver < DBI::BaseDriver
 
   def data_sources
     handle = ::Mysql.new
-    res = handle.list_dbs.collect {|db| "dbi:mysql:database=#{db}" }
+    res = handle.list_dbs.collect {|db| "dbi:Mysql:database=#{db}" }
     handle.close
     return res
   end
