@@ -1,6 +1,6 @@
 # 
 # DBD::Proxy
-# $Id: Proxy.rb,v 1.2 2001/06/07 10:42:15 michael Exp $
+# $Id: Proxy.rb,v 1.3 2001/07/06 18:14:59 michael Exp $
 # 
 # Version : 0.1
 # Author  : Michael Neumann (neumann@s-direktnet.de)
@@ -64,13 +64,17 @@ class Driver < DBI::BaseDriver
   end
 
   def connect(dsn, user, auth, attr)
-    hash = Utils.parse_params(dsn)
+    # split dsn in two parts
+    i = dsn.index("dsn=")
+    raise InterfaceError, "must specify a DSN" if i.nil?
+
+    hash = Utils.parse_params(dsn[0...i])
+    dsn  = dsn[(i+4)..-1] # without dsn=
 
     host = hash['hostname'] || DEFAULT_HOSTNAME
     port = (hash['port'] || DEFAULT_PORT).to_i 
-    dsn  = hash['dsn']
 
-    if dsn.nil?
+    if dsn.nil? or dsn.empty?
       raise InterfaceError, "must specify a DSN"
     end
 
