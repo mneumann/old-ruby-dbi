@@ -27,7 +27,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: Mysql.rb,v 1.19 2003/02/08 01:46:02 pdubois Exp $
+# $Id: Mysql.rb,v 1.20 2003/02/08 02:03:16 pdubois Exp $
 #
 
 require "mysql"
@@ -181,10 +181,21 @@ class Database < DBI::BaseDatabase
 
   def initialize(handle, attr)
     super
+    # check server version to determine transaction capability
+    ver_str = @handle.get_server_info
+    major, minor, teeny = ver_str.split(".")
+    teeny.sub!(/\D*$/, "")	# strip any non-numeric suffix if present
+    server_version = major.to_i*10000 + minor.to_i*100 + teeny.to_i
+    # It's not until 3.23.17 that SET AUTOCOMMIT,
+    # BEGIN, COMMIT, and ROLLBACK all are available
+    @have_transactions = (server_version >= 32317)
+    # assume the connection begins in AutoCommit mode
+    @attr['AutoCommit'] = true
     @mutex = Mutex.new 
   end
 
   def disconnect
+    self.rollback unless @attr['AutoCommit']
     @handle.close
   rescue MyError => err
     raise DBI::DatabaseError.new(err.message, err.errno)
@@ -259,12 +270,24 @@ class Database < DBI::BaseDatabase
     Statement.new(self, @handle, statement, @mutex)
   end
 
-  # TODO: Raise Error
   def commit
+    if @have_transactions
+      @handle.query("COMMIT")
+    else
+      raise NotSupportedError
+    end
+  rescue MyError => err
+    raise DBI::DatabaseError.new(err.message, err.errno)
   end
 
-  # TODO: Raise Error
   def rollback
+    if @have_transactions
+      @handle.query("ROLLBACK")
+    else
+      raise NotSupportedError
+    end
+  rescue MyError => err
+    raise DBI::DatabaseError.new(err.message, err.errno)
   end
 
 
@@ -277,6 +300,20 @@ class Database < DBI::BaseDatabase
     else
       super
     end
+  end
+
+  def []=(attr, value)
+    case attr
+    when 'AutoCommit'
+      if @have_transactions
+        @handle.query("SET AUTOCOMMIT=" + (value ? "1" : "0"))
+      else
+        raise NotSupportedError
+      end
+    else
+      raise NotSupportedError
+    end
+    @attr[attr] = value
   end
 
   private # -------------------------------------------------
