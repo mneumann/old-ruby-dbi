@@ -9,7 +9,7 @@
 </head>
 <body>
 <h1><a name="label:0" id="label:0">Ruby/DBI - a database independent interface for accessing databases - similar to Perl's DBI</a></h1><!-- RDLabel: "Ruby/DBI - a database independent interface for accessing databases - similar to Perl's DBI" -->
-<p>$Id: index.html,v 1.10 2001/07/28 12:07:45 michael Exp $</p>
+<p>$Id: index.html,v 1.11 2001/08/30 14:02:13 michael Exp $</p>
 <p>Copyright (c) 2001 by Michael Neumann (neumann@s-direktnet.de)</p>
 <h2><a name="label:1" id="label:1">License</a></h2><!-- RDLabel: "License" -->
 <p>This program is free software; you can redistribute it and/or
@@ -24,11 +24,42 @@ GNU General Public License for more details.</p>
 <p>You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.</p>
-<h2><a name="label:2" id="label:2">Acknowledgments</a></h2><!-- RDLabel: "Acknowledgments" -->
-<p>Version 0.0.5 of Ruby/DBI was a complete rewrite of version 0.0.4, which
-was written by Rainer Perl. Thanks to him and to Jim Weirich who helped a
-lot and wrote the database driver for PostgreSQL.</p>
-<h2><a name="label:3" id="label:3">Database Drivers (DBDs)</a></h2><!-- RDLabel: "Database Drivers (DBDs)" -->
+<h2><a name="label:2" id="label:2">Contributors</a></h2><!-- RDLabel: "Contributors" -->
+<dl>
+<dt><a name="label:3" id="label:3">Rainer Perl 
+</a></dt><!-- RDLabel: "Rainer Perl 
+" -->
+<dd>
+<p>Author of Ruby/DBI 0.0.4 from which many good ideas were taken into the nwe completely rewritten version 0.0.5. </p>
+</dd>
+<dt><a name="label:4" id="label:4">Jim Weirich
+</a></dt><!-- RDLabel: "Jim Weirich
+" -->
+<dd>
+<p>Author of the PostgreSQL driver (DBD::Pg).
+Wrote many additional code (e.g. sql.rb, testcases). 
+Gave many helpful hints and comments.</p>
+</dd>
+<dt><a name="label:5" id="label:5">Eli Green
+</a></dt><!-- RDLabel: "Eli Green
+" -->
+<dd>
+<p>Implemented DatabaseHandle#columns for Mysql and Pg.</p>
+</dd>
+<dt><a name="label:6" id="label:6">Masatoshi SEKI
+</a></dt><!-- RDLabel: "Masatoshi SEKI
+" -->
+<dd>
+<p>For his version of module BasicQuote in sql.rb</p>
+</dd>
+<dt><a name="label:7" id="label:7">John Gorman 
+</a></dt><!-- RDLabel: "John Gorman 
+" -->
+<dd>
+<p>For his case insensitive load_driver patch and parameter parser.</p>
+</dd>
+</dl>
+<h2><a name="label:8" id="label:8">Database Drivers (DBDs)</a></h2><!-- RDLabel: "Database Drivers (DBDs)" -->
 <ul>
 <li>ADO (ActiveX Data Objects) <em>(dbd_ado)</em></li>
 <li><p>DB2 <em>(dbd_db2)</em></p>
@@ -41,7 +72,7 @@ lot and wrote the database driver for PostgreSQL.</p>
 <p>depend on the "MySQL Ruby Module" by TOMITA Masahiro &lt;tommy@tmtm.org&gt; <a href="http://www.tmtm.org/mysql/">&lt;URL:http://www.tmtm.org/mysql/&gt;</a> or
 available from the RAA.</p></li>
 <li><p>ODBC <em>(dbd_odbc)</em></p>
-<p>depend on the Ruby/ODBC (version &gt;= 0.4) binding by Christian Werner &lt;chw@ch-werner.de&gt; 
+<p>depend on the Ruby/ODBC (version &gt;= 0.5) binding by Christian Werner &lt;chw@ch-werner.de&gt; 
 <a href="http://www.ch-werner.de/rubyodbc">&lt;URL:http://www.ch-werner.de/rubyodbc&gt;</a> or available from the RAA. 
 Works also together with unixODBC.</p></li>
 <li><p>Oracle <em>(dbd_oracle)</em></p>
@@ -52,67 +83,69 @@ Works also together with unixODBC.</p></li>
 <li><p>Proxy/Server <em>(dbd_proxy)</em></p>
 <p>depend on distributed Ruby (DRb) available from RAA.</p></li>
 <li><p>Sybase <em>(dbd_sybase)</em></p>
-<p>this DBD is currently outdated and will <em>not</em> work with DBI 0.0.5 !!! </p></li>
+<p>this DBD is currently outdated and will <em>not</em> work with DBI versions &gt; 0.0.4 !!! </p></li>
 </ul>
-<h2><a name="label:4" id="label:4">ChangeLog</a></h2><!-- RDLabel: "ChangeLog" -->
+<h2><a name="label:9" id="label:9">ChangeLog</a></h2><!-- RDLabel: "ChangeLog" -->
 <p>See <a href="http://www.ruby-projects.org/dbi/dbi/ChangeLog.html">&lt;URL:http://www.ruby-projects.org/dbi/dbi/ChangeLog.html&gt;</a>.</p>
-<h2><a name="label:5" id="label:5">ToDo</a></h2><!-- RDLabel: "ToDo" -->
+<h2><a name="label:10" id="label:10">ToDo</a></h2><!-- RDLabel: "ToDo" -->
 <p>See <a href="http://www.ruby-projects.org/dbi/dbi/ToDo.html">&lt;URL:http://www.ruby-projects.org/dbi/dbi/ToDo.html&gt;</a>.</p>
-<h2><a name="label:6" id="label:6">Download</a></h2><!-- RDLabel: "Download" -->
+<h2><a name="label:11" id="label:11">Download</a></h2><!-- RDLabel: "Download" -->
+<p>If you're running FreeBSD or NetBSD, have a look at their package collections. FreeBSD has for DBI and each DBD an easy to
+install package, NetBSD currently only for PostgreSQL but more is to come.</p>
 <p>Latest development snapshot available at <a href="http://www.ruby-projects.org/downloads/dbi/ruby-dbi-all-current.tar.gz">&lt;URL:http://www.ruby-projects.org/downloads/dbi/ruby-dbi-all-current.tar.gz&gt;</a>.</p>
 <dl>
-<dt><a name="label:7" id="label:7">Ruby/DBI 0.0.8
+<dt><a name="label:12" id="label:12">Ruby/DBI 0.0.8
 </a></dt><!-- RDLabel: "Ruby/DBI 0.0.8
 " -->
 <dd>
 <p><a href="http://www.ruby-projects.org/downloads/dbi/ruby-dbi-all-0.0.8.tar.gz">&lt;URL:http://www.ruby-projects.org/downloads/dbi/ruby-dbi-all-0.0.8.tar.gz&gt;</a></p>
 </dd>
-<dt><a name="label:8" id="label:8">Ruby/DBI 0.0.7
+<dt><a name="label:13" id="label:13">Ruby/DBI 0.0.7
 </a></dt><!-- RDLabel: "Ruby/DBI 0.0.7
 " -->
 <dd>
 <p><a href="http://www.ruby-projects.org/downloads/dbi/ruby-dbi-all-0.0.7.tar.gz">&lt;URL:http://www.ruby-projects.org/downloads/dbi/ruby-dbi-all-0.0.7.tar.gz&gt;</a></p>
 </dd>
-<dt><a name="label:9" id="label:9">Ruby/DBI 0.0.6
+<dt><a name="label:14" id="label:14">Ruby/DBI 0.0.6
 </a></dt><!-- RDLabel: "Ruby/DBI 0.0.6
 " -->
 <dd>
 <p><a href="http://www.ruby-projects.org/downloads/dbi/ruby-dbi-all-0.0.6.tar.gz">&lt;URL:http://www.ruby-projects.org/downloads/dbi/ruby-dbi-all-0.0.6.tar.gz&gt;</a></p>
 </dd>
-<dt><a name="label:10" id="label:10">Ruby/DBI 0.0.5
+<dt><a name="label:15" id="label:15">Ruby/DBI 0.0.5
 </a></dt><!-- RDLabel: "Ruby/DBI 0.0.5
 " -->
 <dd>
 <p><a href="http://www.ruby-projects.org/downloads/dbi/ruby-dbi-all-0.0.5.tar.gz">&lt;URL:http://www.ruby-projects.org/downloads/dbi/ruby-dbi-all-0.0.5.tar.gz&gt;</a></p>
 </dd>
 </dl>
-<h2><a name="label:11" id="label:11">Installation</a></h2><!-- RDLabel: "Installation" -->
+<h2><a name="label:16" id="label:16">Installation</a></h2><!-- RDLabel: "Installation" -->
 <p>All available DBDs come with this package, but you should only
 install the DBDs you really need.</p>
-<h3><a name="label:12" id="label:12">To install all:</a></h3><!-- RDLabel: "To install all:" -->
+<h3><a name="label:17" id="label:17">To install all:</a></h3><!-- RDLabel: "To install all:" -->
 <pre>ruby setup.rb config
 ruby setup.rb setup
 ruby setup.rb install</pre>
-<h3><a name="label:13" id="label:13">To install dbi and some DBDs:</a></h3><!-- RDLabel: "To install dbi and some DBDs:" -->
+<h3><a name="label:18" id="label:18">To install dbi and some DBDs:</a></h3><!-- RDLabel: "To install dbi and some DBDs:" -->
 <pre>ruby setup.rb config --with=dbi,dbd_pg....
 ruby setup.rb setup
 ruby setup.rb install</pre>
 <p>Choose the packages to install by specifing them after the option <code>--with</code>.</p>
-<h2><a name="label:14" id="label:14">Mailing List</a></h2><!-- RDLabel: "Mailing List" -->
+<h2><a name="label:19" id="label:19">Mailing List</a></h2><!-- RDLabel: "Mailing List" -->
 <p>There is also a mailing-list for DBI-specific discussions, see
 <a href="http://groups.yahoo.com/group/ruby-dbi-talk">&lt;URL:http://groups.yahoo.com/group/ruby-dbi-talk&gt;</a></p>
-<h2><a name="label:15" id="label:15">Documentation</a></h2><!-- RDLabel: "Documentation" -->
+<h2><a name="label:20" id="label:20">Documentation</a></h2><!-- RDLabel: "Documentation" -->
 <p>See the directories lib/*/doc or ext/*/doc for DBI and DBD specific informations.</p>
 <p>The DBI specification is lib/dbi/doc/DBI_SPEC or lib/dbi/doc/html/DBI_SPEC.html or available
 from WWW at <a href="http://www.ruby-projects.org/dbi/dbi/DBI_SPEC.html">&lt;URL:http://www.ruby-projects.org/dbi/dbi/DBI_SPEC.html&gt;</a>.</p>
 <p>The DBD specification (how to write a database driver) is lib/dbi/doc/DBD_SPEC or lib/dbi/doc/html/DBD_SPEC.html or available
 from WWW at <a href="http://www.ruby-projects.org/dbi/dbi/DBD_SPEC.html">&lt;URL:http://www.ruby-projects.org/dbi/dbi/DBD_SPEC.html&gt;</a>.</p>
-<h2><a name="label:16" id="label:16">Examples</a></h2><!-- RDLabel: "Examples" -->
+<h2><a name="label:21" id="label:21">Examples</a></h2><!-- RDLabel: "Examples" -->
 <p>Examples can be found in the examples/ subdirectory.
 There is e.g. sqlsh.rb, which is an interactive SQL shell similar to Perl's dbish.rb.
 Further there is in this directory the file proxyserver.rb which has to be run if you use the DBD::Proxy, 
 to access databases remote over a TCP/IP network. </p>
-<h3><a name="label:17" id="label:17">A simple example</a></h3><!-- RDLabel: "A simple example" -->
+<h3><a name="label:22" id="label:22">A simple example</a></h3><!-- RDLabel: "A simple example" -->
 <pre>require 'dbi'
 
 # connect to a datbase
@@ -120,7 +153,8 @@ dbh = DBI.connect('DBI:Mysql:test', 'testuser', 'testpwd')
 
 puts "inserting..."
 1.upto(13) do |i|
- dbh.do("insert into simple01 (SongName, SongLength_s) VALUES (?, ?)", "Song #{i}", "#{i*10}")
+   sql = "insert into simple01 (SongName, SongLength_s) VALUES (?, ?)"
+   dbh.do(sql, "Song #{i}", "#{i*10}")
 end 
 
 puts "selecting..."
@@ -135,6 +169,26 @@ puts "deleting..."
 dbh.do('delete from simple01 where internal_id &gt; 10')
 
 dbh.disconnect</pre>
+<h3><a name="label:23" id="label:23">The same using Ruby's features</a></h3><!-- RDLabel: "The same using Ruby's features" -->
+<pre>require 'dbi'
+
+DBI.connect('DBI:Mysql:test', 'testuser', 'testpwd') do | dbh |
+
+  puts "inserting..."
+  sql = "insert into simple01 (SongName, SongLength_s) VALUES (?, ?)"
+  dbh.prepare(sql) do | sth | 
+    1.upto(13) { |i| sth.execute("Song #{i}", "#{i*10}") }
+  end 
+
+  puts "selecting..."
+  dbh.select_all('select * from simple01') do
+    p row
+  end
+
+  puts "deleting..."
+  dbh.do('delete from simple01 where internal_id &gt; 10')
+
+end</pre>
 
 </body>
 </html>
