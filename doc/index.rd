@@ -1,6 +1,6 @@
 =begin
 = Ruby/DBI - a database independent interface for accessing databases - similar to Perl's DBI
-$Id: index.rd,v 1.8 2001/07/28 11:58:43 michael Exp $
+$Id: index.rd,v 1.9 2001/08/30 14:01:31 michael Exp $
 
 Copyright (c) 2001 by Michael Neumann (neumann@s-direktnet.de)
 
@@ -22,10 +22,20 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-== Acknowledgments
-Version 0.0.5 of Ruby/DBI was a complete rewrite of version 0.0.4, which
-was written by Rainer Perl. Thanks to him and to Jim Weirich who helped a
-lot and wrote the database driver for PostgreSQL.
+== Contributors
+
+: Rainer Perl 
+  Author of Ruby/DBI 0.0.4 from which many good ideas were taken into the nwe completely rewritten version 0.0.5. 
+: Jim Weirich
+  Author of the PostgreSQL driver (DBD::Pg).
+  Wrote many additional code (e.g. sql.rb, testcases). 
+  Gave many helpful hints and comments.
+: Eli Green
+  Implemented DatabaseHandle#columns for Mysql and Pg.
+: Masatoshi SEKI
+  For his version of module BasicQuote in sql.rb
+: John Gorman 
+  For his case insensitive load_driver patch and parameter parser.
 
 == Database Drivers (DBDs)
 
@@ -49,7 +59,7 @@ lot and wrote the database driver for PostgreSQL.
 
 * ODBC ((*(dbd_odbc)*))
 
-  depend on the Ruby/ODBC (version >= 0.4) binding by Christian Werner <chw@ch-werner.de> 
+  depend on the Ruby/ODBC (version >= 0.5) binding by Christian Werner <chw@ch-werner.de> 
   ((<URL:http://www.ch-werner.de/rubyodbc>)) or available from the RAA. 
   Works also together with unixODBC.
 
@@ -68,7 +78,7 @@ lot and wrote the database driver for PostgreSQL.
 
 * Sybase ((*(dbd_sybase)*))
   
-  this DBD is currently outdated and will ((*not*)) work with DBI 0.0.5 !!! 
+  this DBD is currently outdated and will ((*not*)) work with DBI versions > 0.0.4 !!! 
 
 
 == ChangeLog
@@ -81,6 +91,9 @@ See ((<URL:http://www.ruby-projects.org/dbi/dbi/ToDo.html>)).
 
 
 == Download
+
+If you're running FreeBSD or NetBSD, have a look at their package collections. FreeBSD has for DBI and each DBD an easy to
+install package, NetBSD currently only for PostgreSQL but more is to come.
 
 Latest development snapshot available at ((<URL:http://www.ruby-projects.org/downloads/dbi/ruby-dbi-all-current.tar.gz>)).
 
@@ -152,7 +165,8 @@ to access databases remote over a TCP/IP network.
 
   puts "inserting..."
   1.upto(13) do |i|
-   dbh.do("insert into simple01 (SongName, SongLength_s) VALUES (?, ?)", "Song #{i}", "#{i*10}")
+     sql = "insert into simple01 (SongName, SongLength_s) VALUES (?, ?)"
+     dbh.do(sql, "Song #{i}", "#{i*10}")
   end 
 
   puts "selecting..."
@@ -167,5 +181,27 @@ to access databases remote over a TCP/IP network.
   dbh.do('delete from simple01 where internal_id > 10')
 
   dbh.disconnect
+
+=== The same using Ruby's features
+
+  require 'dbi'
+
+  DBI.connect('DBI:Mysql:test', 'testuser', 'testpwd') do | dbh |
+
+    puts "inserting..."
+    sql = "insert into simple01 (SongName, SongLength_s) VALUES (?, ?)"
+    dbh.prepare(sql) do | sth | 
+      1.upto(13) { |i| sth.execute("Song #{i}", "#{i*10}") }
+    end 
+
+    puts "selecting..."
+    dbh.select_all('select * from simple01') do
+      p row
+    end
+
+    puts "deleting..."
+    dbh.do('delete from simple01 where internal_id > 10')
+
+  end
 
 =end 
