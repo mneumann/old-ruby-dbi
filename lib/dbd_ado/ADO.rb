@@ -1,6 +1,6 @@
 # 
 # DBD::ADO
-# $Id: ADO.rb,v 1.2 2001/05/31 10:21:46 michael Exp $
+# $Id: ADO.rb,v 1.3 2001/05/31 13:19:18 michael Exp $
 # 
 # Version : 0.1
 # Author  : Michael Neumann (neumann@s-direktnet.de)
@@ -115,7 +115,7 @@ class Statement < DBI::BaseStatement
 
     # TODO: SELECT and AutoCommit finishes the result-set
     #       what to do?
-    if @db['AutoCommit'] == true and @statement !~ /^\s*SELECT/i then
+    if @db['AutoCommit'] == true and not SQL.query?(@statement) then
       @db.commit
     end
 
