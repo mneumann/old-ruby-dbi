@@ -1,5 +1,14 @@
 =begin
 
+: 0.0.17
+
+* contrib: added dbrc (Daniel Berger) 
+
+* dbd_pg: enhanced conversion: default is to_str, added timestamp
+  (with/without timezone)
+
+* dbi.rb: added Timestamp#to_time/to_date (Dave Thomas)
+
 : 0.0.16 (2002-07-03)
 
 * dbd_pg: Added Statement#fetch_scroll (patch by Stephen Davies).

@@ -9,7 +9,7 @@
 </head>
 <body>
 <h1><a name="label:0" id="label:0">Ruby/DBI - a database independent interface for accessing databases - similar to Perl's DBI</a></h1><!-- RDLabel: "Ruby/DBI - a database independent interface for accessing databases - similar to Perl's DBI" -->
-<p>$Id: index.html,v 1.24 2002/07/03 20:08:32 mneumann Exp $</p>
+<p>$Id: index.html,v 1.25 2002/07/26 18:14:06 mneumann Exp $</p>
 <h2><a name="label:1" id="label:1">License</a></h2><!-- RDLabel: "License" -->
 <p>Copyright (c) 2001, 2002 Michael Neumann &lt;neumann@s-direktnet.de&gt;</p>
 <p>All rights reserved.</p>
@@ -90,8 +90,16 @@ performance by a factor around 100</p>
 <dd>
 <p>Added method Statement#fetch_scroll for PostgreSQL DBD.</p>
 </dd>
+<dt><a name="label:15" id="label:15">Dave Thomas</a></dt><!-- RDLabel: "Dave Thomas" -->
+<dd>
+<p>Several enhancements.</p>
+</dd>
+<dt><a name="label:16" id="label:16">Daniel J. Berger</a></dt><!-- RDLabel: "Daniel J. Berger" -->
+<dd>
+<p>contrib/dbrc</p>
+</dd>
 </dl>
-<h2><a name="label:15" id="label:15">Database Drivers (DBDs)</a></h2><!-- RDLabel: "Database Drivers (DBDs)" -->
+<h2><a name="label:17" id="label:17">Database Drivers (DBDs)</a></h2><!-- RDLabel: "Database Drivers (DBDs)" -->
 <ul>
 <li><p>ADO (ActiveX Data Objects) <em>(dbd_ado)</em></p>
 <p>depend on WinOLE from RAA.</p></li>
@@ -122,46 +130,46 @@ Works also together with unixODBC. To use the 'odbc_ignorecase' option you need 
 <li><p>Sybase <em>(dbd_sybase)</em></p>
 <p>this DBD is currently outdated and will <em>not</em> work with DBI versions &gt; 0.0.4 !!! </p></li>
 </ul>
-<h2><a name="label:16" id="label:16">ChangeLog</a></h2><!-- RDLabel: "ChangeLog" -->
+<h2><a name="label:18" id="label:18">ChangeLog</a></h2><!-- RDLabel: "ChangeLog" -->
 <p>See <a href="http://ruby-dbi.sourceforge.net/ChangeLog.html">&lt;URL:http://ruby-dbi.sourceforge.net/ChangeLog.html&gt;</a>.</p>
-<h2><a name="label:17" id="label:17">ToDo</a></h2><!-- RDLabel: "ToDo" -->
+<h2><a name="label:19" id="label:19">ToDo</a></h2><!-- RDLabel: "ToDo" -->
 <p>See <a href="http://ruby-dbi.sourceforge.net/ToDo.html">&lt;URL:http://ruby-dbi.sourceforge.net/ToDo.html&gt;</a>.</p>
-<h2><a name="label:18" id="label:18">Download</a></h2><!-- RDLabel: "Download" -->
+<h2><a name="label:20" id="label:20">Download</a></h2><!-- RDLabel: "Download" -->
 <p>Ruby/DBI is available for from the <a href="http://sourceforge.net/project/showfiles.php?group_id=43737">SourceForge project page</a>.</p>
 <p>If you're running FreeBSD or NetBSD, have a look at their package collections. FreeBSD has for DBI and each DBD an easy to
 install package, NetBSD currently only for PostgreSQL but more is to come.</p>
 <p>A NetBSD package for MySQL is available at <a href="http://www.fantasy-coders.de/ruby/ruby-mysql-2.4.tar.gz">&lt;URL:http://www.fantasy-coders.de/ruby/ruby-mysql-2.4.tar.gz&gt;</a>.</p>
-<h2><a name="label:19" id="label:19">Installation</a></h2><!-- RDLabel: "Installation" -->
+<h2><a name="label:21" id="label:21">Installation</a></h2><!-- RDLabel: "Installation" -->
 <p>All available DBDs come with this package, but you should only
 install the DBDs you really need.</p>
-<h3><a name="label:20" id="label:20">To install all:</a></h3><!-- RDLabel: "To install all:" -->
+<h3><a name="label:22" id="label:22">To install all:</a></h3><!-- RDLabel: "To install all:" -->
 <pre>ruby setup.rb config
 ruby setup.rb setup
 ruby setup.rb install</pre>
-<h3><a name="label:21" id="label:21">To install dbi and some DBDs:</a></h3><!-- RDLabel: "To install dbi and some DBDs:" -->
+<h3><a name="label:23" id="label:23">To install dbi and some DBDs:</a></h3><!-- RDLabel: "To install dbi and some DBDs:" -->
 <pre>ruby setup.rb config --with=dbi,dbd_pg....
 ruby setup.rb setup
 ruby setup.rb install</pre>
 <p>Choose the packages to install by specifing them after the option <code>--with</code>.</p>
-<h2><a name="label:22" id="label:22">Mailing List</a></h2><!-- RDLabel: "Mailing List" -->
+<h2><a name="label:24" id="label:24">Mailing List</a></h2><!-- RDLabel: "Mailing List" -->
 <p>A mailinglist for DBI-specific discussions is available from the <a href="http://sourceforge.net/projects/ruby-dbi">SourceForge project page</a>.</p>
 <p>Our former mailing-list was at <a href="http://groups.yahoo.com/group/ruby-dbi-talk">&lt;URL:http://groups.yahoo.com/group/ruby-dbi-talk&gt;</a>; 
 please, don't use it!</p>
-<h2><a name="label:23" id="label:23">Documentation</a></h2><!-- RDLabel: "Documentation" -->
+<h2><a name="label:25" id="label:25">Documentation</a></h2><!-- RDLabel: "Documentation" -->
 <p>See the directories lib/*/doc or ext/*/doc for DBI and DBD specific informations.</p>
 <p>The DBI specification is lib/dbi/doc/DBI_SPEC or lib/dbi/doc/html/DBI_SPEC.html or available
 from WWW at <a href="http://ruby-dbi.sourceforge.net/DBI_SPEC.html">&lt;URL:http://ruby-dbi.sourceforge.net/DBI_SPEC.html&gt;</a>.</p>
 <p>The DBD specification (how to write a database driver) is lib/dbi/doc/DBD_SPEC or lib/dbi/doc/html/DBD_SPEC.html or available
 from WWW at <a href="http://ruby-dbi.sourceforge.net/DBD_SPEC.html">&lt;URL:http://ruby-dbi.sourceforge.net/DBD_SPEC.html&gt;</a>.</p>
-<h2><a name="label:24" id="label:24">Applications</a></h2><!-- RDLabel: "Applications" -->
-<h3><a name="label:25" id="label:25">sqlsh.rb</a></h3><!-- RDLabel: "sqlsh.rb" -->
+<h2><a name="label:26" id="label:26">Applications</a></h2><!-- RDLabel: "Applications" -->
+<h3><a name="label:27" id="label:27">sqlsh.rb</a></h3><!-- RDLabel: "sqlsh.rb" -->
 <p>The SQL command line interpreter sqlsh.rb is available in directory bin/commandline.
 It gets installed by default.</p>
-<h2><a name="label:26" id="label:26">Examples</a></h2><!-- RDLabel: "Examples" -->
+<h2><a name="label:28" id="label:28">Examples</a></h2><!-- RDLabel: "Examples" -->
 <p>Examples can be found in the examples/ subdirectory.
 In this directory there is the file proxyserver.rb which has to be run if you use the DBD::Proxy, 
 to access databases remote over a TCP/IP network. </p>
-<h3><a name="label:27" id="label:27">A simple example</a></h3><!-- RDLabel: "A simple example" -->
+<h3><a name="label:29" id="label:29">A simple example</a></h3><!-- RDLabel: "A simple example" -->
 <pre>require 'dbi'
 
 # connect to a datbase
@@ -185,7 +193,7 @@ puts "deleting..."
 dbh.do('delete from simple01 where internal_id &gt; 10')
 
 dbh.disconnect</pre>
-<h3><a name="label:28" id="label:28">The same using Ruby's features</a></h3><!-- RDLabel: "The same using Ruby's features" -->
+<h3><a name="label:30" id="label:30">The same using Ruby's features</a></h3><!-- RDLabel: "The same using Ruby's features" -->
 <pre>require 'dbi'
 
 DBI.connect('DBI:Mysql:test', 'testuser', 'testpwd') do | dbh |
