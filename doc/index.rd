@@ -1,6 +1,6 @@
 =begin
 = Ruby/DBI - a database independent interface for accessing databases - similar to Perl's DBI
-$Id: index.rd,v 1.23 2002/07/26 18:13:47 mneumann Exp $
+$Id: index.rd,v 1.24 2002/09/26 18:41:59 mneumann Exp $
 
 == License
 
@@ -66,6 +66,8 @@ License).
   Several enhancements.
 : Daniel J. Berger
   contrib/dbrc
+: Brad Hilton
+  Column coercing patch for DBD Mysql.
 
 == Database Drivers (DBDs)
 
