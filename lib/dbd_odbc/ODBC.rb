@@ -1,6 +1,6 @@
 # 
 # DBD::ODBC
-# $Id: ODBC.rb,v 1.4 2001/10/22 15:59:02 michael Exp $
+# $Id: ODBC.rb,v 1.5 2001/11/13 11:31:05 michael Exp $
 # 
 # Version : 0.1.2
 # Author  : Michael Neumann (neumann@s-direktnet.de)
@@ -143,7 +143,7 @@ class Database < DBI::BaseDatabase
       @handle.ignorecase(value)
     else
       if attr =~ /^odbc_/ or attr != /_/
-        raise NotSupportedError, "Option '#{attr}' not supported"
+        raise DBI::NotSupportedError, "Option '#{attr}' not supported"
       else # option for some other driver - quitly ignore
         return
       end
