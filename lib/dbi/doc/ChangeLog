@@ -1,7 +1,8 @@
 =begin
 
-: 0.0.13
+: 0.0.13 (2002-04-16)
 
+* Moved project to SourceForge.
 * dbd_odbc: fixed bug in method columns (Norbert Gawor)
 * dbd_proxy, proxyserver: upgraded to DBD API 0.2; fixed bug (Norbert Gawor)
 
