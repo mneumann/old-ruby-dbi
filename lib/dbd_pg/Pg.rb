@@ -1,5 +1,5 @@
 #
-# $Id: Pg.rb,v 1.14 2001/11/22 15:20:58 michael Exp $
+# $Id: Pg.rb,v 1.15 2001/12/02 17:23:59 michael Exp $
 #
 
 require 'postgres'
@@ -131,10 +131,14 @@ module DBI
           ]
 
           # by Michael Neumann (get default value)
+          # corrected by Joseph McDonald
           sql3 = %[
-            SELECT b.adsrc, a.attname 
-                   FROM pg_attribute a, pg_attrdef b, pg_class c
-            WHERE a.attnum > 0 AND a.attrelid = c.oid AND c.relname = ? AND b.adrelid = a.attrelid 
+            SELECT pg_attrdef.adsrc, pg_attribute.attname 
+                   FROM pg_attribute, pg_attrdef, pg_class
+            WHERE pg_class.relname = ? AND 
+                  pg_attribute.attrelid = pg_class.oid AND
+                  pg_attrdef.adrelid = pg_class.oid AND
+                  pg_attrdef.adnum = pg_attribute.attnum
           ]
 
           dbh = DBI::DatabaseHandle.new(self)
