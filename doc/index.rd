@@ -1,6 +1,6 @@
 =begin
 = Ruby/DBI - a database independent interface for accessing databases - similar to Perl's DBI
-$Id: index.rd,v 1.9 2001/08/30 14:01:31 michael Exp $
+$Id: index.rd,v 1.10 2001/09/07 13:39:19 michael Exp $
 
 Copyright (c) 2001 by Michael Neumann (neumann@s-direktnet.de)
 
@@ -97,6 +97,9 @@ install package, NetBSD currently only for PostgreSQL but more is to come.
 
 Latest development snapshot available at ((<URL:http://www.ruby-projects.org/downloads/dbi/ruby-dbi-all-current.tar.gz>)).
 
+: Ruby/DBI 0.0.9
+
+  ((<URL:http://www.ruby-projects.org/downloads/dbi/ruby-dbi-all-0.0.9.tar.gz>))
 
 : Ruby/DBI 0.0.8
 
