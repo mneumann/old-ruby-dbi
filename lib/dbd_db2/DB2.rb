@@ -3,7 +3,7 @@
 # Based on (and requires) the "IBM DB2 Module for Ruby"
 # by myself (Michael Neumann) <neumann@s-direktnet.de> http://www.fantasy-coders.de/ruby
 # 
-# Version : $Id: DB2.rb,v 1.2 2001/06/07 10:42:12 michael Exp $
+# Version : $Id: DB2.rb,v 1.3 2001/06/07 19:12:11 michael Exp $
 # Author  : Michael Neumann (neumann@s-direktnet.de)
 # Homepage: http://www.s-direktnet.de/homepages/neumann/
 # DBD API : 0.1
@@ -165,6 +165,7 @@ USED_DBD_VERSION = "0.1"
     def initialize(handle)
       @handle = handle
       @arr = []
+      @cols = get_col_info
     end
 
     # TODO:
@@ -182,19 +183,19 @@ USED_DBD_VERSION = "0.1"
     end
 
     def fetch
-      cols = get_col_info
+      do_fetch(SQLFetch(@handle))
+    end
 
-      rc = SQLFetch(@handle)
-      return nil if rc == SQL_NO_DATA_FOUND
-      error(rc, "Could not fetch row")
-
-      cols.each_with_index do |c, i|
-        rc, content = SQLGetData(@handle, i+1, c[1], c[2]) 
-        error(rc, "Could not get data")
-        @arr[i] = content
-      end 
-
-      return @arr
+    def fetch_scroll(direction, offset)
+      direction = case direction
+      when DBI::SQL_FETCH_FIRST    then ::DB2CLI::SQL_FETCH_FIRST
+      when DBI::SQL_FETCH_LAST     then ::DB2CLI::SQL_FETCH_LAST
+      when DBI::SQL_FETCH_PRIOR    then ::DB2CLI::SQL_FETCH_PRIOR
+      when DBI::SQL_FETCH_NEXT     then ::DB2CLI::SQL_FETCH_NEXT
+      when DBI::SQL_FETCH_RELATIVE then ::DB2CLI::SQL_FETCH_RELATIVE
+      when DBI::SQL_FETCH_ABSOLUTE then ::DB2CLI::SQL_FETCH_ABSOLUTE
+      end
+      do_fetch(SQLFetchScroll(@handle, direction, offset))
     end
 
     def column_info
@@ -231,6 +232,32 @@ USED_DBD_VERSION = "0.1"
 
     def get_col_names
       get_col_info.collect {|i| i[0] }
+    end
+
+    def do_fetch(rc)
+      return nil if rc == SQL_NO_DATA_FOUND
+      error(rc, "Could not fetch row")
+
+      @cols.each_with_index do |c, i|
+        rc, content = SQLGetData(@handle, i+1, c[1], c[2]) 
+        error(rc, "Could not get data")
+
+        @arr[i] = 
+        if content.is_a? ::DB2CLI::Date 
+          DBI::Date.new(content.year, content.month, content.day)
+        elsif content.is_a? ::DB2CLI::Time
+          DBI::Time.new(content.hour, content.minute, content.second)
+        elsif content.is_a? ::DB2CLI::Timestamp 
+          DBI::Timestamp.new(content.year, content.month, content.day,
+            content.hour, content.minute, content.second, content.fraction)
+        elsif content.is_a? ::DB2CLI::Null
+          nil
+        else  
+          content
+        end
+      end 
+
+      return @arr
     end
 
   end # class Statement
