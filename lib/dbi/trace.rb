@@ -1,4 +1,4 @@
-# $Id: trace.rb,v 1.2 2001/06/11 12:58:18 michael Exp $
+# $Id: trace.rb,v 1.3 2002/10/22 15:15:43 mneumann Exp $
 # 
 # Tracing for DBI programs
 # 
@@ -28,6 +28,7 @@ module DBI
 class HandleTracer < AspectR::Aspect
 
   def initialize(klass)
+    @never_wrap = /^__|^send$|^id$|^class$|^$ /
     self.wrap(klass, :pre, :post, methods(klass)) 
   end
 
