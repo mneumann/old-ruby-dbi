@@ -27,7 +27,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: Pg.rb,v 1.20 2002/07/03 16:48:36 mneumann Exp $
+# $Id: Pg.rb,v 1.21 2002/07/03 19:22:47 mneumann Exp $
 #
 
 require 'postgres'
@@ -470,11 +470,25 @@ module DBI
 	# Return the row processed count (or nil if RPC not available)
 	def rows
 	  if @result
-	    @result.row_count
+            @result.rows_affected
 	  else
 	    nil
 	  end
 	end
+
+        def [](attr)
+          case attr
+          when 'pg_row_count'
+            if @result
+              @result.row_count
+            else
+              nil
+            end
+          else
+            @attr[attr]
+          end
+        end
+
 
 	private # ----------------------------------------------------
 
@@ -508,6 +522,10 @@ module DBI
 	def row_count
 	  @pg_result.num_tuples
 	end
+ 
+        def rows_affected
+          @pg_result.cmdtuples
+        end
 
 	def finish
 	  @pg_result.clear
