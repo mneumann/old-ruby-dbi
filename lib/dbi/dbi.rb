@@ -1,5 +1,5 @@
 # Ruby/DBI 
-# $Id: dbi.rb,v 1.19 2001/08/30 13:34:39 michael Exp $
+# $Id: dbi.rb,v 1.20 2001/08/30 14:30:51 michael Exp $
 # 
 # Version : 0.0.9
 # Author  : Michael Neumann (neumann@s-direktnet.de)
@@ -70,9 +70,9 @@ SQL_CHAR = 1
 SQL_VARCHAR = 12
 SQL_LONGVARCHAR = -1
 
-SQL_DATE = 91
-SQL_TIME = 92
-SQL_TIMESTAMP = 93
+SQL_DATE = 9       # 91
+SQL_TIME = 10      # 92 
+SQL_TIMESTAMP = 11 # 93 
 
 SQL_BINARY = -2
 SQL_VARBINARY = -3
@@ -89,19 +89,6 @@ SQL_CLOB = -11   # TODO
 SQL_OTHER = 100
 #SQL_REF = 
 #SQL_STRUCT = 
-
-
-
-
-##
-# Constants for bind_param (not yet in use)
-#
-#SQL_BIGINT, SQL_BLOB, SQL_BLOB_LOCATOR, SQL_CHAR, SQL_BINARY,
-#SQL_CLOB, SQL_CLOB_LOCATOR, SQL_TYPE_DATE, SQL_DBCLOB, SQL_DBCLOB_LOCATOR,
-#SQL_DECIMAL, SQL_DOUBLE, SQL_FLOAT, SQL_GRAPHIC, SQL_INTEGER,
-#SQL_LONGVARCHAR, SQL_LONGVARBINARY, SQL_LONGVARGRAPHIC, SQL_NUMERIC, SQL_REAL,
-#SQL_SMALLINT, SQL_TYPE_TIME, SQL_TYPE_TIMESTAMP, SQL_VARCHAR, SQL_VARBINARY,
-#SQL_VARGRAPHIC = (7..33).to_a
 
 
 #----------------------------------------------------
