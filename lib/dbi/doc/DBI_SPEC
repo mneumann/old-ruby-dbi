@@ -1,0 +1,294 @@
+=begin
+= DBI Interface Specification Version 0.5 (Draft)
+by Michael Neumann (neumann@s-direknet.de)
+
+ $Id: DBI_SPEC,v 1.1 2001/05/30 12:47:05 michael Exp $
+ 
+== Module DBD
+
+=== Constants
+
+--- API_VERSION
+    Use this in your DBD driver to ensure it is used with the correct DBD API-Version
+
+== Module DBI
+
+=== Constants
+
+--- VERSION
+    Version of the DBI Interface
+
+--- SQL_FETCH_NEXT
+--- SQL_FETCH_PRIOR
+--- SQL_FETCH_FIRST
+--- SQL_FETCH_LAST
+--- SQL_FETCH_ABSOLUTE
+
+=== Exceptions
+
+Exception classes were "borrowed" from Python API 2.0.
+
+--- Warning < RuntimeError
+    For important warnings like data truncation etc.
+
+--- Error < RuntimeError
+    Base class of all other error exceptions.
+    Use this to catch all errors.
+
+--- InterfaceError < Error
+    Exception for errors related to the DBI interface rather 
+    than the database itself.
+
+--- NotImplementedError < InterfaceError
+    Exception raised if the DBD driver has not specified
+    a mandantory method (not in Python API 2.0).
+
+--- DatabaseError < Error
+    Exception for errors related to the database.
+ 
+    Has three attributes ((|err|)), ((|errstr|)) and ((|state|)).
+
+--- DataError < DatabaseError
+    Exception for errors due to problems with the processed 
+    data like division by zero, numeric value out of range etc.
+
+--- OperationalError < DatabaseError
+    Exception for errors related to the database's operation which
+    are not necessarily under the control of the programmer like
+    unexpected disconnect, datasource name not found, transaction
+    could not be processed, a memory allocation error occured during
+    processing etc.
+
+--- IntegrityError < DatabaseError
+    Exception raised when the relational integrity of the database
+    is affected, e.g. a foreign key check fails
+
+--- InternalError < DatabaseError
+    Exception raised when the database encounters an internal error, 
+    e.g. the cursor is not valid anymore, the transaction is out of sync.
+
+--- ProgrammingError < DatabaseError
+    Exception raised for programming errors, e.g. table not found
+    or already exists, syntax error in SQL statement, wrong number
+    of parameters specified, etc.
+
+--- NotSupportedError < DatabaseError
+    Raised if e.g. commit() is called for a database which do not
+    support transactions.
+
+
+=== Module functions
+
+--- DBI.connect( driver_url, user=nil, auth=nil, params=nil )
+    Connect to the database specified by ((*driver_url*)), which may
+    look like "dbi:Oracle:oracle.neumann".
+ 
+    Returns an (({DBI::DatabaseHandle})) object, or if called with code-block,
+    calls this block with the new (({DBI::DatabaseHandle})) as parameter and
+    calls (({disconnect})) after calling the block if it was not yet disconnected by
+    the user.
+
+--- DBI.available_drivers
+    Returns an (({Array})) of all available DBD driver.
+    The strings which represent a DBD driver are partial DSN's
+    (e.g. "dbi:Oracle:").
+
+--- DBI.data_sources( driver )
+    Returns all available DSN's for the ((*driver*)), which
+    is a partial DSN (e.g. "dbi:Oracle:").
+
+--- DBI.disconnect_all( driver=nil )
+    Disconnects all active connections of ((*driver*)) or
+    all drivers if ((*driver*)) is (({nil})).
+
+
+== Class DBI::DatabaseHandle
+
+=== Instance Methods
+
+--- connected?
+    Returns (({true})) if the connection was not yet disconnected
+    by calling ((<disconnect>)), otherwise (({false})).
+
+--- disconnect
+    Disconnects the connection.
+
+--- prepare( stmt )
+--- prepare( stmt ) {|statement_handle| aBlock}
+    Prepare the SQL statement ((|stmt|)) and return a
+    (({DBI::StatementHandle})) or if called with a code-block
+    calls the block with the handle as parameter and after that
+    calls (({#finish})) onto the handle to free all resources
+
+--- execute( stmt, *bindvars )
+--- execute( stmt, *bindvars ) {|statement_handle| aBlock}
+    Executes immediately the SQL statement ((*stmt*)) with binding
+    the placeholders with values given in ((*bindvars*)) before.
+
+    Returns a (({DBI::StatementHandle})) or if called with code-block
+    calls the block with the handle as parameter and after that
+    calls (({#finish})) onto the handle to free all resources.
+
+--- do( stmt, *bindvars )
+    Same as ((<execute>)) only that no (({DBI::StatementHandle})) is
+    returned but the RPC (Row Processed Count).
+   
+--- select_one( stmt, *bindvars)
+    Executes the statement with binding the values to the parameters and returns the
+    first row as a reference to a Row object. 
+
+--- select_all( stmt, *bindvars)
+    Executes the statement with binding the values to the parameters and returns all
+    resulting rows. 
+
+    If called as iterator the passed (({DBI::Row})) objects are only references.
+ 
+--- tables
+    Returns a list of all tables and views.
+ 
+--- ping
+    Returns (({true})) if the connection is active, otherwise (({false})).
+    
+    In contranst to ((<connected?>)), ((<ping>)) tests if the connection is
+    still active by executing some SQL or doing something else.
+    
+--- quote( value )
+    Quotes the given value ((*value*)) database specific and returns the result.
+
+--- commit
+    Commits current transaction.
+
+--- rollback
+    Rolls the current transaction back.
+
+--- transaction {|database_handle| aBlock}
+    First commits the current transaction, then
+    executes the given block where the parameter is
+    the object itself (the database handle). If the
+    block raises an exception, then it rolls the transaction
+    back otherwise commits it.
+
+--- [](attr)
+--- []=(attr)
+    Sets or gets the attribute ((*attr*)).
+    An attribute can for example be "AutoCommit", which can be set to 
+    (({true})) or (({false})). Attributes are database dependant.
+
+--- func( function, *values )
+    Calls the driver specific extension function named by
+    ((|function|)) with ((|values|)) as parameters.
+
+== Class DBI::StatementHandle
+
+=== Mixins
+
+--- Enumerable
+
+=== Instance Methods
+
+--- bind_param( param, value, attribs=nil )
+    Bind ((*param*)) which is either a (({String})) which is then the name of the 
+    placeholder used in the SQL statement (e.g. Oracle: "SELECT * FROM EMP WHERE ENAME = :ename") 
+    or it is an integer which is then the number of the placeholder where counting starts at 1.
+
+    ((*value*)) is the value which is bound to the placeholder.
+
+    ((*attribs*)) is not yet used in this version, but could later be a hash containing more information
+    like parameter type etc..
+
+
+--- execute( *bindvars )
+    Execute the statement but before binds the placeholders with ((*bindvars*)).
+
+--- finish
+    Frees the resources for the statement.
+    After calling ((<finish>)) no other operation on this
+    statement is valid.
+
+--- cancel
+    Frees any result set resources which were made after a call 
+    to (({execute})).
+    After calling this method, a call to one of the ((*fetch*)) methods 
+    is no more valid.
+
+--- column_names
+    Returns an (({Array})) of all column names.
+
+
+--- column_info
+    Returns an (({Array})) containing (({Hash}))'s, one for
+    each column, which describes each column.
+
+--- rows
+    Returns the RPC (Row Processed Count) of the last executed statement, or
+    (({nil})) if no such exist.
+
+
+--- fetchable?
+    Returns true if you can fetch rows using fetch etc..
+ 
+
+--- fetch 
+    Returns a (({DBI::Row})) object, or (({nil})) if there are
+    no more rows to fetch.
+
+    When called as iterator, the block is called for each row
+    until no more row is available. Each row is passed to the
+    block as (({DBI::Row})) object.
+
+    Note that the returned or passed (({DBI::Row})) object is only a reference and
+    should be copied (dup) if it is store elsewhere.
+
+
+--- each  {|row| aBlock }
+    Same as ((<fetch>)) called as iterator.
+
+
+--- fetch_array
+    Returns the current row as (({Array})) or nil if no more
+    row is available.
+
+    Can be also called as iterator.
+
+--- fetch_hash 
+    Returns the current row as (({Hash})) or nil if no more
+    row is available.
+    
+    Can be also called as iterator.
+
+--- fetch_many( cnt )
+    Returns an (({Array})) of the next ((*cnt*)) rows, which are
+    stored as (({DBI::Row})) objects. 
+
+    Returns (({nil})) if there are no more rows.
+
+--- fetch_all
+    Same as ((<fetch_many>)) only that all rows are returned.
+ 
+--- fetch_scroll( direction, offset=1 )
+    ((*direction*)) is one of the following constants:
+    * SQL_FETCH_NEXT
+    * SQL_FETCH_PRIOR
+    * SQL_FETCH_FIRST
+    * SQL_FETCH_LAST
+    * SQL_FETCH_ABSOLUTE
+    * SQL_FETCH_RELATIVE
+    
+    ((*offset*)) is a positive or negativ number (only when SQL_FETCH_RELATIVE is used).
+
+    ((<fetch_scroll>)) do not automatically free the result set if no more rows are available
+    if e.g. you get the last row. 
+    
+    Returns a (({DBI::Row})) object, if not possible, returns (({nil})).
+
+    Note that the returned (({DBI::Row})) object is only a reference and
+    should be copied (dup) if it is stored elsewhere.
+
+
+--- func( function, *values )
+    Calls the driver specific extension function named by
+    ((|function|)) with ((|values|)) as parameters.
+
+
+=end
+

@@ -1,31 +1,18 @@
+require "dbi"
 
-require 'dbi'
+dbh = DBI.connect("dbi:Oracle:oracle.neumann", "scott", "tiger", 'AutoCommit' => false)
 
-dbh = DBI.connect("DBI:mysql:#{ARGV[0]}", ARGV[1], ARGV[2])
-dbh.do('CREATE TABLE dbi_test1 (SongID INT, SongName VARCHAR(255))')
+dbh.do("DROP TABLE MYTEST")
+dbh.do("CREATE TABLE MYTEST (a INT, b VARCHAR2(256), c FLOAT, d VARCHAR2(256))")
 
-puts "inserting..."
-execTime=0
-1.upto(20) do |i|
- mySongName = dbh.quote("Song #{i}")
- dbh.do("INSERT INTO dbi_test1 (SongID, SongName) VALUES (#{i}, #{mySongName})")
- execTime+=dbh.lastDoDur
-end 
-puts "Loop Execution-time was #{execTime} seconds."
+sth = dbh.prepare("INSERT INTO MYTEST VALUES (:1, :2, :3, :4)")
 
-puts "selecting..."
-sth=dbh.prepare('SELECT * FROM dbi_test1')
-sth.execute
-puts "Execution-time was #{sth.lastExecDur} seconds."
-
-while dat=sth.fetchrow_hashref do
- puts dat.inspect
+1.upto(10000) do |i|
+  sth.execute(i.to_s, "Michael der #{i}. von Neumann", (5.6 * i).to_s, "HALLO LEUTE WIE GEHTS DENN SO?")
+  #print i, "\n"
 end
 
-puts "deleting..."
-dbh.do('DELETE FROM dbi_test1 WHERE SongID > 10')
-puts "Execution-time was #{dbh.lastDoDur} seconds."
+dbh.commit
 
-dbh.do('DROP TABLE dbi_test1')
 dbh.disconnect
 
