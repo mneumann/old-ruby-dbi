@@ -1,6 +1,8 @@
 =begin
 
 : 0.0.9
+ * Fixed bug in sql.rb method "quote" (gsub! => gsub). (thanks to Stephen Davies)
+
  * dbd_db2:  return more column_info fields
 
  * dbd_odbc: removed patch required for Ruby/ODBC version 0.4
