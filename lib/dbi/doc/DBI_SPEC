@@ -1,8 +1,8 @@
 =begin
-= DBI Interface Specification Version 0.1 (Draft)
+= DBI Interface Specification Version 0.2 (Draft)
 by Michael Neumann (neumann@s-direknet.de)
 
- $Id: DBI_SPEC,v 1.3 2001/06/11 10:41:38 michael Exp $
+ $Id: DBI_SPEC,v 1.4 2001/08/23 21:00:39 michael Exp $
  
 == Module DBD
 
@@ -23,6 +23,29 @@ by Michael Neumann (neumann@s-direknet.de)
 --- SQL_FETCH_FIRST
 --- SQL_FETCH_LAST
 --- SQL_FETCH_ABSOLUTE
+    Constants for (({StatementHandle#fetch_scroll})).
+
+--- SQL_BIT
+--- SQL_TINYINT
+--- SQL_SMALLINT
+--- SQL_INTEGER
+--- SQL_BIGINT
+--- SQL_FLOAT
+--- SQL_REAL
+--- SQL_DOUBLE
+--- SQL_NUMERIC
+--- SQL_DECIMAL
+--- SQL_CHAR
+--- SQL_VARCHAR
+--- SQL_LONGVARCHAR
+--- SQL_DATE
+--- SQL_TIME
+--- SQL_TIMESTAMP
+--- SQL_BINARY
+--- SQL_VARBINARY
+--- SQL_LONGVARBINARY
+--- SQL_OTHER
+    Constant representing SQL types.
 
 === Exceptions
 
@@ -183,7 +206,11 @@ Abstract base class for all "Handles" (DriverHandle, DatabaseHandle, StatementHa
  
 --- tables
     Returns a list of all tables and views.
- 
+
+--- columns( table )
+    Get more information about the columns of table ((|table|)). 
+    Returns an array containing for each column one (({DBI::ColumnInfo})) object.
+
 --- ping
     Returns (({true})) if the connection is active, otherwise (({false})).
     

@@ -1,8 +1,8 @@
 =begin
-= DBD Specification Version 0.1 (Draft)
+= DBD Specification Version 0.2 (Draft)
 by Michael Neumann (neumann@s-direknet.de)
 
- $Id: DBD_SPEC,v 1.1 2001/05/30 12:47:04 michael Exp $
+ $Id: DBD_SPEC,v 1.2 2001/08/23 21:00:38 michael Exp $
 
 == DBD Directory Layout
 The directory layout is the following:
@@ -121,6 +121,12 @@ This class must inherit from (({DBI::BaseDatabase})).
     Return an Array of all tables and views. 
     
     Defaults to return the empty Array [].
+
+--- columns( table )
+    Return more information about the columns of table ((*table*)). 
+    Return an Array of Hashes, like Statement#column_info do.
+    
+    Defaults to return an empty Array [].
  
 --- execute( statement, *bindvars )
     Immediate execution (without preparation) of SQL ((*statement*))
@@ -200,6 +206,8 @@ This class must inherit from (({DBI::BaseStatement})).
     Return an (({Array})) of (({Hash}))'s, one for each column.
     Each (({Hash})) object must have at least one key 'name' which 
     value is the name of that column.
+    Further possible values are 'type', 'type_name', 'size', 'decimal_digits',
+    'default', 'nullable', 'indexed', 'primary' and 'unique'.
 
 --- rows
     Return the RPC (Row Processed Count) of the last executed statement, or
